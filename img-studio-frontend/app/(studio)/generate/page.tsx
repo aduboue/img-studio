@@ -1,23 +1,26 @@
-"use client";
+'use client'
 
-import * as React from "react";
-import Grid from '@mui/material/Grid';
-import Box from "@mui/material/Box";
-import theme from 'app/theme';
+import * as React from 'react'
+import Grid from '@mui/material/Grid2'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import theme from 'app/theme'
+import GenerateForm from 'app/ui/generate-form'
+import StandardImageList from 'app/ui/image-display'
 
-const palette = theme.palette;
+const palette = theme.palette
 
 export default function Page() {
   return (
-    <Box sx={{p:5, flexGrow: 1}}>
-      <Grid container spacing={5}>
-        <Grid xs={6}>
-          <Box sx={{p:5, width: '100%', bgcolor:'red'}}><p>test</p></Box>
+    <Box p={5}>
+      <Grid container spacing={6} direction="row" columns={2}>
+        <Grid size={1.1}>
+          <GenerateForm />
         </Grid>
-        <Grid xs>
-          <Box><p>test</p></Box>
+        <Grid size={0.9} sx={{ pt: 10 }}>
+          <StandardImageList />
         </Grid>
       </Grid>
     </Box>
-  );
+  )
 }

@@ -8,11 +8,12 @@ const theme = createTheme({
     primary: {
       main: '#4285F4',
       dark: '#1967D2',
-      light: '#8AB4F8',
+      light: '#AECBFA',
     },
     secondary: {
       main: '#5F6368',
       dark: '#202124',
+      light: '#E8EAED'
     },
     text: {
       primary: '#202124',
@@ -52,12 +53,12 @@ const theme = createTheme({
     },
     h1: {
       fontSize: '9rem',
-      fontWeight: 700,
+      fontWeight: 600,
       lineHeight: 0.8,
     },
     h2: {
       fontSize: '5rem',
-      fontWeight: 200,
+      fontWeight: 400,
       lineHeight: 0.8,
     },
     h3: {
@@ -65,16 +66,12 @@ const theme = createTheme({
       fontWeight: 100,
     },
     h4: {
-      fontSize: '2rem',
+      fontSize: '1.5rem',
       fontWeight: 600,
       lineHeight: 1,
     },
-    h5: {
-      fontSize: '3.5rem',
-      fontWeight: 100,
-    },
     body1: {
-      fontSize: '1.1rem',
+      fontSize: '1rem',
       lineHeight: 1.65,
     },
     body2: {
@@ -90,6 +87,22 @@ const theme = createTheme({
   },
   shape: {
     borderRadius: 5,
+  },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
+  components: {
+    MuiButtonBase: {
+      defaultProps: {
+        disableRipple: true
+      },
+    },
   },
 });
 

@@ -1,12 +1,12 @@
-import * as React from 'react';
-import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import theme from './theme';
+import * as React from 'react'
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
+import theme from './theme'
 
 export const metadata = {
-  title: "ImgStudio",
-  description: "My description", //TODO écrire description site
+  title: 'ImgStudio',
+  description: 'My description', //TODO écrire description site
 }
 
 //TODO dynamic routes metadata ?
@@ -24,5 +24,5 @@ export default function RootLayout(props: { children: React.ReactNode }) {
         </AppRouterCacheProvider>
       </body>
     </html>
-  );
+  )
 }

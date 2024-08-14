@@ -7,13 +7,14 @@
   },
   "dependencies": {
     "@emotion/cache": "latest",
-    "@emotion/react": "latest",
-    "@emotion/styled": "latest",
+    "@emotion/react": "^11.13.0",
+    "@emotion/styled": "^11.13.0",
     "@heroicons/react": "^2.1.4",
     "@mui/icons-material": "6.0.0-beta.4",
     "@mui/material": "6.0.0-beta.4",
     "@mui/material-nextjs": "6.0.0-beta.4",
     "@mui/styles": "^5.16.6",
+    "@mui/x-data-grid-pro": "^7.12.0",
     "@tailwindcss/forms": "^0.5.7",
     "@vercel/postgres": "^0.9.0",
     "Unstable_Grid2": "link:@mui/material/Unstable_Grid2",
@@ -26,6 +27,7 @@
     "postcss": "8.4.38",
     "react": "19.0.0-rc-f38c22b244-20240704",
     "react-dom": "19.0.0-rc-f38c22b244-20240704",
+    "react-hook-form": "^7.52.2",
     "tailwindcss": "3.4.4",
     "typescript": "5.5.2",
     "use-debounce": "^10.0.1",
@@ -35,7 +37,8 @@
     "@types/bcrypt": "^5.0.2",
     "@types/node": "20.14.8",
     "@types/react": "18.3.3",
-    "@types/react-dom": "18.3.0"
+    "@types/react-dom": "18.3.0",
+    "@types/react-window": "^1.8.8"
   },
   "engines": {
     "node": ">=20.12.0"
