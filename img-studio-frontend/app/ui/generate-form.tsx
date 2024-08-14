@@ -2,29 +2,39 @@
 
 import * as React from 'react'
 import { useForm, useWatch, Control } from 'react-hook-form'
-import Typography from '@mui/material/Typography'
-import Stack from '@mui/material/Stack'
-import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
+import {
+  Typography,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Button,
+  Box,
+  IconButton,
+  Stack,
+} from '@mui/material'
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
-import RestartAltIcon from '@mui/icons-material/RestartAlt'
 import SendIcon from '@mui/icons-material/Send'
-import theme from 'app/theme'
-import { useState } from 'react'
-import { TextField, MenuItem, Button, Box, FormControl } from '@mui/material'
+import RestartAltIcon from '@mui/icons-material/RestartAlt'
 
-import { generateFields, chipGroupFieldsInterface } from './conf-files/generate-form-fields'
 import { FormInputText } from './components/FormInputText'
 import FormInputDropdown from './components/FormInputDropdown'
 import FormInputChipGroup from './components/FormInputChipGroup'
 import FormInputGenerateSettings from './components/FormInputGenerateSettings'
-const modelField = generateFields.modelVersion
-const generalSettingsFields = generateFields.generalSettings.fields
-const advancedSettingsFields = generateFields.advancedSettings.fields
-const imgStyleField = generateFields.style.fields.img_style
-const subImgStyleFields = generateFields.style.fields.img_sub_style
-const compositionFields = generateFields.composition.fields
 
+import {
+  chipGroupFieldsInterface,
+  modelField,
+  generalSettingsFields,
+  advancedSettingsFields,
+  imgStyleField,
+  subImgStyleFields,
+  compositionFields,
+  formDataInterface,
+  formDataDefaults,
+  formDataResetableFields,
+} from './conf-files/generate-form-definitions'
+
+import theme from 'app/theme'
 const palette = theme.palette
 
 const CustomizedSendButton = {
@@ -71,49 +81,6 @@ const CustomizedAccordionSummary = {
     color: palette.primary.main,
   },
 }
-
-interface formDataInterface {
-  prompt: string
-  model_version: string
-  sampleCount: string
-  aspectRatio: string
-  personGeneration: string
-  outputOptions: string
-  img_style: string
-  img_sub_style: string
-  img_light: string
-  img_light_origin: string
-  img_view_angle: string
-  img_perspective: string
-  img_background: string
-}
-
-const formDataDefaults = {
-  prompt: '',
-  model_version: modelField.default,
-  sampleCount: generalSettingsFields.sampleCount.default,
-  aspectRatio: generalSettingsFields.aspectRatio.default,
-  personGeneration: advancedSettingsFields.personGeneration.default,
-  outputOptions: advancedSettingsFields.outputOptions.default,
-  img_style: imgStyleField.default,
-  img_sub_style: imgStyleField.defaultSub,
-  img_light: '',
-  img_light_origin: '',
-  img_view_angle: '',
-  img_perspective: '',
-  img_background: '',
-}
-
-const formDataResetableFields = [
-  'prompt',
-  'img_style',
-  'img_sub_style',
-  'img_light',
-  'img_light_origin',
-  'img_view_angle',
-  'img_perspective',
-  'img_background',
-]
 
 export default function GenerateForm() {
   const { handleSubmit, resetField, control, setValue } = useForm<formDataInterface>({

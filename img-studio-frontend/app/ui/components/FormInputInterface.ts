@@ -1,4 +1,4 @@
-import { advancedSettingsInterface, chipGroupFieldsInterface, generalSettingsInterface, selectFieldsInterface } from "../conf-files/generate-form-fields";
+import { advancedSettingsInterface, chipGroupFieldsInterface, generalSettingsInterface, selectFieldsInterface } from "../conf-files/generate-form-definitions";
 
 export interface FormTextInputInterface {
   name: string;

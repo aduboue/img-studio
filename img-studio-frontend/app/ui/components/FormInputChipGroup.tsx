@@ -1,16 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Controller } from 'react-hook-form'
-import {
-  Chip,
-  Stack,
-  Box,
-  Typography,
-  Button,
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-} from '@mui/material'
+import { Chip, Stack, Box, Typography, FormControl } from '@mui/material'
 
 import theme from 'app/theme'
 const palette = theme.palette

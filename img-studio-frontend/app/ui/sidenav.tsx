@@ -1,19 +1,23 @@
 'use client'
 
 import * as React from 'react'
-import Drawer from '@mui/material/Drawer'
-import List from '@mui/material/List'
-import ListItem from '@mui/material/ListItem'
-import Typography from '@mui/material/Typography'
-import ListItemButton from '@mui/material/ListItemButton'
-import Stack from '@mui/material/Stack'
-import Tooltip from '@mui/material/Tooltip'
-import Fade from '@mui/material/Fade'
-import IconButton from '@mui/material/IconButton'
+import { useRouter } from 'next/navigation'
+
+import {
+  Drawer,
+  List,
+  ListItem,
+  Typography,
+  ListItemButton,
+  Stack,
+  Tooltip,
+  Fade,
+  IconButton,
+} from '@mui/material'
 import LogoutIcon from '@mui/icons-material/Logout'
+
 import Image from 'next/image'
 import icon from 'public/ImgStudioLogoReversedMini.svg'
-import { useRouter } from 'next/navigation'
 import { pages } from 'app/ui/conf-files/routes'
 
 import theme from 'app/theme'

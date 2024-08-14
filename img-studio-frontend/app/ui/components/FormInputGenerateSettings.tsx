@@ -1,12 +1,10 @@
 import * as React from 'react'
-import { IconButton, FormControl, TextField, Typography, Box } from '@mui/material'
-import Menu from '@mui/material/Menu'
-import MenuItem from '@mui/material/MenuItem'
+import { IconButton, Typography, Box, Menu, MenuItem } from '@mui/material'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+
 import theme from 'app/theme'
 const palette = theme.palette
 
-import { generateFields } from '../conf-files/generate-form-fields'
 import FormInputDropdown from './FormInputDropdown'
 import FormInputChipGroup from './FormInputChipGroup'
 import { FormInputGenerateSettingsInterface } from './FormInputInterface'
