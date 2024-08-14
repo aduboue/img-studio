@@ -53,12 +53,12 @@ export default function FormInputGenerateSettings({
       color: palette.primary.main,
       transform: 'rotate(45deg)',
     },
-    fontSize: '27px',
+    fontSize: '25px',
   }
 
   return (
     <>
-      <IconButton onClick={handleClick} sx={{ p: 0 }}>
+      <IconButton onClick={handleClick} sx={{ p: 0, pr: 0.5 }}>
         <SettingsOutlinedIcon sx={CustomizedIconButton} />
       </IconButton>
       <Menu

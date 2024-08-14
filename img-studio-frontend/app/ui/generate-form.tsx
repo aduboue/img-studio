@@ -104,8 +104,19 @@ const formDataDefaults = {
   img_background: '',
 }
 
+const formDataResetableFields = [
+  'prompt',
+  'img_style',
+  'img_sub_style',
+  'img_light',
+  'img_light_origin',
+  'img_view_angle',
+  'img_perspective',
+  'img_background',
+]
+
 export default function GenerateForm() {
-  const { handleSubmit, reset, control, setValue } = useForm<formDataInterface>({
+  const { handleSubmit, resetField, control, setValue } = useForm<formDataInterface>({
     defaultValues: formDataDefaults,
   })
 
@@ -122,6 +133,10 @@ export default function GenerateForm() {
     setValue('img_sub_style', '')
 
     return subImgStyleField
+  }
+
+  const onReset = () => {
+    formDataResetableFields.forEach((field) => resetField(field as keyof formDataInterface))
   }
 
   const onSubmit = (formData: formDataInterface) => {
@@ -154,23 +169,11 @@ export default function GenerateForm() {
         required={true}
       />
 
-      <Stack justifyContent="flex-end" direction="row" gap={1.2} pb={3}>
-        <FormInputGenerateSettings
-          control={control}
-          setValue={setValue}
-          generalSettingsFields={generalSettingsFields}
-          advancedSettingsFields={advancedSettingsFields}
-        />
-        <IconButton
-          onClick={() => {
-            reset(formDataDefaults)
-          }}
-          aria-label="Reset form"
-          sx={{ p: 0 }}
-        >
+      <Stack justifyContent="flex-end" direction="row" gap={0.5} pb={3}>
+        <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ p: 0 }}>
           <RestartAltIcon
             sx={{
-              fontSize: '30px',
+              fontSize: '25px',
               '&:hover': {
                 color: palette.primary.main,
                 transform: 'rotate(-45deg)',
@@ -178,6 +181,12 @@ export default function GenerateForm() {
             }}
           />
         </IconButton>
+        <FormInputGenerateSettings
+          control={control}
+          setValue={setValue}
+          generalSettingsFields={generalSettingsFields}
+          advancedSettingsFields={advancedSettingsFields}
+        />
         <Button
           onClick={handleSubmit(onSubmit)}
           variant="contained"
