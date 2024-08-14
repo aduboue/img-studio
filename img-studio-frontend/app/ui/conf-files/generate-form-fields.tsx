@@ -139,7 +139,7 @@ export const generateFields: generateFieldsInterface = {
           },
           {
             label: 'Digital creation style',
-            subID: 'artSub',
+            subID: 'digitalSub',
             type: 'chip-group',
             options: ['Illustration', 'Pixel Art', 'Vector Art', '3D Rendering'],
           },

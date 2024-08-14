@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, useWatch, Control } from 'react-hook-form'
 import Typography from '@mui/material/Typography'
 import Stack from '@mui/material/Stack'
 import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material'
@@ -22,10 +22,7 @@ const modelField = generateFields.modelVersion
 const generalSettingsFields = generateFields.generalSettings.fields
 const advancedSettingsFields = generateFields.advancedSettings.fields
 const imgStyleField = generateFields.style.fields.img_style
-const subImgStyleField = generateFields.style.fields.img_sub_style
-const subImgStyleFieldDefault: chipGroupFieldsInterface = subImgStyleField.options.filter(
-  (option) => option.subID === imgStyleField.defaultSub
-)[0] //TODO temp
+const subImgStyleFields = generateFields.style.fields.img_sub_style
 const compositionFields = generateFields.composition.fields
 
 const palette = theme.palette
@@ -108,9 +105,24 @@ const formDataDefaults = {
 }
 
 export default function GenerateForm() {
-  const { handleSubmit, reset, control, setValue, getValues } = useForm<formDataInterface>({
+  const { handleSubmit, reset, control, setValue } = useForm<formDataInterface>({
     defaultValues: formDataDefaults,
   })
+
+  const subImgStyleField = (control: Control<formDataInterface, any>) => {
+    const currentPrimaryStyle: string = useWatch({ control, name: 'img_style' })
+    const currentAssociatedSubId: string = imgStyleField.options.filter(
+      (option) => option.value === currentPrimaryStyle
+    )[0].subID
+
+    const subImgStyleField: chipGroupFieldsInterface = subImgStyleFields.options.filter(
+      (option) => option.subID === currentAssociatedSubId
+    )[0]
+
+    setValue('img_sub_style', '')
+
+    return subImgStyleField
+  }
 
   const onSubmit = (formData: formDataInterface) => {
     console.log(formData) // TODO Replace with your submission logic
@@ -175,7 +187,7 @@ export default function GenerateForm() {
           Send
         </Button>
       </Stack>
-      <Accordion disableGutters sx={CustomizedAccordion} expanded>
+      <Accordion disableGutters sx={CustomizedAccordion} defaultExpanded>
         <AccordionSummary
           expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
           aria-controls="panel1-content"
@@ -183,7 +195,7 @@ export default function GenerateForm() {
           sx={CustomizedAccordionSummary}
         >
           <Typography display="inline" variant="body2" sx={{ fontWeight: 500 }}>
-            Style & Composition
+            Customize Style & Composition
           </Typography>
           <Typography
             display="inline"
@@ -202,7 +214,7 @@ export default function GenerateForm() {
                 flexWrap="wrap"
                 justifyContent="flex-start"
                 alignItems="flex-start"
-                sx={{ pt: 1 }}
+                sx={{ pt: 1, height: 100 }}
               >
                 <FormInputDropdown
                   name="img_style"
@@ -215,12 +227,12 @@ export default function GenerateForm() {
                 />
                 <FormInputChipGroup
                   name="img_sub_style"
-                  label={subImgStyleFieldDefault.label}
+                  label={subImgStyleField(control).label}
                   control={control}
                   setValue={setValue}
                   width="400px"
                   mandatory={false}
-                  field={subImgStyleFieldDefault}
+                  field={subImgStyleField(control)}
                   required={false}
                 />
               </Stack>
