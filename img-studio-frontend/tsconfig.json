@@ -26,11 +26,10 @@
   },
   "include": [
     "next-env.d.ts",
+    "types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts",
-    "app/lib/placeholder-data.ts",
-    "scripts/seed.js"
+    ".next/types/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

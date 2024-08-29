@@ -5,7 +5,7 @@ import { Chip, Stack, Box, Typography, FormControl } from '@mui/material'
 import theme from 'app/theme'
 const palette = theme.palette
 
-import { FormChipGroupInputInterface } from './FormInputInterface'
+import { FormChipGroupInputI } from './FormInputInterface'
 
 const CustomizedChip = {
   fontSize: '1rem',
@@ -36,14 +36,8 @@ export default function FormInputChipGroup({
   setValue,
   field,
   required,
-}: FormChipGroupInputInterface) {
-  const handleChipClick = ({
-    clickedValue,
-    currentValue,
-  }: {
-    clickedValue: string
-    currentValue: string
-  }) => {
+}: FormChipGroupInputI) {
+  const handleChipClick = ({ clickedValue, currentValue }: { clickedValue: string; currentValue: string }) => {
     mandatory
       ? setValue(name, clickedValue)
       : clickedValue !== currentValue

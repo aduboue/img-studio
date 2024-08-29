@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 
 import {
   Drawer,
@@ -18,7 +19,7 @@ import LogoutIcon from '@mui/icons-material/Logout'
 
 import Image from 'next/image'
 import icon from 'public/ImgStudioLogoReversedMini.svg'
-import { pages } from 'app/ui/conf-files/routes'
+import { pages } from '../routes'
 
 import theme from 'app/theme'
 const palette = theme.palette
@@ -51,7 +52,7 @@ const CustomizedMenuItem = {
 }
 
 export default function PermanentDrawerLeft() {
-  const [selectedPage, setSelectedPage] = React.useState(pages[0].name)
+  const [selectedPage, setSelectedPage] = React.useState(pages.Generate.name)
   const router = useRouter()
 
   const handleListItemClick = (
@@ -70,7 +71,7 @@ export default function PermanentDrawerLeft() {
           <Image priority src={icon} width={200} alt="ImgStudio" />
         </ListItem>
 
-        {pages.map(({ name, description, href, status }) => (
+        {Object.values(pages).map(({ name, description, href, status }) => (
           <ListItemButton
             key={name}
             selected={selectedPage == name}
@@ -124,7 +125,7 @@ export default function PermanentDrawerLeft() {
             },
           }}
         >
-          <IconButton aria-label="Log out" sx={{ px: 2, py: 1 }} href="/">
+          <IconButton onClick={() => signOut()} aria-label="Log out" sx={{ px: 2, py: 1 }}>
             <LogoutIcon
               sx={{
                 fontSize: 30,

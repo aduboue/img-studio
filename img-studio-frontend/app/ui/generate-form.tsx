@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useForm, useWatch, Control } from 'react-hook-form'
+import { useForm, useWatch, Control, SubmitHandler } from 'react-hook-form'
 import {
   Typography,
   Accordion,
@@ -11,10 +11,17 @@ import {
   Box,
   IconButton,
   Stack,
+  Alert,
+  Avatar,
+  Tooltip,
 } from '@mui/material'
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
-import SendIcon from '@mui/icons-material/Send'
-import RestartAltIcon from '@mui/icons-material/RestartAlt'
+import {
+  Send as SendIcon,
+  WatchLater as WatchLaterIcon,
+  ArrowDownward as ArrowDownwardIcon,
+  Close as CloseIcon,
+  Autorenew,
+} from '@mui/icons-material'
 
 import { FormInputText } from './components/FormInputText'
 import FormInputDropdown from './components/FormInputDropdown'
@@ -22,19 +29,25 @@ import FormInputChipGroup from './components/FormInputChipGroup'
 import FormInputGenerateSettings from './components/FormInputGenerateSettings'
 
 import {
-  chipGroupFieldsInterface,
+  chipGroupFieldsI,
   modelField,
   generalSettingsFields,
   advancedSettingsFields,
   imgStyleField,
   subImgStyleFields,
   compositionFields,
-  formDataInterface,
+  formDataI,
   formDataDefaults,
   formDataResetableFields,
-} from './conf-files/generate-form-definitions'
+  ImageI,
+} from '../api/imagen-generate/generate-definitions'
 
 import theme from 'app/theme'
+import { generateImage } from '../api/imagen-generate/action'
+import { GeminiSwitch } from './components/GeminiSwitch'
+import { CustomizedAvartButton, CustomizedIconButton } from './components/ButtonIconSX'
+import { useState } from 'react'
+import CustomTooltip from './components/CustomTooltip'
 const palette = theme.palette
 
 const CustomizedSendButton = {
@@ -43,8 +56,9 @@ const CustomizedSendButton = {
   borderColor: 'white',
   boxShadow: 0,
   my: 1.5,
+  ml: 1,
   py: 0.5,
-  px: 1.5,
+  pr: 1.5,
   fontSize: '1rem',
   '&:hover': {
     background: 'white',
@@ -82,52 +96,116 @@ const CustomizedAccordionSummary = {
   },
 }
 
-export default function GenerateForm() {
-  const { handleSubmit, resetField, control, setValue } = useForm<formDataInterface>({
+export default function GenerateForm({
+  isLoading,
+  onRequestSent,
+  onImageGeneration,
+  errorMsg,
+  onNewErrorMsg,
+}: {
+  isLoading: boolean
+  onRequestSent: (valid: boolean) => void
+  onImageGeneration: (newImages: ImageI[]) => void
+  errorMsg: string
+  onNewErrorMsg: (newErrorMsg: string) => void
+}) {
+  const { handleSubmit, resetField, control, setValue, getValues } = useForm<formDataI>({
     defaultValues: formDataDefaults,
   })
 
-  const subImgStyleField = (control: Control<formDataInterface, any>) => {
-    const currentPrimaryStyle: string = useWatch({ control, name: 'img_style' })
+  const [isGeminiRewrite, setIsGeminiRewrite] = useState(true)
+  const handleGeminiRewrite = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIsGeminiRewrite(event.target.checked)
+  }
+
+  const onSubmit: SubmitHandler<formDataI> = async (formData: formDataI) => {
+    console.log('Launching image generation')
+    onRequestSent(true)
+
+    try {
+      const newGeneratedImages = await generateImage(formData, isGeminiRewrite)
+
+      if (typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
+        const errorMsg = JSON.stringify(newGeneratedImages['error']).replaceAll('Error: ', '')
+        throw Error(errorMsg)
+      } else {
+        newGeneratedImages.map((image) => {
+          if ('warning' in image) {
+            onNewErrorMsg(image['warning'] as string)
+          }
+        })
+
+        onImageGeneration(newGeneratedImages)
+      }
+    } catch (error: any) {
+      console.log('ERROR/ ' + error)
+      onNewErrorMsg(error.toString())
+    }
+  }
+
+  const subImgStyleField = (control: Control<formDataI, any>) => {
+    const currentPrimaryStyle: string = useWatch({ control, name: 'style' })
     const currentAssociatedSubId: string = imgStyleField.options.filter(
       (option) => option.value === currentPrimaryStyle
     )[0].subID
 
-    const subImgStyleField: chipGroupFieldsInterface = subImgStyleFields.options.filter(
+    const subImgStyleField: chipGroupFieldsI = subImgStyleFields.options.filter(
       (option) => option.subID === currentAssociatedSubId
     )[0]
 
-    setValue('img_sub_style', '')
+    const currentSecondaryStyle: string = getValues('secondary_style')
+    if (!subImgStyleField.options.includes(currentSecondaryStyle)) {
+      subImgStyleField.default ? setValue('secondary_style', subImgStyleField.default) : null
+    }
 
     return subImgStyleField
   }
 
   const onReset = () => {
-    formDataResetableFields.forEach((field) => resetField(field as keyof formDataInterface))
-  }
-
-  const onSubmit = (formData: formDataInterface) => {
-    console.log(formData) // TODO Replace with your submission logic
+    formDataResetableFields.forEach((field) => resetField(field as keyof formDataI))
   }
 
   return (
-    <Box>
+    <form onSubmit={handleSubmit(onSubmit)}>
       <Box sx={{ pb: 5 }}>
         <Stack direction="row" spacing={2} justifyContent="flex-start" alignItems="center">
           <Typography variant="h2" color={palette.text.secondary} sx={{ fontSize: '1.8rem' }}>
             {'Generating with'}
           </Typography>
           <FormInputDropdown
-            name="model_version"
+            name="modelVersion"
             label=""
             control={control}
             field={modelField}
             styleSize="big"
             width=""
-            required={true}
+            required={false}
           />
         </Stack>
       </Box>
+      <>
+        {errorMsg !== '' ? (
+          <Alert
+            severity="error"
+            action={
+              <IconButton
+                aria-label="close"
+                color="inherit"
+                size="small"
+                onClick={() => {
+                  onRequestSent(false)
+                }}
+                sx={{ pt: 0.2 }}
+              >
+                <CloseIcon fontSize="inherit" />
+              </IconButton>
+            }
+            sx={{ mb: 2, fontSize: 16, fontWeight: 500, pt: 1, color: palette.text.secondary }}
+          >
+            {errorMsg}
+          </Alert>
+        ) : null}
+      </>
 
       <FormInputText
         name="prompt"
@@ -136,31 +214,31 @@ export default function GenerateForm() {
         required={true}
       />
 
-      <Stack justifyContent="flex-end" direction="row" gap={0.5} pb={3}>
-        <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ p: 0 }}>
-          <RestartAltIcon
-            sx={{
-              fontSize: '25px',
-              '&:hover': {
-                color: palette.primary.main,
-                transform: 'rotate(-45deg)',
-              },
-            }}
-          />
-        </IconButton>
+      <Stack justifyContent="flex-end" direction="row" gap={0} pb={3}>
+        <CustomTooltip title="Reset all fields" size="small">
+          <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ pr: 0.6 }}>
+            <Avatar sx={CustomizedAvartButton}>
+              <Autorenew sx={CustomizedIconButton} />
+            </Avatar>
+          </IconButton>
+        </CustomTooltip>
         <FormInputGenerateSettings
           control={control}
           setValue={setValue}
           generalSettingsFields={generalSettingsFields}
           advancedSettingsFields={advancedSettingsFields}
         />
+        <CustomTooltip title="Have Gemini enhance your prompt" size="small">
+          <GeminiSwitch checked={isGeminiRewrite} onChange={handleGeminiRewrite} />
+        </CustomTooltip>
         <Button
-          onClick={handleSubmit(onSubmit)}
+          type="submit"
           variant="contained"
-          endIcon={<SendIcon />}
+          disabled={isLoading}
+          endIcon={isLoading ? <WatchLaterIcon /> : <SendIcon />}
           sx={CustomizedSendButton}
         >
-          Send
+          {'Send'}
         </Button>
       </Stack>
       <Accordion disableGutters sx={CustomizedAccordion} defaultExpanded>
@@ -173,11 +251,7 @@ export default function GenerateForm() {
           <Typography display="inline" variant="body2" sx={{ fontWeight: 500 }}>
             Customize Style & Composition
           </Typography>
-          <Typography
-            display="inline"
-            variant="caption"
-            sx={{ pl: 1, fontSize: '0.8rem', fontWeight: 400 }}
-          >
+          <Typography display="inline" variant="caption" sx={{ pl: 1, fontSize: '0.8rem', fontWeight: 400 }}>
             (optional)
           </Typography>
         </AccordionSummary>
@@ -193,8 +267,8 @@ export default function GenerateForm() {
                 sx={{ pt: 1, height: 100 }}
               >
                 <FormInputDropdown
-                  name="img_style"
-                  label={imgStyleField.label}
+                  name="style"
+                  label="Primary style"
                   control={control}
                   field={imgStyleField}
                   styleSize="small"
@@ -202,7 +276,7 @@ export default function GenerateForm() {
                   required={false}
                 />
                 <FormInputChipGroup
-                  name="img_sub_style"
+                  name="secondary_style"
                   label={subImgStyleField(control).label}
                   control={control}
                   setValue={setValue}
@@ -214,14 +288,10 @@ export default function GenerateForm() {
               </Stack>
             </Box>
             <Box>
-              <Stack
-                direction="row"
-                spacing={0}
-                sx={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}
-              >
+              <Stack direction="row" spacing={0} sx={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
                 {Object.entries(compositionFields).map(function ([param, field]) {
                   return (
-                    <Box py={1} width="50%">
+                    <Box key={param} py={1} width="50%">
                       <FormInputChipGroup
                         name={param}
                         label={field.label}
@@ -241,6 +311,6 @@ export default function GenerateForm() {
           </Stack>
         </AccordionDetails>
       </Accordion>
-    </Box>
+    </form>
   )
 }

@@ -1,37 +1,37 @@
-import { advancedSettingsInterface, chipGroupFieldsInterface, generalSettingsInterface, selectFieldsInterface } from "../conf-files/generate-form-definitions";
+import { advancedSettingsI, chipGroupFieldsI, generalSettingsI, selectFieldsI } from "../../api/imagen-generate/generate-definitions";
 
-export interface FormTextInputInterface {
+export interface FormTextInputI {
   name: string;
   label: string;
   control:any;
   required: boolean;
 }
 
-export interface FormDropdownInputInterface {
+export interface FormDropdownInputI {
   name: string;
   label: string;
   control:any;
   styleSize: string;
   width: string;
   setValue?: any;
-  field: selectFieldsInterface;
+  field: selectFieldsI;
   required: boolean;
 }
 
-export interface FormChipGroupInputInterface {
+export interface FormChipGroupInputI {
   name: string;
   label: string;
   control:any;
   width:string;
   mandatory:boolean;
   setValue?: any;
-  field?: chipGroupFieldsInterface;
+  field?: chipGroupFieldsI;
   required: boolean;
 }
 
-export interface FormInputGenerateSettingsInterface {
+export interface FormInputGenerateSettingsI {
   control:any;
   setValue?: any;
-  generalSettingsFields: generalSettingsInterface;
-  advancedSettingsFields: advancedSettingsInterface;
+  generalSettingsFields: generalSettingsI;
+  advancedSettingsFields: advancedSettingsI;
 }

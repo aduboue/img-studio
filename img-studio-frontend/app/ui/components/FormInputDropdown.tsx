@@ -1,27 +1,13 @@
 import * as React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
-import { FormDropdownInputInterface } from './FormInputInterface'
+import { FormDropdownInputI } from './FormInputInterface'
 
-import { TextField, MenuItem, Tooltip, FormControl, Fade } from '@mui/material'
+import { TextField, MenuItem, Tooltip, FormControl, Fade, Box } from '@mui/material'
 
 import theme from 'app/theme'
+import CustomTooltip from './CustomTooltip'
 const palette = theme.palette
-
-const CustomizedTooltip = {
-  sx: {
-    '& .MuiTooltip-tooltip': {
-      backgroundColor: 'transparent',
-      color: palette.text.primary,
-    },
-  },
-  modifiers: [
-    {
-      name: 'offset',
-      options: { offset: [-10, -25] },
-    },
-  ],
-}
 
 const CustomizedInput = (styleSize: string) => {
   var style = { color: palette.primary.main }
@@ -99,9 +85,14 @@ export default function FormInputDropdown({
   label,
   field,
   required,
-}: FormDropdownInputInterface) {
+}: FormDropdownInputI) {
   const [selectedItem, setSelectedItem] = useState(String)
   const [itemIndication, setItemIndication] = useState(String)
+
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
 
   const handleClick = (value: string, indication: string | undefined) => {
     setSelectedItem(value)
@@ -109,17 +100,10 @@ export default function FormInputDropdown({
   }
 
   return (
-    <FormControl size={'small'}>
-      <Controller
-        render={({ field: { onChange, value } }) => (
-          <Tooltip
-            title={itemIndication == null ? '' : itemIndication}
-            placement="top-start"
-            disableInteractive
-            TransitionComponent={Fade}
-            TransitionProps={{ timeout: 600 }}
-            slotProps={{ popper: CustomizedTooltip }}
-          >
+    <CustomTooltip title={itemIndication == null ? '' : itemIndication} size="big">
+      <FormControl size={'small'}>
+        <Controller
+          render={({ field: { onChange, value } }) => (
             <TextField
               onChange={onChange}
               value={value}
@@ -149,12 +133,12 @@ export default function FormInputDropdown({
                 )
               })}
             </TextField>
-          </Tooltip>
-        )}
-        control={control}
-        name={name}
-        rules={{ required: required }}
-      />
-    </FormControl>
+          )}
+          control={control}
+          name={name}
+          rules={{ required: required }}
+        />
+      </FormControl>
+    </CustomTooltip>
   )
 }

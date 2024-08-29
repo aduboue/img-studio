@@ -1,9 +1,9 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import { TextField } from '@mui/material'
-import { FormTextInputInterface } from './FormInputInterface'
+import { FormTextInputI } from './FormInputInterface'
 
-export const FormInputText = ({ name, control, label, required }: FormTextInputInterface) => {
+export const FormInputText = ({ name, control, label, required }: FormTextInputI) => {
   return (
     <Controller
       name={name}

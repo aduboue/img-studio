@@ -1,14 +1,16 @@
 import * as React from 'react'
-import { IconButton, Typography, Box, Menu, MenuItem } from '@mui/material'
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
+import { IconButton, Typography, Box, Menu, MenuItem, Avatar } from '@mui/material'
+import { CustomizedAvartButton, CustomizedIconButton, CustomizedIconButtonOpen } from './ButtonIconSX'
 
 import theme from 'app/theme'
 const palette = theme.palette
 
 import FormInputDropdown from './FormInputDropdown'
 import FormInputChipGroup from './FormInputChipGroup'
-import { FormInputGenerateSettingsInterface } from './FormInputInterface'
+import { FormInputGenerateSettingsI } from './FormInputInterface'
 import { FormInputTextSmall } from './FormInputTextSmall'
+import { BuildCircle, Settings } from '@mui/icons-material'
+import CustomTooltip from './CustomTooltip'
 
 const CustomizedMenu = {
   '& .MuiPaper-root': {
@@ -29,7 +31,7 @@ export default function FormInputGenerateSettings({
   setValue,
   generalSettingsFields,
   advancedSettingsFields,
-}: FormInputGenerateSettingsInterface) {
+}: FormInputGenerateSettingsI) {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -42,23 +44,20 @@ export default function FormInputGenerateSettings({
     setAnchorEl(null)
   }
 
-  const CustomizedIconButton = {
-    ...(open === true && {
-      color: palette.primary.main,
-      transform: 'rotate(45deg)',
-    }),
-    '&:hover': {
-      color: palette.primary.main,
-      transform: 'rotate(45deg)',
-    },
-    fontSize: '25px',
-  }
-
   return (
     <>
-      <IconButton onClick={handleClick} sx={{ p: 0, pr: 0.5 }}>
-        <SettingsOutlinedIcon sx={CustomizedIconButton} />
-      </IconButton>
+      <CustomTooltip title="Open settings" size="small">
+        <IconButton onClick={handleClick} sx={{ p: 0 }}>
+          <Avatar sx={{ ...CustomizedAvartButton, ...(open === true && CustomizedIconButtonOpen) }}>
+            <Settings
+              sx={{
+                ...CustomizedIconButton,
+                ...(open === true && CustomizedIconButtonOpen),
+              }}
+            />
+          </Avatar>
+        </IconButton>
+      </CustomTooltip>
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{
@@ -75,7 +74,7 @@ export default function FormInputGenerateSettings({
       >
         {Object.entries(generalSettingsFields).map(function ([param, field]) {
           return (
-            <MenuItem>
+            <MenuItem key={param}>
               <FormInputChipGroup
                 name={param}
                 label={field.label}
@@ -93,7 +92,7 @@ export default function FormInputGenerateSettings({
 
         {Object.entries(advancedSettingsFields).map(function ([param, field]) {
           return (
-            <MenuItem>
+            <MenuItem key={param}>
               <FormInputDropdown
                 name={param}
                 label={field.label}
@@ -107,7 +106,7 @@ export default function FormInputGenerateSettings({
             </MenuItem>
           )
         })}
-        <MenuItem>
+        <MenuItem key={'negativePrompt'}>
           <Box
             sx={{
               display: 'flex',
@@ -130,12 +129,7 @@ export default function FormInputGenerateSettings({
               {'Negative prompt (content to avoid)'}
             </Typography>
 
-            <FormInputTextSmall
-              name="negativePrompt"
-              label="negativePrompt"
-              control={control}
-              required={false}
-            />
+            <FormInputTextSmall name="negativePrompt" label="negativePrompt" control={control} required={false} />
           </Box>
         </MenuItem>
       </Menu>
