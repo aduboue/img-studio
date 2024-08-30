@@ -81,7 +81,6 @@ export async function generateImage(formData: formDataI, isGeminiRewrite: boolea
 
   if (isGeminiRewrite) {
     fullPrompt = await rewriteWithGemini(fullPrompt)
-    fullPrompt = fullPrompt.replaceAll('*', '')
   }
 
   const data = {

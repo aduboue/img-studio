@@ -2,6 +2,8 @@ import React from 'react'
 import { Controller } from 'react-hook-form'
 import { TextField } from '@mui/material'
 import { FormTextInputI } from './FormInputInterface'
+import theme from 'app/theme'
+const palette = theme.palette
 
 export const FormInputText = ({ name, control, label, required }: FormTextInputI) => {
   return (
@@ -20,7 +22,21 @@ export const FormInputText = ({ name, control, label, required }: FormTextInputI
           required
           multiline
           rows={4}
-          sx={{ fontSize: '4rem' }}
+          sx={{
+            fontSize: '4rem',
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: palette.secondary.light,
+              },
+              '&:hover fieldset': {
+                borderColor: palette.secondary.main,
+              },
+              '&.Mui-focused fieldset': {
+                border: 1,
+                borderColor: palette.primary.main,
+              },
+            },
+          }}
         />
       )}
     />

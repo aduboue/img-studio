@@ -13,22 +13,25 @@ export async function rewriteWithGemini(userPrompt: string) {
     model: geminiModel,
   })
 
-  const rewritPrompt =
+  const rewritePrompt =
     'Give me only one option, give me only your answer for the new prompt, no introductionnary text, can you make this prompt more performant and specific while staying true to exactly what was asked: ' +
     userPrompt
 
   try {
     debugger
-    const resp = await generativeModel.generateContent(rewritPrompt)
+    const resp = await generativeModel.generateContent(rewritePrompt)
     const contentResponse = await resp.response
 
     if ('error' in contentResponse) {
-      throw Error(contentResponse.error.toString())
+      throw Error(contentResponse.error.toString().replaceAll('\n', ''))
+    }
+
+    if (contentResponse.instances !== undefined && 'error' in contentResponse.instances[0].prompt) {
+      throw Error(contentResponse.instances[0].prompt.toString().replaceAll('\n', ''))
     }
 
     const newPrompt = contentResponse.candidates[0].content.parts[0].text
 
-    console.log('New prompt = ' + newPrompt)
     return newPrompt
   } catch (error) {
     return {

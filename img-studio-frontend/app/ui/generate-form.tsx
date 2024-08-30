@@ -48,6 +48,8 @@ import { GeminiSwitch } from './components/GeminiSwitch'
 import { CustomizedAvartButton, CustomizedIconButton } from './components/ButtonIconSX'
 import { useState } from 'react'
 import CustomTooltip from './components/CustomTooltip'
+import ExportStepper from './components/ExportStepper'
+import { CustomizedAccordion, CustomizedAccordionSummary } from './components/CustomAccordionSX'
 const palette = theme.palette
 
 const CustomizedSendButton = {
@@ -66,33 +68,6 @@ const CustomizedSendButton = {
     border: 1,
     borderColor: palette.primary.main,
     boxShadow: 0,
-  },
-}
-
-const CustomizedAccordion = {
-  maxHeight: '430px',
-  overflowY: 'scroll',
-  bgcolor: 'transparent',
-  boxShadow: 0,
-  '&:before': {
-    display: 'none',
-  },
-  '&.Mui-expanded': {
-    borderRadius: 1,
-    border: 1,
-    borderWidth: 1,
-    borderColor: palette.secondary.main,
-    minHeight: 0,
-    margin: 0,
-  },
-}
-
-const CustomizedAccordionSummary = {
-  backgroundColor: palette.background.paper,
-  color: 'white',
-  '&.Mui-expanded': {
-    backgroundColor: 'white',
-    color: palette.primary.main,
   },
 }
 
@@ -166,151 +141,155 @@ export default function GenerateForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Box sx={{ pb: 5 }}>
-        <Stack direction="row" spacing={2} justifyContent="flex-start" alignItems="center">
-          <Typography variant="h2" color={palette.text.secondary} sx={{ fontSize: '1.8rem' }}>
-            {'Generating with'}
-          </Typography>
-          <FormInputDropdown
-            name="modelVersion"
-            label=""
-            control={control}
-            field={modelField}
-            styleSize="big"
-            width=""
-            required={false}
-          />
-        </Stack>
-      </Box>
-      <>
-        {errorMsg !== '' ? (
-          <Alert
-            severity="error"
-            action={
-              <IconButton
-                aria-label="close"
-                color="inherit"
-                size="small"
-                onClick={() => {
-                  onRequestSent(false)
-                }}
-                sx={{ pt: 0.2 }}
-              >
-                <CloseIcon fontSize="inherit" />
-              </IconButton>
-            }
-            sx={{ mb: 2, fontSize: 16, fontWeight: 500, pt: 1, color: palette.text.secondary }}
-          >
-            {errorMsg}
-          </Alert>
-        ) : null}
-      </>
-
-      <FormInputText
-        name="prompt"
-        control={control}
-        label="Prompt - What would you like to generate?"
-        required={true}
-      />
-
-      <Stack justifyContent="flex-end" direction="row" gap={0} pb={3}>
-        <CustomTooltip title="Reset all fields" size="small">
-          <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ pr: 0.6 }}>
-            <Avatar sx={CustomizedAvartButton}>
-              <Autorenew sx={CustomizedIconButton} />
-            </Avatar>
-          </IconButton>
-        </CustomTooltip>
-        <FormInputGenerateSettings
-          control={control}
-          setValue={setValue}
-          generalSettingsFields={generalSettingsFields}
-          advancedSettingsFields={advancedSettingsFields}
-        />
-        <CustomTooltip title="Have Gemini enhance your prompt" size="small">
-          <GeminiSwitch checked={isGeminiRewrite} onChange={handleGeminiRewrite} />
-        </CustomTooltip>
-        <Button
-          type="submit"
-          variant="contained"
-          disabled={isLoading}
-          endIcon={isLoading ? <WatchLaterIcon /> : <SendIcon />}
-          sx={CustomizedSendButton}
-        >
-          {'Send'}
-        </Button>
-      </Stack>
-      <Accordion disableGutters sx={CustomizedAccordion} defaultExpanded>
-        <AccordionSummary
-          expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
-          aria-controls="panel1-content"
-          id="panel1-header"
-          sx={CustomizedAccordionSummary}
-        >
-          <Typography display="inline" variant="body2" sx={{ fontWeight: 500 }}>
-            Customize Style & Composition
-          </Typography>
-          <Typography display="inline" variant="caption" sx={{ pl: 1, fontSize: '0.8rem', fontWeight: 400 }}>
-            (optional)
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Stack direction="column" gap={2} pl={1.5}>
-            <Box>
-              <Stack
-                direction="row"
-                spacing={3}
-                flexWrap="wrap"
-                justifyContent="flex-start"
-                alignItems="flex-start"
-                sx={{ pt: 1, height: 100 }}
-              >
-                <FormInputDropdown
-                  name="style"
-                  label="Primary style"
-                  control={control}
-                  field={imgStyleField}
-                  styleSize="small"
-                  width="140px"
-                  required={false}
-                />
-                <FormInputChipGroup
-                  name="secondary_style"
-                  label={subImgStyleField(control).label}
-                  control={control}
-                  setValue={setValue}
-                  width="400px"
-                  mandatory={false}
-                  field={subImgStyleField(control)}
-                  required={false}
-                />
-              </Stack>
-            </Box>
-            <Box>
-              <Stack direction="row" spacing={0} sx={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                {Object.entries(compositionFields).map(function ([param, field]) {
-                  return (
-                    <Box key={param} py={1} width="50%">
-                      <FormInputChipGroup
-                        name={param}
-                        label={field.label}
-                        key={param}
-                        control={control}
-                        setValue={setValue}
-                        width="250px"
-                        mandatory={false}
-                        field={field}
-                        required={false}
-                      />
-                    </Box>
-                  )
-                })}
-              </Stack>
-            </Box>
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Box sx={{ pb: 5 }}>
+          <Stack direction="row" spacing={2} justifyContent="flex-start" alignItems="center">
+            <Typography variant="h2" color={palette.text.secondary} sx={{ fontSize: '1.8rem' }}>
+              {'Generating with'}
+            </Typography>
+            <FormInputDropdown
+              name="modelVersion"
+              label=""
+              control={control}
+              field={modelField}
+              styleSize="big"
+              width=""
+              required={false}
+            />
           </Stack>
-        </AccordionDetails>
-      </Accordion>
-    </form>
+        </Box>
+        <>
+          {errorMsg !== '' ? (
+            <Alert
+              severity="error"
+              action={
+                <IconButton
+                  aria-label="close"
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    onRequestSent(false)
+                  }}
+                  sx={{ pt: 0.2 }}
+                >
+                  <CloseIcon fontSize="inherit" />
+                </IconButton>
+              }
+              sx={{ height: 'auto', mb: 2, fontSize: 16, fontWeight: 500, pt: 1, color: palette.text.secondary }}
+            >
+              {errorMsg}
+            </Alert>
+          ) : null}
+        </>
+
+        <FormInputText
+          name="prompt"
+          control={control}
+          label="Prompt - What would you like to generate?"
+          required={true}
+        />
+
+        <Stack justifyContent="flex-end" direction="row" gap={0} pb={3}>
+          <CustomTooltip title="Reset all fields" size="small">
+            <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ pr: 0.6 }}>
+              <Avatar sx={CustomizedAvartButton}>
+                <Autorenew sx={CustomizedIconButton} />
+              </Avatar>
+            </IconButton>
+          </CustomTooltip>
+          <FormInputGenerateSettings
+            control={control}
+            setValue={setValue}
+            generalSettingsFields={generalSettingsFields}
+            advancedSettingsFields={advancedSettingsFields}
+          />
+          <CustomTooltip title="Have Gemini enhance your prompt" size="small">
+            <GeminiSwitch checked={isGeminiRewrite} onChange={handleGeminiRewrite} />
+          </CustomTooltip>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={isLoading}
+            endIcon={isLoading ? <WatchLaterIcon /> : <SendIcon />}
+            sx={CustomizedSendButton}
+          >
+            {'Send'}
+          </Button>
+        </Stack>
+        <Accordion disableGutters sx={CustomizedAccordion} defaultExpanded>
+          <AccordionSummary
+            expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
+            aria-controls="panel1-content"
+            id="panel1-header"
+            sx={CustomizedAccordionSummary}
+          >
+            <Typography display="inline" variant="body2" sx={{ fontWeight: 500 }}>
+              Customize Style & Composition
+            </Typography>
+            <Typography display="inline" variant="caption" sx={{ pl: 1, fontSize: '0.8rem', fontWeight: 400 }}>
+              (optional)
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Stack direction="column" gap={2} pl={1.5}>
+              <Box>
+                <Stack
+                  direction="row"
+                  spacing={3}
+                  flexWrap="wrap"
+                  justifyContent="flex-start"
+                  alignItems="flex-start"
+                  sx={{ pt: 1, height: 100 }}
+                >
+                  <FormInputDropdown
+                    name="style"
+                    label="Primary style"
+                    control={control}
+                    field={imgStyleField}
+                    styleSize="small"
+                    width="140px"
+                    required={false}
+                  />
+                  <FormInputChipGroup
+                    name="secondary_style"
+                    label={subImgStyleField(control).label}
+                    control={control}
+                    setValue={setValue}
+                    width="400px"
+                    mandatory={false}
+                    field={subImgStyleField(control)}
+                    required={false}
+                  />
+                </Stack>
+              </Box>
+              <Box>
+                <Stack direction="row" spacing={0} sx={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+                  {Object.entries(compositionFields).map(function ([param, field]) {
+                    return (
+                      <Box key={param} py={1} width="50%">
+                        <FormInputChipGroup
+                          name={param}
+                          label={field.label}
+                          key={param}
+                          control={control}
+                          setValue={setValue}
+                          width="250px"
+                          mandatory={false}
+                          field={field}
+                          required={false}
+                        />
+                      </Box>
+                    )
+                  })}
+                </Stack>
+              </Box>
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
+      </form>
+
+      <ExportStepper />
+    </>
   )
 }
