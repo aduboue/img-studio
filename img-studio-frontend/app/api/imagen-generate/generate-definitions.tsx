@@ -79,21 +79,21 @@ export const generateFields = {
   },
   style: {
     type: 'select',
-    default: 'photography high resolution',
+    default: 'highly realistic photography in high resolution',
     defaultSub: 'photographySub',
     options: [
       {
-        value: 'photography high resolution',
+        value: 'highly realistic photography in high resolution',
         label: 'Photography',
         subID: 'photographySub',
       },
       {
-        value: 'art creation',
+        value: 'manual art creation',
         label: 'Art',
         subID: 'artSub',
       },
       {
-        value: 'digital creation',
+        value: 'computer digital creation',
         label: 'Digital creation',
         subID: 'digitalSub',
       },

@@ -11,6 +11,10 @@ import { getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
 const { GoogleAuth } = require('google-auth-library')
 
+function cleanResult(inputString: string) {
+  return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
+}
+
 export async function buildImageList({
   generatedImagesInGCS,
   aspectRatio,
@@ -34,20 +38,29 @@ export async function buildImageList({
       const useHeight = usedRatio?.height
 
       // Get signed URL from Cloud Storage API
-      const signedURL: string | { error: string } = await getSignedURL(bucketName, fileName)
+      try {
+        const signedURL: string | { error: string } = await getSignedURL(bucketName, fileName)
+        if (typeof signedURL === 'object' && 'error' in signedURL) {
+          const errorMsg = cleanResult(signedURL.error)
+          if (errorMsg.includes('unable to impersonate'))
+            throw Error('Unable to authenticate your account to access images')
 
-      if (typeof signedURL === 'object' && 'error' in signedURL) {
-        throw signedURL.error
-      } else {
+          throw Error(errorMsg)
+        } else {
+          return {
+            src: signedURL,
+            gcsUri: image.gcsUri,
+            type: image.mimeType,
+            altText: `Generated image ${fileName}`,
+            key: `${fileName}`,
+            width: `${usedWidth}`,
+            height: `${useHeight}`,
+            ratio: `${usedRatio}`,
+          }
+        }
+      } catch (error) {
         return {
-          src: signedURL,
-          gcsUri: image.gcsUri,
-          type: image.mimeType,
-          altText: `Generated image ${fileName}`,
-          key: `${fileName}`,
-          width: `${usedWidth}`,
-          height: `${useHeight}`,
-          ratio: `${usedRatio}`,
+          error: `${error}`,
         }
       }
     }
@@ -61,26 +74,51 @@ export async function buildImageList({
 }
 
 export async function generateImage(formData: formDataI, isGeminiRewrite: boolean) {
-  const auth = new GoogleAuth({
-    scopes: 'https://www.googleapis.com/auth/cloud-platform',
-  })
-  const client = await auth.getClient()
-  const projectId = await auth.getProjectId()
+  // Atempting to authent to Google Cloud
+  var client
+  var projectId
+  try {
+    const auth = new GoogleAuth({
+      scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    })
+    client = await auth.getClient()
+    projectId = await auth.getProjectId()
+  } catch (error) {
+    return {
+      error: `${error}`,
+    }
+  }
+
   const location = process.env.VERTEX_API_LOCATION
   const modelVestion = formData['modelVersion']
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVestion}:predict`
 
-  var fullPrompt = 'capture ' + formData['prompt']
+  var fullPrompt = `Capture ${formData['prompt']}.`
   fullPromptAdditionalFields.forEach(
     (additionalField) =>
       (fullPrompt =
         formData[additionalField] !== ''
-          ? fullPrompt + ', with ' + additionalField.replaceAll('_', ' ') + ' ' + formData[additionalField]
+          ? `${fullPrompt} With ${additionalField.replaceAll('_', ' ')} being ${formData[additionalField]}.`
           : fullPrompt)
   )
 
-  if (isGeminiRewrite) {
-    fullPrompt = await rewriteWithGemini(fullPrompt)
+  // If asked, rewriting the prompt with Gemini
+  try {
+    if (isGeminiRewrite) {
+      const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt)
+
+      if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
+        const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
+        throw Error(errorMsg)
+      } else {
+        fullPrompt = geminiReturnedPrompt
+        console.log('Prompt successfuly rewritten with Gemini')
+      }
+    }
+  } catch (error) {
+    return {
+      error: `${error}`,
+    }
   }
 
   const data = {
@@ -108,8 +146,9 @@ export async function generateImage(formData: formDataI, isGeminiRewrite: boolea
     data: data,
   }
 
+  // Generation of the images
   try {
-    console.log('Using params = ' + JSON.stringify(data))
+    console.log('Generating image(s) using parameters > ' + JSON.stringify(data, undefined, 4))
 
     const res = await client.request(opts)
 
@@ -119,19 +158,31 @@ export async function generateImage(formData: formDataI, isGeminiRewrite: boolea
 
     // NO images at all were generated out of all samples
     if ('raiFilteredReason' in res.data.predictions[0]) {
-      throw Error(res.data.predictions[0].raiFilteredReason)
+      throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
     }
+
+    console.log('Image generated with success')
 
     const imgGCSlist: GeneratedImagesInGCSI[] = res.data.predictions
     const enhancedImageList = await buildImageList({
       generatedImagesInGCS: imgGCSlist,
-      aspectRatio: data.parameters.aspectRatio,
+      aspectRatio: opts.data.parameters.aspectRatio,
     })
 
     return enhancedImageList
   } catch (error) {
+    var newError = error as any
+    console.log('XXX REP ' + JSON.stringify(error, undefined, 4))
+
+    if (typeof newError === 'object' && 'error' in newError.response.data) {
+      if (newError.response.data.error.includes('invalid_grant'))
+        newError = 'Unable to authenticate your account to access images'
+      else {
+        newError = newError.response.data.error_description
+      }
+    }
     return {
-      error: `${error}`,
+      error: `${newError}`,
     }
   }
 }

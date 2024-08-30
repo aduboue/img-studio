@@ -94,14 +94,13 @@ export default function GenerateForm({
   }
 
   const onSubmit: SubmitHandler<formDataI> = async (formData: formDataI) => {
-    console.log('Launching image generation')
     onRequestSent(true)
 
     try {
       const newGeneratedImages = await generateImage(formData, isGeminiRewrite)
 
       if (typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
-        const errorMsg = JSON.stringify(newGeneratedImages['error']).replaceAll('Error: ', '')
+        const errorMsg = newGeneratedImages['error'].replaceAll('Error: ', '')
         throw Error(errorMsg)
       } else {
         newGeneratedImages.map((image) => {
@@ -113,7 +112,7 @@ export default function GenerateForm({
         onImageGeneration(newGeneratedImages)
       }
     } catch (error: any) {
-      console.log('ERROR/ ' + error)
+      console.log(error)
       onNewErrorMsg(error.toString())
     }
   }
