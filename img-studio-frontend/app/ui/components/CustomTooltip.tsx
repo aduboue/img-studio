@@ -11,7 +11,7 @@ const CustomizedSmallTooltip = {
       width: 85,
       fontWeight: 400,
       fontSize: 12,
-      lineHeight: 0.85,
+      lineHeight: 0.9,
       pt: 1,
       textAlign: 'center',
     },

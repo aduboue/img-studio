@@ -13,7 +13,6 @@ import {
   Stack,
   Alert,
   Avatar,
-  Tooltip,
 } from '@mui/material'
 import {
   Send as SendIcon,
@@ -21,6 +20,7 @@ import {
   ArrowDownward as ArrowDownwardIcon,
   Close as CloseIcon,
   Autorenew,
+  Lightbulb,
 } from '@mui/icons-material'
 
 import { FormInputText } from './components/FormInputText'
@@ -40,13 +40,14 @@ import {
   formDataDefaults,
   formDataResetableFields,
   ImageI,
+  RandomPrompts,
 } from '../api/imagen-generate/generate-definitions'
 
 import theme from 'app/theme'
 import { generateImage } from '../api/imagen-generate/action'
 import { GeminiSwitch } from './components/GeminiSwitch'
 import { CustomizedAvartButton, CustomizedIconButton } from './components/ButtonIconSX'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import CustomTooltip from './components/CustomTooltip'
 import ExportStepper from './components/ExportStepper'
 import { CustomizedAccordion, CustomizedAccordionSummary } from './components/CustomAccordionSX'
@@ -88,9 +89,14 @@ export default function GenerateForm({
     defaultValues: formDataDefaults,
   })
 
+  // Manage if prompt should be generated with Gemini
   const [isGeminiRewrite, setIsGeminiRewrite] = useState(true)
   const handleGeminiRewrite = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsGeminiRewrite(event.target.checked)
+  }
+
+  const getRandomPrompt = () => {
+    return RandomPrompts[Math.floor(Math.random() * RandomPrompts.length)]
   }
 
   const onSubmit: SubmitHandler<formDataI> = async (formData: formDataI) => {
@@ -117,24 +123,30 @@ export default function GenerateForm({
     }
   }
 
+  // Update Secondary style dropdown depending on picked primary style
   const subImgStyleField = (control: Control<formDataI, any>) => {
     const currentPrimaryStyle: string = useWatch({ control, name: 'style' })
-    const currentAssociatedSubId: string = imgStyleField.options.filter(
-      (option) => option.value === currentPrimaryStyle
-    )[0].subID
+
+    var currentAssociatedSubId = imgStyleField.defaultSub
+    if (currentPrimaryStyle !== '') {
+      currentAssociatedSubId = imgStyleField.options.filter((option) => option.value === currentPrimaryStyle)[0].subID
+    }
 
     const subImgStyleField: chipGroupFieldsI = subImgStyleFields.options.filter(
       (option) => option.subID === currentAssociatedSubId
     )[0]
 
     const currentSecondaryStyle: string = getValues('secondary_style')
-    if (!subImgStyleField.options.includes(currentSecondaryStyle)) {
-      subImgStyleField.default ? setValue('secondary_style', subImgStyleField.default) : null
-    }
+    useEffect(() => {
+      if (!subImgStyleField.options.includes(currentSecondaryStyle)) {
+        setValue('secondary_style', '')
+      }
+    }, [currentSecondaryStyle, subImgStyleField.options])
 
     return subImgStyleField
   }
 
+  // Does not reset settings - only prompt, prompt parameters and negative prompt
   const onReset = () => {
     formDataResetableFields.forEach((field) => resetField(field as keyof formDataI))
   }
@@ -190,8 +202,19 @@ export default function GenerateForm({
         />
 
         <Stack justifyContent="flex-end" direction="row" gap={0} pb={3}>
+          <CustomTooltip title="Get prompt ideas" size="small">
+            <IconButton
+              onClick={() => setValue('prompt', getRandomPrompt())}
+              aria-label="Random prompt"
+              sx={{ px: 0.5 }}
+            >
+              <Avatar sx={CustomizedAvartButton}>
+                <Lightbulb sx={CustomizedIconButton} />
+              </Avatar>
+            </IconButton>
+          </CustomTooltip>
           <CustomTooltip title="Reset all fields" size="small">
-            <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ pr: 0.6 }}>
+            <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ px: 0.5 }}>
               <Avatar sx={CustomizedAvartButton}>
                 <Autorenew sx={CustomizedIconButton} />
               </Avatar>
@@ -224,10 +247,7 @@ export default function GenerateForm({
             sx={CustomizedAccordionSummary}
           >
             <Typography display="inline" variant="body2" sx={{ fontWeight: 500 }}>
-              Customize Style & Composition
-            </Typography>
-            <Typography display="inline" variant="caption" sx={{ pl: 1, fontSize: '0.8rem', fontWeight: 400 }}>
-              (optional)
+              {'Customize Style & Composition'}
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
@@ -248,7 +268,7 @@ export default function GenerateForm({
                     field={imgStyleField}
                     styleSize="small"
                     width="140px"
-                    required={false}
+                    required={true}
                   />
                   <FormInputChipGroup
                     name="secondary_style"

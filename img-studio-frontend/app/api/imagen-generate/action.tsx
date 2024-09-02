@@ -172,14 +172,15 @@ export async function generateImage(formData: formDataI, isGeminiRewrite: boolea
     return enhancedImageList
   } catch (error) {
     var newError = error as any
-    console.log('XXX REP ' + JSON.stringify(error, undefined, 4))
 
-    if (typeof newError === 'object' && 'error' in newError.response.data) {
+    if (Object.keys(newError).length !== 0 && 'error' in newError.response.data) {
       if (newError.response.data.error.includes('invalid_grant'))
         newError = 'Unable to authenticate your account to access images'
       else {
         newError = newError.response.data.error_description
       }
+    } else {
+      newError = newError.toString()
     }
     return {
       error: `${newError}`,

@@ -18,6 +18,7 @@ export default function StandardImageList({
   isLoading: boolean
   generatedImagesInGCS: ImageI[]
 }) {
+  // Full screen display Modal
   const [imageFullScreenSrc, setImageFullScreenSrc] = React.useState('')
   const handleOpen = (src: string) => setImageFullScreenSrc(src)
   const handleClose = () => setImageFullScreenSrc('')
@@ -27,50 +28,52 @@ export default function StandardImageList({
 
   return (
     <>
-      <Box sx={{ height: '79vh', overflowY: 'scroll', width: '90%' }}>
+      <Box sx={{ height: '79vh', maxHeight: 650, overflowY: 'scroll', width: '90%' }}>
         {isLoading ? ( // Conditional rendering based on loading state
           <Skeleton variant="rounded" width={450} height={450} sx={{ mt: 2, bgcolor: palette.primary.light }} />
         ) : (
           <ImageList cols={2} gap={8} sx={{ cursor: 'pointer', '&.MuiImageList-root': { pb: 5, px: 1 } }}>
-            {generatedImagesInGCS.map((image) => (
-              <ImageListItem
-                key={image.key}
-                sx={{
-                  boxShadow: '0px 5px 10px -1px rgb(0 0 0 / 70%)',
-                  transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
-                }}
-              >
-                <Image
+            {generatedImagesInGCS.map((image) =>
+              image.src ? (
+                <ImageListItem
                   key={image.key}
-                  src={image.src}
-                  alt={image.altText}
-                  layout="responsive"
-                  width={image.width}
-                  height={image.height}
-                  quality={100}
-                  onClick={() => handleOpen(image.src)}
-                  onContextMenu={handleContextMenu}
-                />
-                <ImageListItemBar
                   sx={{
-                    background:
-                      'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+                    boxShadow: '0px 5px 10px -1px rgb(0 0 0 / 70%)',
+                    transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
                   }}
-                  position="top"
-                  actionIcon={
-                    <IconButton
-                      sx={{ color: 'white' }}
-                      aria-label={`export image ${image.altText}`}
-                      onClick={() => {
-                        console.log('clicked')
-                      }}
-                    >
-                      <AddPhotoAlternate sx={{ fontSize: 25 }} />
-                    </IconButton>
-                  }
-                />
-              </ImageListItem>
-            ))}
+                >
+                  <Image
+                    key={image.key}
+                    src={image.src}
+                    alt={image.altText}
+                    style={{ width: '100%', height: 'auto' }}
+                    width={image.width}
+                    height={image.height}
+                    quality={100}
+                    onClick={() => handleOpen(image.src)}
+                    onContextMenu={handleContextMenu}
+                  />
+                  <ImageListItemBar
+                    sx={{
+                      background:
+                        'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+                    }}
+                    position="top"
+                    actionIcon={
+                      <IconButton
+                        sx={{ color: 'white' }}
+                        aria-label={`export image ${image.altText}`}
+                        onClick={() => {
+                          console.log('clicked')
+                        }}
+                      >
+                        <AddPhotoAlternate sx={{ fontSize: 25 }} />
+                      </IconButton>
+                    }
+                  />
+                </ImageListItem>
+              ) : null
+            )}
           </ImageList>
         )}
       </Box>

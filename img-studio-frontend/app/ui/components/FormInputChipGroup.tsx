@@ -72,7 +72,7 @@ export default function FormInputChipGroup({
                 pb: 0.5,
               }}
             >
-              {label}
+              {label + (required ? ' *' : '')}
             </Typography>
             <Stack
               direction="row"

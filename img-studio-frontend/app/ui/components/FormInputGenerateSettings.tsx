@@ -47,7 +47,7 @@ export default function FormInputGenerateSettings({
   return (
     <>
       <CustomTooltip title="Open settings" size="small">
-        <IconButton onClick={handleClick} sx={{ p: 0 }}>
+        <IconButton onClick={handleClick} sx={{ px: 0.4, pr: 0.2 }}>
           <Avatar sx={{ ...CustomizedAvartButton, ...(open === true && CustomizedIconButtonOpen) }}>
             <Settings
               sx={{
@@ -101,7 +101,7 @@ export default function FormInputGenerateSettings({
                 field={field}
                 styleSize="small"
                 width="150px"
-                required={false}
+                required={true}
               />
             </MenuItem>
           )

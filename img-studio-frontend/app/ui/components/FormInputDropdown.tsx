@@ -89,11 +89,6 @@ export default function FormInputDropdown({
   const [selectedItem, setSelectedItem] = useState(String)
   const [itemIndication, setItemIndication] = useState(String)
 
-  const [isClient, setIsClient] = useState(false)
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
   const handleClick = (value: string, indication: string | undefined) => {
     setSelectedItem(value)
     setItemIndication(indication !== undefined ? indication : '')
@@ -116,8 +111,9 @@ export default function FormInputDropdown({
                 sx: { color: palette.text.primary, fontWeight: 500 },
               }}
               InputProps={{ sx: CustomizedInput(styleSize) }}
-              SelectProps={{ MenuProps: CustomizedMenu }}
+              SelectProps={{ MenuProps: CustomizedMenu, displayEmpty: true }}
               sx={CustomizedTextField(styleSize, width)}
+              required={required}
             >
               {field.options.map((field: { value: string; label: string; indication?: string }) => {
                 return (
