@@ -33,6 +33,7 @@ import {
 import { Control, Controller, FieldErrors } from 'react-hook-form'
 import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
 import { useState } from 'react'
+import { CloseWithoutSubmitWarning } from './components/ExportAlerts'
 const palette = theme.palette
 
 const Transition = React.forwardRef(function Transition(
@@ -67,7 +68,7 @@ export default function ExportStepper({
     setActiveStep((prevActiveStep) => prevActiveStep + 1)
   }
   const handleBack = () => setActiveStep((prevActiveStep) => prevActiveStep - 1)
-  const [isEscapeClose, setIsEscapeClose] = useState(false)
+  const [isCloseWithoutSubmit, setIsCloseWithoutSubmit] = useState(false)
 
   const onCloseTry: DialogProps['onClose'] = (
     event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
@@ -75,7 +76,7 @@ export default function ExportStepper({
   ) => {
     if (reason && (reason === 'backdropClick' || reason === 'escapeKeyDown')) {
       event?.stopPropagation()
-      setIsEscapeClose(true)
+      setIsCloseWithoutSubmit(true)
     } else {
       if (formErrors && Object.keys(formErrors).length > 0) {
         //handle error
@@ -85,7 +86,7 @@ export default function ExportStepper({
     }
   }
   const onClose = () => {
-    setIsEscapeClose(false)
+    setIsCloseWithoutSubmit(false)
     setActiveStep(0)
     handleImageExportClose()
   }
@@ -287,6 +288,18 @@ export default function ExportStepper({
         },
       }}
     >
+      <IconButton
+        aria-label="close"
+        onClick={() => setIsCloseWithoutSubmit(true)}
+        sx={(theme) => ({
+          position: 'absolute',
+          right: 8,
+          top: 8,
+          color: palette.secondary.dark,
+        })}
+      >
+        <Close sx={{ fontSize: '1.5rem', '&:hover': { color: palette.primary.main } }} />
+      </IconButton>
       <DialogContent sx={{ m: 1 }}>
         <DialogTitle sx={{ p: 0, pb: 3 }}>
           <Typography
@@ -299,7 +312,6 @@ export default function ExportStepper({
             }}
           >
             {'Export to internal Library'}
-            <ArrowDownward sx={{ ml: 1, fontSize: 30, color: palette.primary.main }} />
           </Typography>
         </DialogTitle>
 
@@ -340,51 +352,8 @@ export default function ExportStepper({
         </Stepper>
       </DialogContent>
 
-      {isEscapeClose && (
-        <Alert
-          severity="warning"
-          sx={{
-            height: 'auto',
-            mb: 2,
-            fontSize: '1rem',
-            fontWeight: 400,
-            pt: 1,
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'left',
-            color: palette.text.secondary,
-          }}
-          icon={false}
-          variant="outlined"
-        >
-          {'Are you sure you want to exit now ?'}
-          <Box sx={{ display: 'flex', alignContent: 'center' }}>
-            <Button
-              color="inherit"
-              size="small"
-              onClick={() => setIsEscapeClose(false)}
-              sx={{ fontSize: '1rem', '&:hover': { background: 'transparent', color: palette.warning.dark } }}
-            >
-              <ArrowForwardIos sx={{ fontSize: '0.8rem', p: 0, mt: 0.2, mr: 0.5 }} />
-              {'Keep editing'}
-            </Button>
-            <Button
-              color="inherit"
-              size="small"
-              onClick={onClose}
-              sx={{
-                fontSize: '1rem',
-                fontWeight: 400,
-                fontStyle: 'italic',
-                '&:hover': { background: 'transparent', color: palette.warning.dark },
-              }}
-            >
-              <Close sx={{ fontSize: '0.8rem', p: 0, mt: 0.2, mr: 0.5 }} />
-              {'Yes, close without exporting'}
-            </Button>
-          </Box>
-        </Alert>
+      {isCloseWithoutSubmit && (
+        <CloseWithoutSubmitWarning onClose={onClose} onKeepOpen={() => setIsCloseWithoutSubmit(false)} />
       )}
     </Dialog>
   )
