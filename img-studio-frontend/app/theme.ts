@@ -52,32 +52,33 @@ const theme = createTheme({
       textTransform: 'none'
     },
     h1: {
-      fontSize: '9rem',
-      fontWeight: 600,
-      lineHeight: 0.8,
-    },
-    h2: {
       fontSize: '5rem',
       fontWeight: 400,
       lineHeight: 0.8,
     },
-    h3: {
+    h2: {
       fontSize: '3.5rem',
-      fontWeight: 100,
+      fontWeight: 400,
+      lineHeight: 0.8,
     },
-    h4: {
+    h3: {
       fontSize: '1.5rem',
-      fontWeight: 600,
-      lineHeight: 1,
+      fontWeight: 400,
     },
     body1: {
-      fontSize: '1rem',
-      lineHeight: 1.65,
-    },
-    body2: {
       fontSize: '1.1rem',
       fontWeight: 400,
       lineHeight: 1.16,
+    },
+    body2: {
+      fontSize: '1rem',
+      fontWeight: 400,
+      lineHeight: 1.16,
+    },
+    subtitle1: {
+      fontSize: '0.9rem',
+      fontWeight: 400,
+      lineHeight: 1.3,
     },
     caption: {
       fontSize: '0.6rem',

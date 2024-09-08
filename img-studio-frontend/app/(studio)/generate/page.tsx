@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid2'
 import Box from '@mui/material/Box'
 import GenerateForm from 'app/ui/generate-form'
 import { useState } from 'react'
-import { ImageI } from '../../api/imagen-generate/generate-definitions'
+import { ImageI } from '../../api/imagen-generate/generate-utils'
 import StandardImageList from '@/app/ui/image-display'
 
 export default function Page() {
@@ -28,9 +28,9 @@ export default function Page() {
   }
 
   return (
-    <Box p={5} sx={{ maxHeight: '100vh', overflow: 'auto' }}>
-      <Grid container spacing={6} direction="row" columns={2}>
-        <Grid size={1.1}>
+    <Box p={5} sx={{ maxHeight: '100vh' }}>
+      <Grid wrap="nowrap" container spacing={6} direction="row" columns={2}>
+        <Grid size={1.1} sx={{ maxWidth: 700, minWidth: 610 }}>
           <GenerateForm
             isLoading={isLoading}
             onRequestSent={handleRequestSent}
@@ -39,7 +39,7 @@ export default function Page() {
             errorMsg={errorMsg}
           />
         </Grid>
-        <Grid size={0.9} sx={{ pt: 11 }}>
+        <Grid size={0.9} sx={{ pt: 11, maxWidth: 850, minWidth: 400 }}>
           <StandardImageList isLoading={isLoading} generatedImagesInGCS={generatedImagesInGCS} />
         </Grid>
       </Grid>

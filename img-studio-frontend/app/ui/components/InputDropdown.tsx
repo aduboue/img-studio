@@ -1,12 +1,12 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
-import { FormDropdownInputI } from './FormInputInterface'
+import { FormDropdownInputI } from './InputInterface'
 
 import { TextField, MenuItem, Tooltip, FormControl, Fade, Box } from '@mui/material'
 
 import theme from 'app/theme'
-import CustomTooltip from './CustomTooltip'
+import CustomTooltip from './Tooltip'
 const palette = theme.palette
 
 const CustomizedInput = (styleSize: string) => {

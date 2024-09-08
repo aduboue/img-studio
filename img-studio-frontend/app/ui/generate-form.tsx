@@ -23,54 +23,33 @@ import {
   Lightbulb,
 } from '@mui/icons-material'
 
-import { FormInputText } from './components/FormInputText'
-import FormInputDropdown from './components/FormInputDropdown'
-import FormInputChipGroup from './components/FormInputChipGroup'
-import FormInputGenerateSettings from './components/FormInputGenerateSettings'
+import { FormInputText } from './components/InputText'
+import FormInputDropdown from './components/InputDropdown'
+import FormInputChipGroup from './components/InputChipGroup'
+import FormInputGenerateSettings from './generate-settings'
 
 import {
-  chipGroupFieldsI,
   modelField,
   generalSettingsFields,
   advancedSettingsFields,
   imgStyleField,
   subImgStyleFields,
   compositionFields,
-  formDataI,
+  GenerateImageFormI,
   formDataDefaults,
   formDataResetableFields,
   ImageI,
   RandomPrompts,
-} from '../api/imagen-generate/generate-definitions'
+} from '../api/imagen-generate/generate-utils'
 
 import theme from 'app/theme'
 import { generateImage } from '../api/imagen-generate/action'
 import { GeminiSwitch } from './components/GeminiSwitch'
-import { CustomizedAvartButton, CustomizedIconButton } from './components/ButtonIconSX'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
 import { useEffect, useState } from 'react'
-import CustomTooltip from './components/CustomTooltip'
-import ExportStepper from './components/ExportStepper'
-import { CustomizedAccordion, CustomizedAccordionSummary } from './components/CustomAccordionSX'
+import CustomTooltip from './components/Tooltip'
+import { CustomizedAccordion, CustomizedAccordionSummary } from './components/Accordion-SX'
 const palette = theme.palette
-
-const CustomizedSendButton = {
-  borderRadius: 7,
-  border: 1,
-  borderColor: 'white',
-  boxShadow: 0,
-  my: 1.5,
-  ml: 1,
-  py: 0.5,
-  pr: 1.5,
-  fontSize: '1rem',
-  '&:hover': {
-    background: 'white',
-    color: palette.primary.main,
-    border: 1,
-    borderColor: palette.primary.main,
-    boxShadow: 0,
-  },
-}
 
 export default function GenerateForm({
   isLoading,
@@ -85,7 +64,7 @@ export default function GenerateForm({
   errorMsg: string
   onNewErrorMsg: (newErrorMsg: string) => void
 }) {
-  const { handleSubmit, resetField, control, setValue, getValues } = useForm<formDataI>({
+  const { handleSubmit, resetField, control, setValue, getValues } = useForm<GenerateImageFormI>({
     defaultValues: formDataDefaults,
   })
 
@@ -99,7 +78,7 @@ export default function GenerateForm({
     return RandomPrompts[Math.floor(Math.random() * RandomPrompts.length)]
   }
 
-  const onSubmit: SubmitHandler<formDataI> = async (formData: formDataI) => {
+  const onSubmit: SubmitHandler<GenerateImageFormI> = async (formData: GenerateImageFormI) => {
     onRequestSent(true)
 
     try {
@@ -124,7 +103,7 @@ export default function GenerateForm({
   }
 
   // Update Secondary style dropdown depending on picked primary style
-  const subImgStyleField = (control: Control<formDataI, any>) => {
+  const subImgStyleField = (control: Control<GenerateImageFormI, any>) => {
     const currentPrimaryStyle: string = useWatch({ control, name: 'style' })
 
     var currentAssociatedSubId = imgStyleField.defaultSub
@@ -132,9 +111,7 @@ export default function GenerateForm({
       currentAssociatedSubId = imgStyleField.options.filter((option) => option.value === currentPrimaryStyle)[0].subID
     }
 
-    const subImgStyleField: chipGroupFieldsI = subImgStyleFields.options.filter(
-      (option) => option.subID === currentAssociatedSubId
-    )[0]
+    const subImgStyleField = subImgStyleFields.options.filter((option) => option.subID === currentAssociatedSubId)[0]
 
     const currentSecondaryStyle: string = getValues('secondary_style')
     useEffect(() => {
@@ -148,7 +125,7 @@ export default function GenerateForm({
 
   // Does not reset settings - only prompt, prompt parameters and negative prompt
   const onReset = () => {
-    formDataResetableFields.forEach((field) => resetField(field as keyof formDataI))
+    formDataResetableFields.forEach((field) => resetField(field as keyof GenerateImageFormI))
   }
 
   return (
@@ -156,7 +133,7 @@ export default function GenerateForm({
       <form onSubmit={handleSubmit(onSubmit)}>
         <Box sx={{ pb: 5 }}>
           <Stack direction="row" spacing={2} justifyContent="flex-start" alignItems="center">
-            <Typography variant="h2" color={palette.text.secondary} sx={{ fontSize: '1.8rem' }}>
+            <Typography variant="h1" color={palette.text.secondary} sx={{ fontSize: '1.8rem' }}>
               {'Generating with'}
             </Typography>
             <FormInputDropdown
@@ -171,7 +148,7 @@ export default function GenerateForm({
           </Stack>
         </Box>
         <>
-          {errorMsg !== '' ? (
+          {errorMsg !== '' && (
             <Alert
               severity="error"
               action={
@@ -191,7 +168,7 @@ export default function GenerateForm({
             >
               {errorMsg}
             </Alert>
-          ) : null}
+          )}
         </>
 
         <FormInputText
@@ -208,14 +185,14 @@ export default function GenerateForm({
               aria-label="Random prompt"
               sx={{ px: 0.5 }}
             >
-              <Avatar sx={CustomizedAvartButton}>
+              <Avatar sx={CustomizedAvatarButton}>
                 <Lightbulb sx={CustomizedIconButton} />
               </Avatar>
             </IconButton>
           </CustomTooltip>
           <CustomTooltip title="Reset all fields" size="small">
             <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ px: 0.5 }}>
-              <Avatar sx={CustomizedAvartButton}>
+              <Avatar sx={CustomizedAvatarButton}>
                 <Autorenew sx={CustomizedIconButton} />
               </Avatar>
             </IconButton>
@@ -246,7 +223,7 @@ export default function GenerateForm({
             id="panel1-header"
             sx={CustomizedAccordionSummary}
           >
-            <Typography display="inline" variant="body2" sx={{ fontWeight: 500 }}>
+            <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
               {'Customize Style & Composition'}
             </Typography>
           </AccordionSummary>
@@ -307,8 +284,6 @@ export default function GenerateForm({
           </AccordionDetails>
         </Accordion>
       </form>
-
-      <ExportStepper />
     </>
   )
 }

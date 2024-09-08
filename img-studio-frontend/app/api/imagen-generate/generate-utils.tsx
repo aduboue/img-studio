@@ -1,4 +1,62 @@
-export const generateFields = {
+interface GenerateImagFieldI1 {
+  label?: string
+  type?: string
+  default?: string
+  options?:
+    | string[]
+    | {
+        value: string
+        label: string
+        indication?: string
+        type?: string
+      }[]
+  isDataResetable: boolean
+  isFullPromptAdditionalField: boolean
+}
+interface GenerateImagFieldStyleI {
+  type: string
+  default: string
+  defaultSub: string
+  options: {
+    value: string
+    label: string
+    subID: string
+  }[]
+  isDataResetable: boolean
+  isFullPromptAdditionalField: boolean
+}
+
+interface GenerateImagFieldSecondartStyleI {
+  type: string
+  options: {
+    label: string
+    subID: string
+    type: string
+    options: string[]
+    default: string
+  }[]
+  isDataResetable: boolean
+  isFullPromptAdditionalField: boolean
+}
+
+export interface GenerateImageFormFieldsI {
+  prompt: GenerateImagFieldI1
+  modelVersion: GenerateImagFieldI1
+  sampleCount: GenerateImagFieldI1
+  negativePrompt: GenerateImagFieldI1
+  aspectRatio: GenerateImagFieldI1
+  personGeneration: GenerateImagFieldI1
+  outputOptions: GenerateImagFieldI1
+  style: GenerateImagFieldStyleI
+  secondary_style: GenerateImagFieldSecondartStyleI
+  light: GenerateImagFieldI1
+  light_coming_from: GenerateImagFieldI1
+  shot_from: GenerateImagFieldI1
+  perspective: GenerateImagFieldI1
+  background_color: GenerateImagFieldI1
+}
+
+export const GenerateImageFormFields = {
   prompt: {
     type: 'textInput',
     isDataResetable: true,
@@ -6,7 +64,7 @@ export const generateFields = {
   },
   modelVersion: {
     type: 'select',
-    default: 'imagen-3.0-fast-generate-001',
+    default: 'imagen-3.0-generate-001',
     options: [
       {
         value: 'imagen-3.0-generate-001',
@@ -99,7 +157,7 @@ export const generateFields = {
       },
     ],
     isDataResetable: false,
-    isFullPromptAdditionalField: true,
+    isFullPromptAdditionalField: false,
   },
   secondary_style: {
     type: 'controled-chip-group',
@@ -114,7 +172,6 @@ export const generateFields = {
           'Person portrait',
           'Black & White',
           'Vintage',
-          'Polaroid',
           'Cinematic grain',
           'Candid',
           'Minimalist',
@@ -190,54 +247,6 @@ export const generateFields = {
   },
 }
 
-interface I1 {
-  label?: string
-  type?: string
-  default?: string
-  options?:
-    | string[]
-    | {
-        value: string
-        label: string
-        indication?: string
-        type?: string
-      }[]
-  isDataResetable: boolean
-  isFullPromptAdditionalField: boolean
-}
-
-interface I2 {
-  type: string
-  default?: string
-  defaultSub?: string
-  options: {
-    label: string
-    type: string
-    subID: string
-    options?: string[]
-    default: string
-  }[]
-  isDataResetable: boolean
-  isFullPromptAdditionalField: boolean
-}
-
-export interface generateFieldsI {
-  prompt: I1
-  modelVersion: I1
-  sampleCount: I1
-  negativePrompt: I1
-  aspectRatio: I1
-  personGeneration: I1
-  outputOptions: I1
-  style: I2
-  secondary_style: I2
-  light: I1
-  light_coming_from: I1
-  shot_from: I1
-  perspective: I1
-  background_color: I1
-}
-
 export interface chipGroupFieldsI {
   label: string
   subID?: string
@@ -245,7 +254,6 @@ export interface chipGroupFieldsI {
   options: string[]
 }
 ;[]
-
 export interface selectFieldsI {
   label?: string
   default: string
@@ -256,40 +264,37 @@ export interface selectFieldsI {
   }[]
 }
 ;[]
-
 export interface generalSettingsI {
   aspectRatio: chipGroupFieldsI
   sampleCount: chipGroupFieldsI
 }
-
 export interface advancedSettingsI {
   personGeneration: selectFieldsI
   outputOptions: selectFieldsI
 }
 
-//TODO automatically populate general, advanced, composition
-export const modelField = generateFields.modelVersion
+// Sort out Generate fields depending on purpose
+export const modelField = GenerateImageFormFields.modelVersion
 export const generalSettingsFields = {
-  aspectRatio: generateFields.aspectRatio,
-  sampleCount: generateFields.sampleCount,
+  aspectRatio: GenerateImageFormFields.aspectRatio,
+  sampleCount: GenerateImageFormFields.sampleCount,
 }
 export const advancedSettingsFields = {
-  personGeneration: generateFields.personGeneration,
-  outputOptions: generateFields.outputOptions,
+  personGeneration: GenerateImageFormFields.personGeneration,
+  outputOptions: GenerateImageFormFields.outputOptions,
 }
-export const imgStyleField = generateFields.style
-
-export const subImgStyleFields = generateFields.secondary_style
-
+export const imgStyleField = GenerateImageFormFields.style
+export const subImgStyleFields = GenerateImageFormFields.secondary_style
 export const compositionFields = {
-  light: generateFields.light,
-  light_coming_from: generateFields.light_coming_from,
-  shot_from: generateFields.shot_from,
-  perspective: generateFields.perspective,
-  background_color: generateFields.background_color,
+  light: GenerateImageFormFields.light,
+  light_coming_from: GenerateImageFormFields.light_coming_from,
+  shot_from: GenerateImageFormFields.shot_from,
+  perspective: GenerateImageFormFields.perspective,
+  background_color: GenerateImageFormFields.background_color,
 }
 
-export interface formDataI {
+// Interface of Generate form fields
+export interface GenerateImageFormI {
   prompt: string
   modelVersion: string
   sampleCount: string
@@ -306,52 +311,35 @@ export interface formDataI {
   background_color: string
 }
 
-const generateFieldList: [keyof generateFieldsI] = Object.keys(generateFields) as [keyof generateFieldsI]
-
+// Set default values for Generate Form
+const generateFieldList: [keyof GenerateImageFormFieldsI] = Object.keys(GenerateImageFormFields) as [
+  keyof GenerateImageFormFieldsI
+]
 export var formDataDefaults: any
-
 generateFieldList.forEach((field) => {
-  const fieldParams: I1 | I2 = generateFields[field]
+  const fieldParams: GenerateImagFieldI1 | GenerateImagFieldStyleI | GenerateImagFieldSecondartStyleI =
+    GenerateImageFormFields[field]
   const defaultValue = 'default' in fieldParams ? fieldParams.default : ''
   formDataDefaults = { ...formDataDefaults, [field]: defaultValue }
 })
 
+// Set fields that can be reseted by the user
 export const formDataResetableFields = generateFieldList.filter(
-  (field) => generateFields[field].isDataResetable == true
+  (field) => GenerateImageFormFields[field].isDataResetable == true
 )
 
+// Set fields that are used to complete the prompt written by the user
 export const fullPromptAdditionalFields = generateFieldList.filter(
-  (field) => generateFields[field].isFullPromptAdditionalField == true
+  (field) => GenerateImageFormFields[field].isFullPromptAdditionalField == true
 )
 
-import { z } from 'zod'
-
-export const GenerateFormSchema: z.ZodType<formDataI> = z.object({
-  prompt: z.string(),
-  modelVersion: z.enum(generateFields.modelVersion.options.map((option) => option.value) as [string, ...string[]]),
-  sampleCount: z.enum(generateFields.sampleCount.options as [string, ...string[]]),
-  negativePrompt: z.string(),
-  aspectRatio: z.enum(generateFields.aspectRatio.options as [string, ...string[]]),
-  personGeneration: z.enum(
-    generateFields.personGeneration.options.map((option) => option.value) as [string, ...string[]]
-  ),
-  outputOptions: z.enum(generateFields.outputOptions.options.map((option) => option.value) as [string, ...string[]]),
-  style: z.enum(generateFields.style.options.map((option) => option.value) as [string, ...string[]]),
-  secondary_style: z.enum(
-    generateFields.secondary_style.options.map((subStyle) => subStyle.options).flat(1) as [string, ...string[]]
-  ),
-  light: z.enum(generateFields.light.options as [string, ...string[]]),
-  light_coming_from: z.enum(generateFields.light_coming_from.options as [string, ...string[]]),
-  shot_from: z.enum(generateFields.shot_from.options as [string, ...string[]]),
-  perspective: z.enum(generateFields.perspective.options as [string, ...string[]]),
-  background_color: z.enum(generateFields.background_color.options as [string, ...string[]]),
-})
-
+// Interface of result sent back by Imagen
 export interface GeneratedImagesInGCSI {
   gcsUri: string
   mimeType: string
 }
 
+// Interface of Image object created after image generation
 export interface ImageI {
   src: string
   gcsUri: string
@@ -360,9 +348,13 @@ export interface ImageI {
   height: number
   altText: string
   key: string
-  type: string
+  format: string
+  prompt: string
+  date: string
+  author: string
 }
 
+// List of Imagen available ratio and their corresponding generation dimentions
 export const RatioToPixel = [
   { ratio: '1:1', width: 1024, height: 1024 },
   { ratio: '9:16', width: 768, height: 1408 },
@@ -371,6 +363,7 @@ export const RatioToPixel = [
   { ratio: '4:3', width: 1280, height: 896 },
 ]
 
+// Random prompt list the user can use if they lack prompt ideas
 export const RandomPrompts = [
   'Shot in the style of DSLR camera with the polarizing filter. A photo of two hot air balloons floating over the unique rock formations in Cappadocia, Turkey. The colors and patterns on these balloons contrast beautifully against the earthy tones of the landscape. below. This shot captures the sense of adventure that comes with enjoying such an experience.',
   'Close-up photo of an origami bird soaring through a cityscape, in a flock with others of different colors and patterns, casting intricate shadows on the buildings below.',
@@ -387,4 +380,8 @@ export const RandomPrompts = [
   "Word 'light' made from various colorful feathers, black background",
   "A single comic book panel of an old dog and an adult man on a grassy hill, staring at the sunset. A speech bubble points from the man's mouth and says: 'The sun will rise again'. Muted, late 1990s coloring style",
   "A photograph of a stately library entrance with the words 'Central Library' carved into the stone",
+  'A close up of a  warm and fuzzy colorful Peruvian poncho laying on a top of a chair in a bright day',
+  'An old woman but super modern and cool, her is smiling and wearing yellow modern and nice clothes, using her high-tech cell phone to take selfie in her beautiful garden, happy atmosphere, high resolution, hyper-realistic',
+  'A bright style- magazine  shot of a woman putting on mascara.',
+  'Close up shot, In a dimly lit jazz club, a soulful saxophone player, their face contorted in concentration, pours their heart out through their music. A small group of people listen intently, feeling every emotion',
 ]

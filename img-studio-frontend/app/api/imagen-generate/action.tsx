@@ -2,11 +2,11 @@
 
 import {
   fullPromptAdditionalFields,
-  formDataI,
+  GenerateImageFormI,
   GeneratedImagesInGCSI,
   ImageI,
   RatioToPixel,
-} from './generate-definitions'
+} from './generate-utils'
 import { getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
 const { GoogleAuth } = require('google-auth-library')
@@ -18,9 +18,11 @@ function cleanResult(inputString: string) {
 export async function buildImageList({
   generatedImagesInGCS,
   aspectRatio,
+  usedPrompt,
 }: {
   generatedImagesInGCS: GeneratedImagesInGCSI[]
   aspectRatio: string
+  usedPrompt: string
 }) {
   const promises = generatedImagesInGCS.map(async (image) => {
     if ('raiFilteredReason' in image) {
@@ -50,12 +52,15 @@ export async function buildImageList({
           return {
             src: signedURL,
             gcsUri: image.gcsUri,
-            type: image.mimeType,
+            format: image.mimeType.replace('image/', ' ').toUpperCase(),
+            prompt: usedPrompt,
             altText: `Generated image ${fileName}`,
-            key: `${fileName}`,
-            width: `${usedWidth}`,
-            height: `${useHeight}`,
-            ratio: `${usedRatio}`,
+            key: fileName,
+            width: usedWidth,
+            height: useHeight,
+            ratio: aspectRatio,
+            date: new Date(Date.now()).toLocaleString().split(',')[0],
+            author: 'DUPONT Jean', //#TODO get auth user name
           }
         }
       } catch (error) {
@@ -73,7 +78,7 @@ export async function buildImageList({
   return generatedImagesToDisplay
 }
 
-export async function generateImage(formData: formDataI, isGeminiRewrite: boolean) {
+export async function generateImage(formData: GenerateImageFormI, isGeminiRewrite: boolean) {
   // Atempting to authent to Google Cloud
   var client
   var projectId
@@ -94,25 +99,26 @@ export async function generateImage(formData: formDataI, isGeminiRewrite: boolea
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVestion}:predict`
 
   var fullPrompt = `Capture ${formData['prompt']}.`
+  var parameters = ''
   fullPromptAdditionalFields.forEach(
     (additionalField) =>
-      (fullPrompt =
+      (parameters =
         formData[additionalField] !== ''
-          ? `${fullPrompt} With ${additionalField.replaceAll('_', ' ')} being ${formData[additionalField]}.`
-          : fullPrompt)
+          ? `${parameters} With ${additionalField.replaceAll('_', ' ')} being ${formData[additionalField]}.`
+          : parameters)
   )
+  if (parameters !== '') fullPrompt = `${fullPrompt}  Make sure you use following parameters: ${parameters}`
 
   // If asked, rewriting the prompt with Gemini
   try {
     if (isGeminiRewrite) {
-      const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt)
+      var geminiReturnedPrompt = await rewriteWithGemini(fullPrompt)
 
       if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
         const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
         throw Error(errorMsg)
       } else {
         fullPrompt = geminiReturnedPrompt
-        console.log('Prompt successfuly rewritten with Gemini')
       }
     }
   } catch (error) {
@@ -120,6 +126,9 @@ export async function generateImage(formData: formDataI, isGeminiRewrite: boolea
       error: `${error}`,
     }
   }
+
+  // Sometimes gemini loses sight of original requested image style, so we had it after
+  fullPrompt = `With output image style being ${formData['style']}.` + fullPrompt
 
   const data = {
     instances: [
@@ -167,6 +176,7 @@ export async function generateImage(formData: formDataI, isGeminiRewrite: boolea
     const enhancedImageList = await buildImageList({
       generatedImagesInGCS: imgGCSlist,
       aspectRatio: opts.data.parameters.aspectRatio,
+      usedPrompt: opts.data.instances[0].prompt,
     })
 
     return enhancedImageList

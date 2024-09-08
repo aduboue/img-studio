@@ -20,8 +20,7 @@ export async function rewriteWithGemini(userPrompt: string) {
   const rewritePrompt =
     `Give me only one option, give me only your answer for the new prompt, no introductionnary text. ` +
     `Make this prompt more performant and specific while staying true to exactly what was asked, ` +
-    `the prompt is: "${userPrompt}".` +
-    `In output prompt propositon, the part of the original prompt starting with 'With style: ...' until next period should be kept intact.`
+    `the prompt is: "${userPrompt}".`
 
   try {
     debugger

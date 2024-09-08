@@ -1,7 +1,7 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
 import { TextField } from '@mui/material'
-import { FormTextInputI } from './FormInputInterface'
+import { FormTextInputI } from './InputInterface'
 
 export const FormInputTextSmall = ({ name, control, label }: FormTextInputI) => {
   return (

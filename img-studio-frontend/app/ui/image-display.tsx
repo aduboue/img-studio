@@ -2,13 +2,19 @@ import * as React from 'react'
 import ImageList from '@mui/material/ImageList'
 import ImageListItem from '@mui/material/ImageListItem'
 import ImageListItemBar from '@mui/material/ImageListItemBar'
-import { AddPhotoAlternate } from '@mui/icons-material'
-import { ImageI } from '../api/imagen-generate/generate-definitions'
+import { FileDownload, FileUpload } from '@mui/icons-material'
+import { GenerateImageFormI, ImageI } from '../api/imagen-generate/generate-utils'
 
 import Image from 'next/image'
-import { Box, IconButton, Modal, Skeleton } from '@mui/material'
+import { Avatar, Box, IconButton, Modal, Skeleton } from '@mui/material'
 
 import theme from 'app/theme'
+import { CustomizedAvatarButton, CustomizedIconButton } from './components/Button-SX'
+import ExportStepper from './export-dialog'
+import { useEffect, useState } from 'react'
+import { SubmitHandler, useForm, useWatch } from 'react-hook-form'
+import { ExportImageFieldList, ExportImageFormFields, ExportImageFormI } from '../api/imagen-generate/export-utils'
+import { generateImage } from '../api/imagen-generate/action'
 const palette = theme.palette
 
 export default function StandardImageList({
@@ -18,12 +24,47 @@ export default function StandardImageList({
   isLoading: boolean
   generatedImagesInGCS: ImageI[]
 }) {
-  // Full screen display Modal
-  const [imageFullScreenSrc, setImageFullScreenSrc] = React.useState('')
-  const handleOpen = (src: string) => setImageFullScreenSrc(src)
-  const handleClose = () => setImageFullScreenSrc('')
+  // Full screen image display
+  const [imageFullScreenSrc, setImageFullScreenSrc] = useState('')
+  const handleOpenImageFullScreen = (src: string) => setImageFullScreenSrc(src)
+  const handleCloseImageFullScreen = () => setImageFullScreenSrc('')
   const handleContextMenu = (event: React.MouseEvent<HTMLImageElement>) => {
     event.preventDefault() // Prevent the default context menu
+  }
+
+  // Export form and handlers
+  const [imageExportOpen, setImageExportOpen] = useState(false)
+  const {
+    handleSubmit,
+    resetField,
+    control,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<ExportImageFormI>({
+    defaultValues: { upscaledFactor: 'x4' },
+  })
+  const handleImageExportOpen = (image: ImageI) => {
+    setValue('imageToExport', image)
+    setValue('upscaledFactor', image?.ratio === '1:1' ? 'x4' : '')
+    setImageExportOpen(true)
+  }
+  const handleImageExportClose = () => {
+    resetField('imageToExport')
+    resetField('upscaledFactor')
+    setImageExportOpen(false)
+  }
+
+  const handleImageExportSubmit: SubmitHandler<ExportImageFormI> = async (formData: ExportImageFormI) => {
+    //onRequestSent(true)
+
+    try {
+      console.log(JSON.stringify(getValues(), undefined, 4))
+      handleImageExportClose()
+    } catch (error: any) {
+      console.log(error)
+      //onNewErrorMsg(error.toString())
+    }
   }
 
   return (
@@ -50,7 +91,7 @@ export default function StandardImageList({
                     width={image.width}
                     height={image.height}
                     quality={100}
-                    onClick={() => handleOpen(image.src)}
+                    onClick={() => handleOpenImageFullScreen(image.src)}
                     onContextMenu={handleContextMenu}
                   />
                   <ImageListItemBar
@@ -61,13 +102,13 @@ export default function StandardImageList({
                     position="top"
                     actionIcon={
                       <IconButton
-                        sx={{ color: 'white' }}
-                        aria-label={`export image ${image.altText}`}
-                        onClick={() => {
-                          console.log('clicked')
-                        }}
+                        onClick={() => handleImageExportOpen(image)}
+                        aria-label="Export image"
+                        sx={{ px: 0.5 }}
                       >
-                        <AddPhotoAlternate sx={{ fontSize: 25 }} />
+                        <Avatar sx={CustomizedAvatarButton}>
+                          <FileUpload sx={CustomizedIconButton} />
+                        </Avatar>
                       </IconButton>
                     }
                   />
@@ -78,7 +119,11 @@ export default function StandardImageList({
         )}
       </Box>
 
-      <Modal open={imageFullScreenSrc !== ''} onClose={handleClose} sx={{ display: 'flex', m: 5, cursor: 'pointer' }}>
+      <Modal
+        open={imageFullScreenSrc !== ''}
+        onClose={handleCloseImageFullScreen}
+        sx={{ display: 'flex', m: 5, cursor: 'pointer' }}
+      >
         <Image
           key={'displayed-image'}
           src={imageFullScreenSrc}
@@ -89,10 +134,21 @@ export default function StandardImageList({
             objectFit: 'contain',
           }}
           quality={100}
-          onClick={() => handleClose()}
+          onClick={() => handleCloseImageFullScreen()}
           onContextMenu={handleContextMenu}
         />
       </Modal>
+      <form onSubmit={handleSubmit(handleImageExportSubmit)}>
+        <ExportStepper
+          open={imageExportOpen}
+          control={control}
+          setValue={setValue}
+          formErrors={errors}
+          onSubmit={handleImageExportSubmit}
+          imageToExport={useWatch({ control, name: 'imageToExport' })}
+          handleImageExportClose={handleImageExportClose}
+        />
+      </form>
     </>
   )
 }

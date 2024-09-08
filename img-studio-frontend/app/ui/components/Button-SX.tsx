@@ -16,7 +16,7 @@ export const CustomizedIconButton = {
   '&:hover': onHover,
 }
 
-export const CustomizedAvartButton = {
+export const CustomizedAvatarButton = {
   width: 24,
   height: 24,
   ml: 0.2,
@@ -29,4 +29,23 @@ export const CustomizedAvartButton = {
 
 export const CustomizedIconButtonOpen = {
   ...onHover,
+}
+
+export const CustomizedSendButton = {
+  borderRadius: 7,
+  border: 1,
+  borderColor: 'white',
+  boxShadow: 0,
+  my: 1.5,
+  ml: 1,
+  py: 0.5,
+  pr: 1.5,
+  fontSize: '1rem',
+  '&:hover': {
+    background: 'white',
+    color: palette.primary.main,
+    border: 1,
+    borderColor: palette.primary.main,
+    boxShadow: 0,
+  },
 }

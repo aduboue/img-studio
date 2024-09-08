@@ -1,16 +1,16 @@
 import * as React from 'react'
 import { IconButton, Typography, Box, Menu, MenuItem, Avatar } from '@mui/material'
-import { CustomizedAvartButton, CustomizedIconButton, CustomizedIconButtonOpen } from './ButtonIconSX'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedIconButtonOpen } from './components/Button-SX'
 
 import theme from 'app/theme'
 const palette = theme.palette
 
-import FormInputDropdown from './FormInputDropdown'
-import FormInputChipGroup from './FormInputChipGroup'
-import { FormInputGenerateSettingsI } from './FormInputInterface'
-import { FormInputTextSmall } from './FormInputTextSmall'
-import { BuildCircle, Settings } from '@mui/icons-material'
-import CustomTooltip from './CustomTooltip'
+import FormInputDropdown from './components/InputDropdown'
+import FormInputChipGroup from './components/InputChipGroup'
+import { FormInputGenerateSettingsI } from './components/InputInterface'
+import { FormInputTextSmall } from './components/InputTextSmall'
+import { Settings } from '@mui/icons-material'
+import CustomTooltip from './components/Tooltip'
 
 const CustomizedMenu = {
   '& .MuiPaper-root': {
@@ -48,7 +48,7 @@ export default function FormInputGenerateSettings({
     <>
       <CustomTooltip title="Open settings" size="small">
         <IconButton onClick={handleClick} sx={{ px: 0.4, pr: 0.2 }}>
-          <Avatar sx={{ ...CustomizedAvartButton, ...(open === true && CustomizedIconButtonOpen) }}>
+          <Avatar sx={{ ...CustomizedAvatarButton, ...(open === true && CustomizedIconButtonOpen) }}>
             <Settings
               sx={{
                 ...CustomizedIconButton,

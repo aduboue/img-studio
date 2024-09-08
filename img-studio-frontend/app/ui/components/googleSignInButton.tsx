@@ -4,7 +4,7 @@ import styles from 'app/ui/components/googleSignInButton.module.css'
 
 export default function GoogleSignInButton(onClick: any) {
   return (
-    <button className={styles.button} onClick={onClick()}>
+    <button className={styles.button} onClick={() => onClick()}>
       <div className={styles.buttonstate}></div>
       <div className={styles.buttoncontentwrapper}>
         <div className={styles.buttonicon}>

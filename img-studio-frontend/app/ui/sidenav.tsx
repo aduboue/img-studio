@@ -4,17 +4,7 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 
-import {
-  Drawer,
-  List,
-  ListItem,
-  Typography,
-  ListItemButton,
-  Stack,
-  Tooltip,
-  Fade,
-  IconButton,
-} from '@mui/material'
+import { Drawer, List, ListItem, Typography, ListItemButton, Stack, Tooltip, Fade, IconButton } from '@mui/material'
 import LogoutIcon from '@mui/icons-material/Logout'
 
 import Image from 'next/image'
@@ -82,7 +72,7 @@ export default function PermanentDrawerLeft() {
             <Stack alignItems="left" direction="column" sx={{ pr: 4 }}>
               <Stack alignItems="center" direction="row" gap={1.2} pb={0.5}>
                 <Typography
-                  variant="body2"
+                  variant="body1"
                   color={selectedPage == name ? 'white' : palette.secondary.light}
                   fontWeight={selectedPage == name ? 500 : 400}
                 >
@@ -96,7 +86,7 @@ export default function PermanentDrawerLeft() {
                 </Typography>
               </Stack>
               <Typography
-                variant="body2"
+                variant="body1"
                 color={selectedPage == name ? palette.secondary.light : palette.secondary.main}
                 sx={{ fontSize: '0.9rem' }}
               >
