@@ -50,9 +50,7 @@ importers:
       Unstable_Grid2:
         specifier: link:@mui/material/Unstable_Grid2
         version: link:@mui/material/Unstable_Grid2
-      actions:
-        specifier: link:@/app/lib/actions
-        version: link:@/app/lib/actions
+
       autoprefixer:
         specifier: 10.4.19
         version: 10.4.19(postcss@8.4.38)
