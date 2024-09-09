@@ -7,8 +7,12 @@ WORKDIR /app
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies    1.  github.com github.com
 RUN npm ci
+
+# Builder stage
+FROM base AS builder
+WORKDIR /app
 
 # Copy the rest of the application code
 COPY . .
@@ -22,12 +26,12 @@ FROM node:18-alpine AS runner
 # Set the working directory
 WORKDIR /app
 
-# Copy the built application and required files from the previous stage
+# Copy the built application and required files from the builder stage
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/package.json ./package.json    1.  medium.com medium.com
 
 # Expose the port the app will run on
 EXPOSE 3000
