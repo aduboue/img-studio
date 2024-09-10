@@ -10,7 +10,7 @@ export default function GoogleSignInButton({ onClick }: { onClick: () => void })
         <div className={styles.buttonicon}>
           <Image priority src={icon} width={23} alt="Google Cloud" />
         </div>
-        <span className={styles.buttoncontents}>Sign in with Google</span>
+        <span className={styles.buttoncontents}>You're signed in with Google</span>
       </div>
     </button>
   )

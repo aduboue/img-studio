@@ -9,6 +9,7 @@
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
+    "@google-cloud/iap": "^3.4.0",
     "@google-cloud/storage": "^7.12.1",
     "@google-cloud/vertexai": "^1.6.0",
     "@heroicons/react": "^2.1.4",
@@ -26,7 +27,7 @@
     "next": "14.2.7",
     "next-auth": "5.0.0-beta.19",
     "postcss": "8.4.38",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.52.2",
     "tailwindcss": "3.4.4",
@@ -37,7 +38,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/node": "20.14.8",
-    "@types/react": "18.3.3",
+    "@types/react": "^18.3.3",
     "@types/react-dom": "18.3.0",
     "@types/react-window": "^1.8.8"
   },

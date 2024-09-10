@@ -96,7 +96,7 @@ export default function PermanentDrawerLeft() {
           </ListItemButton>
         ))}
       </List>
-      <List dense sx={{ position: 'absolute', bottom: '0', right: '0' }}>
+      {/*<List dense sx={{ position: 'absolute', bottom: '0', right: '0' }}>
         <Tooltip
           title="Log out"
           placement="left"
@@ -125,7 +125,7 @@ export default function PermanentDrawerLeft() {
             />
           </IconButton>
         </Tooltip>
-      </List>
+      </List>*/}
     </Drawer>
   )
 }
