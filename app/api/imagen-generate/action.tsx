@@ -60,7 +60,7 @@ export async function buildImageList({
             height: useHeight,
             ratio: aspectRatio,
             date: new Date(Date.now()).toLocaleString().split(',')[0],
-            author: 'DUPONT Jean', //#TODO get auth user name
+            author: 'DUPONT Jean', //#TODO get auth user name from IAP
           }
         }
       } catch (error) {

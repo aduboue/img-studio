@@ -1,7 +1,5 @@
 'use server'
 
-import { revalidatePath } from 'next/cache' //TODO?
-import { redirect } from 'next/navigation'
 const { Storage } = require('@google-cloud/storage')
 const { GoogleAuth } = require('google-auth-library')
 
@@ -23,7 +21,7 @@ export async function getSignedURL(bucketName: string, fileName: string) {
   const options: optionsI = {
     version: 'v4',
     action: 'read',
-    expires: Date.now() + 60 * 60 * 1000, // TODO change ? 60 minutes
+    expires: Date.now() + 60 * 60 * 1000,
   }
 
   try {

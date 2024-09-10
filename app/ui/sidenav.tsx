@@ -14,8 +14,6 @@ import { pages } from '../routes'
 import theme from 'app/theme'
 const palette = theme.palette
 
-//TODO log out href
-
 const drawerWidth = 265
 
 const CustomizedDrawer = {
