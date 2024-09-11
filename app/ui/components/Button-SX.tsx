@@ -1,4 +1,4 @@
-import theme from 'app/theme'
+import theme from '../../theme'
 const palette = theme.palette
 
 const onHover = {

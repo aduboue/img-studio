@@ -42,7 +42,7 @@ import {
   RandomPrompts,
 } from '../api/imagen-generate/generate-utils'
 
-import theme from 'app/theme'
+import theme from '../theme'
 import { generateImage } from '../api/imagen-generate/action'
 import { GeminiSwitch } from './components/GeminiSwitch'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'

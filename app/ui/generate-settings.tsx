@@ -2,7 +2,7 @@ import * as React from 'react'
 import { IconButton, Typography, Box, Menu, MenuItem, Avatar } from '@mui/material'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedIconButtonOpen } from './components/Button-SX'
 
-import theme from 'app/theme'
+import theme from '../theme'
 const palette = theme.palette
 
 import FormInputDropdown from './components/InputDropdown'

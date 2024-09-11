@@ -2,7 +2,7 @@ import React from 'react'
 import { Controller } from 'react-hook-form'
 import { Chip, Stack, Box, Typography, FormControl } from '@mui/material'
 
-import theme from 'app/theme'
+import theme from '../../theme'
 const palette = theme.palette
 
 import { FormChipGroupInputI } from './InputInterface'

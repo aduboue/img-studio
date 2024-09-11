@@ -2,7 +2,7 @@ import React from 'react'
 import { Controller } from 'react-hook-form'
 import { TextField } from '@mui/material'
 import { FormTextInputI } from './InputInterface'
-import theme from 'app/theme'
+import theme from '../../theme'
 const palette = theme.palette
 
 export const FormInputText = ({ name, control, label, required }: FormTextInputI) => {

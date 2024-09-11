@@ -2,16 +2,14 @@
 
 import * as React from 'react'
 import { useRouter } from 'next/navigation'
-import { signOut } from 'next-auth/react'
 
-import { Drawer, List, ListItem, Typography, ListItemButton, Stack, Tooltip, Fade, IconButton } from '@mui/material'
-import LogoutIcon from '@mui/icons-material/Logout'
+import { Drawer, List, ListItem, Typography, ListItemButton, Stack } from '@mui/material'
 
 import Image from 'next/image'
 import icon from 'public/ImgStudioLogoReversedMini.svg'
 import { pages } from '../routes'
 
-import theme from 'app/theme'
+import theme from '../theme'
 const palette = theme.palette
 
 const drawerWidth = 265

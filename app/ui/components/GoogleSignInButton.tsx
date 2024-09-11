@@ -1,6 +1,6 @@
 import icon from 'public/cloudicon.svg'
 import Image from 'next/image'
-import styles from 'app/ui/components/GoogleSignInButton.module.css'
+import styles from './GoogleSignInButton.module.css'
 
 export default function GoogleSignInButton({ onClick }: { onClick: () => void }) {
   return (

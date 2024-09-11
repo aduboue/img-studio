@@ -2,7 +2,7 @@ import * as React from 'react'
 import { styled } from '@mui/material/styles'
 import Switch from '@mui/material/Switch'
 
-import theme from 'app/theme'
+import theme from '../../theme'
 const palette = theme.palette
 
 const sparkIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark/default/20px.svg'

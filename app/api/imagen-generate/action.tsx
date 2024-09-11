@@ -9,7 +9,7 @@ import {
 } from './generate-utils'
 import { getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
-import { appContextDataI } from '@/app/context/app-context'
+import { appContextDataI } from '../../context/app-context'
 const { GoogleAuth } = require('google-auth-library')
 
 function cleanResult(inputString: string) {

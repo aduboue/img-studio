@@ -4,7 +4,7 @@ import * as React from 'react'
 import Box from '@mui/material/Box'
 import Image from 'next/image'
 import icon from '../public/ImgStudioLogo.svg'
-import GoogleSignInButton from '@/app/ui/components/GoogleSignInButton'
+import GoogleSignInButton from './ui/components/GoogleSignInButton'
 import { pages } from './routes'
 import { useRouter } from 'next/navigation'
 

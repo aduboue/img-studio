@@ -1,7 +1,7 @@
 import { CheckCircle, RadioButtonUnchecked } from '@mui/icons-material'
 import { FormControlLabel, Radio, Typography } from '@mui/material'
 
-import theme from 'app/theme'
+import theme from '../../theme'
 import { FormInputRadioButtonI } from './InputInterface'
 const palette = theme.palette
 

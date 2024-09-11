@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Fade, Tooltip } from '@mui/material'
-import theme from 'app/theme'
+import theme from '../../theme'
 const palette = theme.palette
 
 const CustomizedSmallTooltip = {
