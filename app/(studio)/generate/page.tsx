@@ -3,11 +3,11 @@
 import * as React from 'react'
 import Grid from '@mui/material/Grid2'
 import Box from '@mui/material/Box'
-import GenerateForm from 'app/ui/generate-form'
+import GenerateForm from '../../ui/generate-form'
 import { useState } from 'react'
 import { ImageI } from '../../api/imagen-generate/generate-utils'
-import StandardImageList from '@/app/ui/image-display'
-import { useAppContext } from '@/app/context/app-context'
+import StandardImageList from '../../ui/image-display'
+import { useAppContext } from '../../context/app-context'
 
 export default function Page() {
   const [generatedImagesInGCS, setGeneratedImagesInGCS] = useState<ImageI[]>([])
