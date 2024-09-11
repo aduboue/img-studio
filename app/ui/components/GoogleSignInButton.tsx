@@ -1,4 +1,4 @@
-import icon from 'public/cloudicon.svg'
+import icon from '../../../public/cloudicon.svg'
 import Image from 'next/image'
 import styles from './GoogleSignInButton.module.css'
 
