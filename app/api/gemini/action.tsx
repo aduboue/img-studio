@@ -8,9 +8,9 @@ function cleanResult(inputString: string) {
 
 export async function rewriteWithGemini(userPrompt: string) {
   const location = process.env.VERTEX_API_LOCATION
-  const projectId = process.env.PROJECT_ID
   const geminiModel = process.env.GEMINI_MODEL
 
+  // #TODO take out value
   const vertexAI = new VertexAI({ project: 'aduboue-playground', location: location })
 
   const generativeModel = vertexAI.getGenerativeModel({
@@ -23,7 +23,6 @@ export async function rewriteWithGemini(userPrompt: string) {
     `the prompt is: "${userPrompt}".`
 
   try {
-    debugger
     const resp = await generativeModel.generateContent(rewritePrompt)
     const contentResponse = await resp.response
 
@@ -39,8 +38,9 @@ export async function rewriteWithGemini(userPrompt: string) {
 
     return newPrompt
   } catch (error) {
+    console.error(error)
     return {
-      error: `${error}`,
+      error: 'Error while rewriting prompt with Gemini .',
     }
   }
 }

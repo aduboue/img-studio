@@ -47,7 +47,7 @@ export default function FormInputGenerateSettings({
   return (
     <>
       <CustomTooltip title="Open settings" size="small">
-        <IconButton onClick={handleClick} sx={{ px: 0.4, pr: 0.2 }}>
+        <IconButton onClick={handleClick} disableRipple sx={{ px: 0.4, pr: 0.2 }}>
           <Avatar sx={{ ...CustomizedAvatarButton, ...(open === true && CustomizedIconButtonOpen) }}>
             <Settings
               sx={{

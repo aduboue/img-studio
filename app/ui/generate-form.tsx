@@ -49,6 +49,7 @@ import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } fr
 import { useEffect, useState } from 'react'
 import CustomTooltip from './components/Tooltip'
 import { CustomizedAccordion, CustomizedAccordionSummary } from './components/Accordion-SX'
+import { useAppContext } from '../context/app-context'
 const palette = theme.palette
 
 export default function GenerateForm({
@@ -67,6 +68,7 @@ export default function GenerateForm({
   const { handleSubmit, resetField, control, setValue, getValues } = useForm<GenerateImageFormI>({
     defaultValues: formDataDefaults,
   })
+  const { appContext } = useAppContext()
 
   // Manage if prompt should be generated with Gemini
   const [isGeminiRewrite, setIsGeminiRewrite] = useState(true)
@@ -82,9 +84,9 @@ export default function GenerateForm({
     onRequestSent(true)
 
     try {
-      const newGeneratedImages = await generateImage(formData, isGeminiRewrite)
+      const newGeneratedImages = await generateImage(formData, isGeminiRewrite, appContext)
 
-      if (typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
+      if (newGeneratedImages !== undefined && typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
         const errorMsg = newGeneratedImages['error'].replaceAll('Error: ', '')
         throw Error(errorMsg)
       } else {
@@ -95,9 +97,9 @@ export default function GenerateForm({
         })
 
         onImageGeneration(newGeneratedImages)
+        // #TODO add logic to save image history metadata in DB AFTER the load of images to not impact perfs
       }
     } catch (error: any) {
-      console.log(error)
       onNewErrorMsg(error.toString())
     }
   }
@@ -183,6 +185,7 @@ export default function GenerateForm({
             <IconButton
               onClick={() => setValue('prompt', getRandomPrompt())}
               aria-label="Random prompt"
+              disableRipple
               sx={{ px: 0.5 }}
             >
               <Avatar sx={CustomizedAvatarButton}>
@@ -191,7 +194,7 @@ export default function GenerateForm({
             </IconButton>
           </CustomTooltip>
           <CustomTooltip title="Reset all fields" size="small">
-            <IconButton onClick={() => onReset()} aria-label="Reset form" sx={{ px: 0.5 }}>
+            <IconButton onClick={() => onReset()} aria-label="Reset form" disableRipple sx={{ px: 0.5 }}>
               <Avatar sx={CustomizedAvatarButton}>
                 <Autorenew sx={CustomizedIconButton} />
               </Avatar>
