@@ -34,7 +34,7 @@ export async function getSignedURL(bucketName: string, fileName: string) {
   }
 }
 
-export async function ensureBucketExists(uri: string): Promise<string | { error: string }> {
+export async function ensureBucketExists(uri: string) {
   try {
     const storage = new Storage()
     const bucketName = uri.replace(/^gs:\/\//, '')

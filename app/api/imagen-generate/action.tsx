@@ -16,10 +16,7 @@ function cleanResult(inputString: string) {
   return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
 }
 
-async function generatePrompt(
-  formData: GenerateImageFormI,
-  isGeminiRewrite: boolean
-): Promise<string | { error: string }> {
+async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boolean) {
   let fullPrompt = `Capture ${formData['prompt']}.`
   let parameters = ''
 
