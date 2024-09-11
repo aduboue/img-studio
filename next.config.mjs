@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-const nextConfig = { images: { domains: ['storage.googleapis.com'], formats: ['image/avif', 'image/webp'], }, }
+const nextConfig = { reactStrictMode: true, staticPageGenerationTimeout: 120,images: { domains: ['storage.googleapis.com'], formats: ['image/avif', 'image/webp'], }, }
 
 export default nextConfig;
