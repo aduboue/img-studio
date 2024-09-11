@@ -8,6 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Build your Next.js application with profiling
+RUN npm install -g next
 RUN npm run build --profile
 
 # Install dependencies
