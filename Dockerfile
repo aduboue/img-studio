@@ -7,10 +7,6 @@ WORKDIR /app
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Build your Next.js application with profiling
-RUN npm install -g next
-RUN npm run build --profile
-
 # Install dependencies
 RUN npm install
 
@@ -20,6 +16,10 @@ WORKDIR /app
 
 # Copy the rest of the application code
 COPY . .
+
+# Build the Next.js application with profiling
+RUN npm install -g next
+RUN npm run build --profile
 
 # Build the Next.js application
 RUN npm run build
