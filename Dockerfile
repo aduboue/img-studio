@@ -12,7 +12,7 @@ RUN rm -f package-lock.json pnpm-lock.yaml
 RUN rm -rf node_modules .next
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Builder stage
 FROM base AS builder
