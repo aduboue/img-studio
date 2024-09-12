@@ -5,23 +5,25 @@ export async function GET(req: NextRequest) {
   let response = {}
 
   try {
+    // For local development
     const auth = new GoogleAuth({
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
     });
     const client = await auth.getClient();
-
-    let email
-    if (client !== undefined) {
+    if (client !== undefined && client['targetPrincipal']) {
       response = {
         targetPrincipal: client.targetPrincipal,
       }
     }
-    else { throw Error('No ADC possible') }
+    // For prod version on Cloud Run x IAP
+    else {
+      response = {
+        targetPrincipal: req.headers.get('X-Goog-Authenticated-User-Email'),
+      }
+    }
 
-    console.log("XXXXXXXXXXXX EMAIL " + email) //#TODO temp log
   } catch (error) {
-    console.log("XXXXXXXXXXXX HEADERS " + JSON.stringify(req.headers, undefined, 4)) //#TODO temp log
-
+    // For prod version on Cloud Run x IAP
     if (req.headers && req.headers.get('X-Goog-Authenticated-User-Email')) {
       response = {
         targetPrincipal: req.headers.get('X-Goog-Authenticated-User-Email'),

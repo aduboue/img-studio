@@ -34,10 +34,23 @@ const AppContext = createContext<AppContextType>({
 export function ContextProvider({ children }: { children: React.ReactNode }) {
   const [appContext, setAppContext] = useState<AppContextType['appContext']>(appContextDataDefault)
   const [error, setError] = useState<Error | string | null>(null)
+  const [retries, setRetries] = useState(0)
 
   useEffect(() => {
     async function fetchAndUpdateContext() {
       try {
+        console.log('XXXXXX env ' + process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_PREFIX) //#TODO take out !!
+
+        // 0. Check if required environment variables are available
+        if (
+          !process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_PREFIX ||
+          !process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_SUFIX ||
+          !process.env.NEXT_PUBLIC_GENERATED_IMAGE_BUCKET_PREFIX ||
+          !process.env.NEXT_PUBLIC_EDITED_IMAGE_BUCKET_PREFIX
+        ) {
+          throw Error('Missing required environment variables')
+        }
+
         // 1. Fetch User ID from client-side
         const response = await fetch('/api/google-auth')
         const authParams = await response.json()
@@ -45,10 +58,17 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           throw Error(authParams.error)
         }
 
-        const targetPrincipal = authParams?.targetPrincipal
+        let targetPrincipal
 
-        const match = targetPrincipal.match(/^(.+?)@/)
-        const fetchedUserID = match ? match[1] : ''
+        if (authParams !== undefined && authParams['targetPrincipal'] !== undefined) {
+          targetPrincipal = authParams['targetPrincipal']
+          targetPrincipal = targetPrincipal.replace('accounts.google.com:', '') // For IAP provided emails
+          targetPrincipal = targetPrincipal.replace(process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_PREFIX, '') // Remove prefix part before ID
+          targetPrincipal = targetPrincipal.replace(process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_SUFIX, '') // Remove sufix part after ID
+        } else {
+          throw Error('An unexpected error occurred while fetching User ID')
+        }
+        const fetchedUserID = targetPrincipal
 
         // 2. Fetch Generation Image URI (if userID is available)
         let generationImageUri
@@ -61,8 +81,11 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
               throw Error(generationImageUri.error)
             }
           } catch (error: unknown) {
-            setError('An unexpected error occurred while fetching generation image URI')
-            console.error(error)
+            if (error instanceof Error) {
+              throw error
+            } else {
+              throw Error(error as string)
+            }
           }
         }
 
@@ -77,8 +100,11 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
               throw Error(editingImageUri.error)
             }
           } catch (error: unknown) {
-            setError('An unexpected error occurred while fetching editing image URI')
-            console.error(error)
+            if (error instanceof Error) {
+              throw error
+            } else {
+              throw Error(error as string)
+            }
           }
         }
 
@@ -89,19 +115,26 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           editingImageUri: editingImageUri?.toString(),
           isLoading: false,
         })
+        setRetries(0)
       } catch (error: unknown) {
-        if (error instanceof Error) {
-          setError(error)
-        } else {
-          setError(new Error('An unexpected error occurred'))
-        }
+        setError('An unexpected error occurred, retrying...')
         console.error(error)
-        setAppContext(appContextDataDefault)
+
+        // Maximum 3 retries
+        if (retries < 3) {
+          console.error('Retrying fetch in 2 seconds...')
+          setTimeout(() => {
+            setRetries(retries + 1)
+          }, 2000) // Retry after 2 seconds
+        } else {
+          setAppContext(appContextDataDefault)
+          setError('Failed to fetch data after multiple retries')
+        }
       }
     }
 
     fetchAndUpdateContext()
-  }, [])
+  }, [retries])
 
   const contextValue = {
     appContext,
