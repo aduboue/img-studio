@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   let response = {}
 
   try {
-    // For local development
+    // For local development #TODO just take a var .env if env=test ? might allow cloud build to work..
     const auth = new GoogleAuth({
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
     });
