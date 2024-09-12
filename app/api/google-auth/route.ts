@@ -7,12 +7,16 @@ export async function GET(req: NextRequest) {
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
     });
     const client = await auth.getClient();
-    const projectId = await auth.getProjectId();  
 
+    let email
+    if (client !== undefined) { email = client.targetPrincipal }
+    else { email = req.headers.get('X-Goog-Authenticated-User-Email') }
+
+    console.log("XXXXXXXXXXXX EMAIL " + email) //#TODO temp log
+    console.log("XXXXXXXXXXXX HEADERS " + JSON.stringify(req.headers, undefined, 4)) //#TODO temp log
 
     return NextResponse.json({
-      projectId: projectId,
-      client: client,
+      targetPrincipal: email,
     });
   } catch (error) {
     console.error(error);

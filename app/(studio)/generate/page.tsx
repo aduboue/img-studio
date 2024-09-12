@@ -13,7 +13,7 @@ export default function Page() {
   const [generatedImagesInGCS, setGeneratedImagesInGCS] = useState<ImageI[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const { appContext } = useAppContext()
+  const { appContext, error } = useAppContext()
 
   const handleImageGeneration = (newImages: ImageI[]) => {
     setGeneratedImagesInGCS(newImages)
@@ -29,8 +29,13 @@ export default function Page() {
     setErrorMsg(newErrorMsg)
   }
 
-  if (appContext?.isLoading === true) return <p>Loading...</p> //#TODO make pretier if takes long ?
-  else
+  if (appContext?.isLoading === true) {
+    if (error === null) {
+      return <p>Loading your profile content...</p> //#TODO make pretier if takes long ?
+    } else {
+      return <p>Error while loading your profile content!</p>
+    }
+  } else
     return (
       <Box p={5} sx={{ maxHeight: '100vh' }}>
         <Grid wrap="nowrap" container spacing={6} direction="row" columns={2}>

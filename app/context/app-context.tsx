@@ -32,7 +32,7 @@ const AppContext = createContext<AppContextType>({
 })
 
 export function ContextProvider({ children }: { children: React.ReactNode }) {
-  const [appContext, setAppContext] = useState<AppContextType['appContext']>(null)
+  const [appContext, setAppContext] = useState<AppContextType['appContext']>(appContextDataDefault)
   const [error, setError] = useState<Error | string | null>(null)
 
   useEffect(() => {
@@ -40,15 +40,14 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
       try {
         // 1. Fetch User ID from client-side
         const response = await fetch('/api/google-auth')
-        if (!response.ok) {
-          //#TODO never goes here ?
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Authentication failed')
-        }
         const authParams = await response.json()
-        const client = authParams?.client
+        if (typeof authParams === 'object' && 'error' in authParams) {
+          throw Error(authParams.error)
+        }
 
-        const match = client.targetPrincipal.match(/^(.+?)@/)
+        const targetPrincipal = authParams?.targetPrincipal
+
+        const match = targetPrincipal.match(/^(.+?)@/)
         const fetchedUserID = match ? match[1] : ''
 
         // 2. Fetch Generation Image URI (if userID is available)
@@ -62,7 +61,7 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
               throw Error(generationImageUri.error)
             }
           } catch (error: unknown) {
-            setError(new Error('An unexpected error occurred while fetching generation image URI'))
+            setError('An unexpected error occurred while fetching generation image URI')
             console.error(error)
           }
         }
@@ -78,7 +77,7 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
               throw Error(editingImageUri.error)
             }
           } catch (error: unknown) {
-            setError(new Error('An unexpected error occurred while fetching editing image URI'))
+            setError('An unexpected error occurred while fetching editing image URI')
             console.error(error)
           }
         }
