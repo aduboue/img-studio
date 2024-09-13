@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Install dependencies
+# Install dependencies  
 RUN npm install
 
 # Builder stage
@@ -16,6 +16,22 @@ WORKDIR /app
 
 # Copy the rest of the application code
 COPY . .
+
+# Set environment variables from build arguments (add these lines)
+ARG _PROJECT_ID
+ARG _VERTEX_API_LOCATION
+ARG _GCS_BUCKET_LOCATION
+ARG _GEMINI_MODEL
+ARG _NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS
+ARG _NEXT_PUBLIC_TEST_DEV_USER_ID
+ARG _NEXT_PUBLIC_IMAGE_BUCKET_PREFIX
+ENV PROJECT_ID=$_PROJECT_ID \
+    VERTEX_API_LOCATION=$_VERTEX_API_LOCATION \
+    GCS_BUCKET_LOCATION=$_GCS_BUCKET_LOCATION \
+    GEMINI_MODEL=$_GEMINI_MODEL \
+    NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS=$_NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS \
+    NEXT_PUBLIC_TEST_DEV_USER_ID=$_NEXT_PUBLIC_TEST_DEV_USER_ID \
+    NEXT_PUBLIC_IMAGE_BUCKET_PREFIX=$_NEXT_PUBLIC_IMAGE_BUCKET_PREFIX
 
 # Build the Next.js application
 RUN npm run build
