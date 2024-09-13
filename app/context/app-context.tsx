@@ -37,8 +37,6 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchAndUpdateContext() {
       try {
-        console.log('XXXXXX env ' + process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS) //#TODO take out !!
-
         // 0. Check if required environment variables are available
         if (!process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS || !process.env.NEXT_PUBLIC_IMAGE_BUCKET_PREFIX) {
           throw Error('Missing required environment variables')

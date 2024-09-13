@@ -84,7 +84,7 @@ export default function ExportStepper({
       setIsCloseWithoutSubmit(true)
     } else {
       if (formErrors && Object.keys(formErrors).length > 0) {
-        //handle error
+        //#TODO handle error
       } else {
         onClose()
       }
@@ -142,7 +142,7 @@ export default function ExportStepper({
       <>
         <Box sx={{ pt: 1, pb: 2, width: '90%' }}>
           {infoToReview.map(({ label, value }) => (
-            <Box display="flex" flexDirection="row">
+            <Box key={label} display="flex" flexDirection="row">
               <ArrowRight sx={{ color: palette.primary.main, fontSize: '1.2rem', p: 0, mt: 0.2 }} />
               <Box sx={{ pb: 1 }}>
                 <Typography display="inline" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>{`${label}: `}</Typography>
@@ -255,7 +255,10 @@ export default function ExportStepper({
         <Box sx={{ m: 0, pt: 2, display: 'flex', justifyContent: 'flex-start' }}>
           <Button
             type="submit"
-            onClick={onSubmit}
+            onClick={() => {
+              onSubmit()
+              onClose()
+            }}
             variant="contained"
             // disabled={isLoading} #TODO
             // endIcon={isLoading ? <WatchLaterIcon /> : <SendIcon />}
