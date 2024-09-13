@@ -1,11 +1,13 @@
 steps:
 # Install dependencies
-- name: node:20-alpine
-  entrypoint: npm
-  args: ['install', 'next', '--save-dev']
+- id: Npm install
+  name: node:20-alpine
+  entrypoint: 'npx'
+  args: ['next', 'build']
 
 # Build the Next.js app
-- name: node:20-alpine
+- id: build app
+  name: node:20-alpine
   entrypoint: npm
   args: ['run', 'build']
   env:
@@ -20,7 +22,8 @@ steps:
 
 
 # Build the final production image
-- name: 'gcr.io/cloud-builders/docker'
+- id: build image
+  name: 'gcr.io/cloud-builders/docker'
   args: [
     'build',
     '-t',

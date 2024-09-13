@@ -18,7 +18,6 @@
     "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.20",
     "google-auth-library": "^9.13.0",
-    "next": "14.2.7",
     "next-auth": "5.0.0-beta.19",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -32,6 +31,7 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "18.3.0",
     "@types/react-window": "^1.8.8",
+    "next": "^14.2.11",
     "typescript": "^5.6.2"
   },
   "engines": {
