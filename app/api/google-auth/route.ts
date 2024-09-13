@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-const { GoogleAuth } = require('google-auth-library');
 
 export async function GET(req: NextRequest) {
   let response = {}
