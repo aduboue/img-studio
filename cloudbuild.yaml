@@ -6,6 +6,13 @@ steps:
   waitFor:
     - '-'
 
+# Install Next.js as dev dependency
+- name: node:20-alpine
+  entrypoint: npm
+  args: ['install', 'next', '--save-dev']
+  waitFor:
+    - '-'
+
 # Build the Next.js app
 - name: node:20-alpine
   entrypoint: npm
