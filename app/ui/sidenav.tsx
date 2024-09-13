@@ -10,7 +10,7 @@ import icon from '../../public/ImgStudioLogoReversedMini.svg'
 import { pages } from '../routes'
 
 import theme from '../theme'
-const palette = theme.palette
+const { palette } = theme
 
 const drawerWidth = 265
 

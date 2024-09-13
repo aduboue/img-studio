@@ -35,7 +35,7 @@ import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
 import { CloseWithoutSubmitWarning } from './components/ExportAlerts'
 
 import theme from '../theme'
-const palette = theme.palette
+const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & {

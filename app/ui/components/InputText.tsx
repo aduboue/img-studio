@@ -3,7 +3,7 @@ import { Controller } from 'react-hook-form'
 import { TextField } from '@mui/material'
 import { FormTextInputI } from './InputInterface'
 import theme from '../../theme'
-const palette = theme.palette
+const { palette } = theme
 
 export const FormInputText = ({ name, control, label, required }: FormTextInputI) => {
   return (

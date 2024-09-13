@@ -352,6 +352,7 @@ export interface ImageI {
   prompt: string
   date: string
   author: string
+  modelVestion: string
 }
 
 // List of Imagen available ratio and their corresponding generation dimentions

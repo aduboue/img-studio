@@ -3,7 +3,7 @@ import { styled } from '@mui/material/styles'
 import Switch from '@mui/material/Switch'
 
 import theme from '../../theme'
-const palette = theme.palette
+const { palette } = theme
 
 const sparkIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark/default/20px.svg'
 const sparkOffIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark_off/default/20px.svg'

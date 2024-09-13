@@ -3,7 +3,7 @@ import { IconButton, Typography, Box, Menu, MenuItem, Avatar } from '@mui/materi
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedIconButtonOpen } from './components/Button-SX'
 
 import theme from '../theme'
-const palette = theme.palette
+const { palette } = theme
 
 import FormInputDropdown from './components/InputDropdown'
 import FormInputChipGroup from './components/InputChipGroup'

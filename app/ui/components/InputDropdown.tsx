@@ -7,7 +7,7 @@ import { TextField, MenuItem, FormControl } from '@mui/material'
 
 import theme from '../../theme'
 import CustomTooltip from './Tooltip'
-const palette = theme.palette
+const { palette } = theme
 
 const CustomizedInput = (styleSize: string) => {
   var style = { color: palette.primary.main }

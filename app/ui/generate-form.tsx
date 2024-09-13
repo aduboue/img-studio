@@ -50,7 +50,7 @@ import { useEffect, useState } from 'react'
 import CustomTooltip from './components/Tooltip'
 import { CustomizedAccordion, CustomizedAccordionSummary } from './components/Accordion-SX'
 import { useAppContext } from '../context/app-context'
-const palette = theme.palette
+const { palette } = theme
 
 export default function GenerateForm({
   isLoading,

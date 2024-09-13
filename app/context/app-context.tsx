@@ -4,8 +4,7 @@ import { createContext, useState, useEffect, useContext } from 'react'
 import { ensureBucketExists } from '../api/cloud-storage/action'
 
 export interface appContextDataI {
-  generationImageUri?: string
-  editingImageUri?: string
+  gcsURI?: string
   userID?: string
   isLoading: boolean
 }
@@ -18,8 +17,7 @@ interface AppContextType {
 }
 
 const appContextDataDefault = {
-  generationImageUri: '',
-  editingImageUri: '',
+  gcsURI: '',
   userID: '',
   isLoading: true,
 }
@@ -39,46 +37,51 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function fetchAndUpdateContext() {
       try {
-        console.log('XXXXXX env ' + process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_PREFIX) //#TODO take out !!
+        console.log('XXXXXX env ' + process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS) //#TODO take out !!
 
         // 0. Check if required environment variables are available
-        if (
-          !process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_PREFIX ||
-          !process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_SUFIX ||
-          !process.env.NEXT_PUBLIC_GENERATED_IMAGE_BUCKET_PREFIX ||
-          !process.env.NEXT_PUBLIC_EDITED_IMAGE_BUCKET_PREFIX
-        ) {
+        if (!process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS || !process.env.NEXT_PUBLIC_IMAGE_BUCKET_PREFIX) {
           throw Error('Missing required environment variables')
         }
 
         // 1. Fetch User ID from client-side
-        const response = await fetch('/api/google-auth')
-        const authParams = await response.json()
-        if (typeof authParams === 'object' && 'error' in authParams) {
-          throw Error(authParams.error)
-        }
+        let fetchedUserID = ''
 
-        let targetPrincipal
-
-        if (authParams !== undefined && authParams['targetPrincipal'] !== undefined) {
-          targetPrincipal = authParams['targetPrincipal']
-          targetPrincipal = targetPrincipal.replace('accounts.google.com:', '') // For IAP provided emails
-          targetPrincipal = targetPrincipal.replace(process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_PREFIX, '') // Remove prefix part before ID
-          targetPrincipal = targetPrincipal.replace(process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_SUFIX, '') // Remove sufix part after ID
+        if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_TEST_DEV_USER_ID) {
+          // Locally IAP is not enabled
+          fetchedUserID = process.env.NEXT_PUBLIC_TEST_DEV_USER_ID
         } else {
-          throw Error('An unexpected error occurred while fetching User ID')
-        }
-        const fetchedUserID = targetPrincipal
+          // Fetching ID via IAP
+          const response = await fetch('/api/google-auth')
+          const authParams = await response.json()
+          if (typeof authParams === 'object' && 'error' in authParams) {
+            throw Error(authParams.error)
+          }
 
-        // 2. Fetch Generation Image URI (if userID is available)
-        let generationImageUri
+          let targetPrincipal: string
+
+          if (authParams !== undefined && authParams['targetPrincipal'] !== undefined) {
+            targetPrincipal = authParams['targetPrincipal']
+            const principalToUserFilters = process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS
+              ? process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS
+              : ''
+
+            principalToUserFilters
+              .split(',')
+              .forEach((filter) => (targetPrincipal = targetPrincipal.replace(filter, '')))
+          } else {
+            throw Error('An unexpected error occurred while fetching User ID')
+          }
+          fetchedUserID = targetPrincipal
+        }
+
+        // 2. Fetch GCS URI for all edited/ generated images (if userID is available)
+        let gcsURI
         if (fetchedUserID) {
           try {
-            generationImageUri = await ensureBucketExists(
-              `gs://${process.env.NEXT_PUBLIC_GENERATED_IMAGE_BUCKET_PREFIX}-${fetchedUserID}`
-            )
-            if (typeof generationImageUri === 'object' && 'error' in generationImageUri) {
-              throw Error(generationImageUri.error)
+            gcsURI = await ensureBucketExists(`gs://${process.env.NEXT_PUBLIC_IMAGE_BUCKET_PREFIX}-${fetchedUserID}`)
+            if (typeof gcsURI === 'object' && 'error' in gcsURI) {
+              throw Error(gcsURI.error)
             }
           } catch (error: unknown) {
             if (error instanceof Error) {
@@ -89,30 +92,10 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
-        // 3. Fetch Editing Image URI (if userID is available)
-        let editingImageUri
-        if (fetchedUserID) {
-          try {
-            editingImageUri = await ensureBucketExists(
-              `gs://${process.env.NEXT_PUBLIC_EDITED_IMAGE_BUCKET_PREFIX}-${fetchedUserID}`
-            )
-            if (typeof editingImageUri === 'object' && 'error' in editingImageUri) {
-              throw Error(editingImageUri.error)
-            }
-          } catch (error: unknown) {
-            if (error instanceof Error) {
-              throw error
-            } else {
-              throw Error(error as string)
-            }
-          }
-        }
-
-        // 4. Update Context with all fetched data
+        // 3. Update Context with all fetched data
         setAppContext({
           userID: fetchedUserID,
-          generationImageUri: generationImageUri?.toString(),
-          editingImageUri: editingImageUri?.toString(),
+          gcsURI: gcsURI?.toString(),
           isLoading: false,
         })
         setRetries(0)

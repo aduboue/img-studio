@@ -16,6 +16,7 @@ export interface ExportImageFieldI {
 export interface ExportImageFormFieldsI {
   imageGcsURI: ExportImageFieldI
   imageGenerationDate: ExportImageFieldI
+  imageLeveragedModel: ExportImageFieldI
   imageAuthor: ExportImageFieldI
   imagePrompt: ExportImageFieldI
   imageFormat: ExportImageFieldI
@@ -41,6 +42,13 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     label: 'Generation date',
     type: 'text-info',
     prop: 'date',
+    isUpdatable: false,
+    isVisible: false,
+  },
+  imageLeveragedModel: {
+    label: 'Leveraged Model',
+    type: 'text-info',
+    prop: 'modelVestion',
     isUpdatable: false,
     isVisible: false,
   },
@@ -106,7 +114,6 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     isUpdatable: false,
     isVisible: true,
   },
-
   contextAuthorTeam: {
     label: 'In which team are you?',
     type: 'select',

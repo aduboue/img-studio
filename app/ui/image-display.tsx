@@ -13,7 +13,7 @@ import ExportStepper from './export-dialog'
 import { ExportImageFormI } from '../api/imagen-generate/export-utils'
 
 import theme from '../theme'
-const palette = theme.palette
+const { palette } = theme
 
 export default function StandardImageList({
   isLoading,

@@ -3,7 +3,7 @@ import { FormControlLabel, Radio, Typography } from '@mui/material'
 
 import theme from '../../theme'
 import { FormInputRadioButtonI } from './InputInterface'
-const palette = theme.palette
+const { palette } = theme
 
 export const CustomRadio = ({ label, subLabel, value, currentSelectedValue, enabled }: FormInputRadioButtonI) => {
   return (

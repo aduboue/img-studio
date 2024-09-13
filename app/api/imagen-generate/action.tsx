@@ -56,11 +56,13 @@ export async function buildImageList({
   aspectRatio,
   usedPrompt,
   userID,
+  modelVestion,
 }: {
   generatedImagesInGCS: GeneratedImagesInGCSI[]
   aspectRatio: string
   usedPrompt: string
   userID: string
+  modelVestion: string
 }) {
   const promises = generatedImagesInGCS.map(async (image) => {
     if ('raiFilteredReason' in image) {
@@ -96,6 +98,7 @@ export async function buildImageList({
             ratio: aspectRatio,
             date: new Date(Date.now()).toLocaleString().split(',')[0],
             author: userID, //#TODO get auth user name from IAP
+            modelVestion: modelVestion,
           }
         }
       } catch (error) {
@@ -121,13 +124,11 @@ export async function generateImage(
 ) {
   // 1 - Atempting to authent to Google Cloud & fetch project informations
   let client
-  let projectId
   try {
     const auth = new GoogleAuth({
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
     })
     client = await auth.getClient()
-    projectId = await auth.getProjectId()
   } catch (error) {
     console.error(error)
     return {
@@ -135,6 +136,7 @@ export async function generateImage(
     }
   }
   const location = process.env.VERTEX_API_LOCATION
+  const projectId = process.env.PROJECT_ID
   const modelVestion = formData['modelVersion']
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVestion}:predict`
 
@@ -153,7 +155,15 @@ export async function generateImage(
     }
   }
 
+  if (appContext === undefined) throw Error('No provided app context')
+
   // 3 - Building Imagen request body
+  let generationGcsURI = ''
+  if (appContext === undefined || appContext === null || appContext.gcsURI === undefined)
+    throw Error('No provided app context')
+  else {
+    generationGcsURI = appContext.gcsURI + '/generated-images'
+  }
   const reqData = {
     instances: [
       {
@@ -169,7 +179,7 @@ export async function generateImage(
       },
       includeRaiReason: true,
       personGeneration: formData['personGeneration'],
-      storageUri: appContext?.generationImageUri,
+      storageUri: generationGcsURI,
     },
   }
   const opts = {
@@ -200,6 +210,7 @@ export async function generateImage(
       aspectRatio: opts.data.parameters.aspectRatio,
       usedPrompt: opts.data.instances[0].prompt,
       userID: appContext?.userID ? appContext?.userID : '',
+      modelVestion: modelVestion,
     })
 
     return enhancedImageList

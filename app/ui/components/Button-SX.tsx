@@ -1,5 +1,5 @@
 import theme from '../../theme'
-const palette = theme.palette
+const { palette } = theme
 
 const onHover = {
   bgcolor: palette.primary.main,

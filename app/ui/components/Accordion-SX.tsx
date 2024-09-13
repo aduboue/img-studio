@@ -1,5 +1,5 @@
 import theme from '../../theme'
-const palette = theme.palette
+const { palette } = theme
 
 export const CustomizedAccordion = {
   maxHeight: '430px',

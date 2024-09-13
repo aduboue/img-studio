@@ -8,6 +8,10 @@ import { useState } from 'react'
 import { ImageI } from '../../api/imagen-generate/generate-utils'
 import StandardImageList from '../../ui/image-display'
 import { useAppContext } from '../../context/app-context'
+import { Typography } from '@mui/material'
+
+import theme from '../../theme'
+const { palette } = theme
 
 export default function Page() {
   const [generatedImagesInGCS, setGeneratedImagesInGCS] = useState<ImageI[]>([])
@@ -30,11 +34,18 @@ export default function Page() {
   }
 
   if (appContext?.isLoading === true) {
-    if (error === null) {
-      return <p>Loading your profile content...</p> //#TODO make pretier if takes long ?
-    } else {
-      return <p>Error while loading your profile content!</p>
-    }
+    return (
+      <Box p={5}>
+        <Typography
+          variant="h3"
+          sx={{ fontWeight: 400, color: error === null ? palette.primary.main : palette.error.main }}
+        >
+          {error === null
+            ? 'Loading your profile content...'
+            : 'Error while loading your profile content! Retry or contact you IT admin.'}
+        </Typography>
+      </Box>
+    )
   } else
     return (
       <Box p={5} sx={{ maxHeight: '100vh' }}>

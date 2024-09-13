@@ -3,7 +3,7 @@ import { Controller } from 'react-hook-form'
 import { Chip, Stack, Box, Typography, FormControl } from '@mui/material'
 
 import theme from '../../theme'
-const palette = theme.palette
+const { palette } = theme
 
 import { FormChipGroupInputI } from './InputInterface'
 

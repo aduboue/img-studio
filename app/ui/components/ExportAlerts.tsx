@@ -2,7 +2,7 @@ import React from 'react'
 import { Alert, Box, Button } from '@mui/material'
 import theme from '../../theme'
 import { ArrowForwardIos, Close } from '@mui/icons-material'
-const palette = theme.palette
+const { palette } = theme
 
 export const CloseWithoutSubmitWarning = ({ onClose, onKeepOpen }: { onClose: any; onKeepOpen: any }) => {
   return (
