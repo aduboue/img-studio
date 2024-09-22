@@ -1,21 +1,20 @@
 import * as React from 'react'
 import { useState } from 'react'
-import { SubmitHandler, useForm, useWatch } from 'react-hook-form'
 
 import { FileUpload } from '@mui/icons-material'
 
 import Image from 'next/image'
 import { Avatar, Box, IconButton, Modal, Skeleton, ImageListItem, ImageList, ImageListItemBar } from '@mui/material'
 
-import { ImageI } from '../api/imagen-generate/generate-utils'
+import { ImageI } from '../api/generate-utils'
 import { CustomizedAvatarButton, CustomizedIconButton } from './components/Button-SX'
 import ExportStepper from './export-dialog'
-import { ExportImageFormI } from '../api/imagen-generate/export-utils'
 
 import theme from '../theme'
+import { blurDataURL } from './components/blurImage'
 const { palette } = theme
 
-export default function StandardImageList({
+export default function OutputImagesDisplay({
   isLoading,
   generatedImagesInGCS,
 }: {
@@ -31,38 +30,17 @@ export default function StandardImageList({
   }
 
   // Export form and handlers
+  // Form state values are set here and not in export-dialog component, so that user don't have to set metadata for each image if they don't change
   const [imageExportOpen, setImageExportOpen] = useState(false)
-  const {
-    handleSubmit,
-    resetField,
-    control,
-    setValue,
-    getValues,
-    formState: { errors },
-  } = useForm<ExportImageFormI>({
-    defaultValues: { upscaledFactor: 'x4' },
-  })
+  const [imageToExport, setImageToExport] = useState<ImageI | undefined>()
+
   const handleImageExportOpen = (image: ImageI) => {
-    setValue('imageToExport', image)
-    setValue('upscaledFactor', image?.ratio === '1:1' ? 'x4' : '')
+    setImageToExport(image)
     setImageExportOpen(true)
   }
   const handleImageExportClose = () => {
-    resetField('imageToExport')
-    resetField('upscaledFactor')
+    setImageToExport(undefined)
     setImageExportOpen(false)
-  }
-
-  const handleImageExportSubmit: SubmitHandler<ExportImageFormI> = async (formData: ExportImageFormI) => {
-    //onRequestSent(true)
-
-    try {
-      console.log(JSON.stringify(getValues(), undefined, 4))
-      handleImageExportClose()
-    } catch (error: any) {
-      console.log(error)
-      //onNewErrorMsg(error.toString())
-    }
   }
 
   return (
@@ -82,13 +60,16 @@ export default function StandardImageList({
                   }}
                 >
                   <Image
-                    key={image.key}
+                    key={image.src}
                     src={image.src}
                     alt={image.altText}
                     style={{ width: '100%', height: 'auto' }}
                     width={image.width}
                     height={image.height}
-                    quality={100}
+                    placeholder="blur"
+                    blurDataURL={blurDataURL}
+                    loading="lazy"
+                    quality={80}
                     onClick={() => handleOpenImageFullScreen(image.src)}
                     onContextMenu={handleContextMenu}
                   />
@@ -134,19 +115,15 @@ export default function StandardImageList({
           quality={100}
           onClick={() => handleCloseImageFullScreen()}
           onContextMenu={handleContextMenu}
+          loading="lazy"
         />
       </Modal>
-      <form onSubmit={handleSubmit(handleImageExportSubmit)}>
-        <ExportStepper
-          open={imageExportOpen}
-          control={control}
-          setValue={setValue}
-          formErrors={errors}
-          onSubmit={handleImageExportSubmit}
-          imageToExport={useWatch({ control, name: 'imageToExport' })}
-          handleImageExportClose={handleImageExportClose}
-        />
-      </form>
+
+      <ExportStepper
+        open={imageExportOpen}
+        imageToExport={imageToExport}
+        handleImageExportClose={handleImageExportClose}
+      />
     </>
   )
 }

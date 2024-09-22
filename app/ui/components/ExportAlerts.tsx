@@ -1,5 +1,5 @@
 import React from 'react'
-import { Alert, Box, Button } from '@mui/material'
+import { Alert, Box, Button, IconButton } from '@mui/material'
 import theme from '../../theme'
 import { ArrowForwardIos, Close } from '@mui/icons-material'
 const { palette } = theme
@@ -47,7 +47,6 @@ export const CloseWithoutSubmitWarning = ({ onClose, onKeepOpen }: { onClose: an
           sx={{
             fontSize: '1rem',
             fontWeight: 400,
-            fontStyle: 'italic',
             color: palette.text.disabled,
             '&:hover': { background: 'transparent', color: palette.warning.dark, fontWeight: 400 },
           }}
@@ -56,6 +55,22 @@ export const CloseWithoutSubmitWarning = ({ onClose, onKeepOpen }: { onClose: an
           {'Yes, close without exporting'}
         </Button>
       </Box>
+    </Alert>
+  )
+}
+
+export const ExportErrorWarning = ({ onClose, errorMsg }: { onClose: any; errorMsg: string }) => {
+  return (
+    <Alert
+      severity="error"
+      action={
+        <IconButton aria-label="close" color="inherit" size="small" onClick={onClose} sx={{ pt: 0.2 }}>
+          <Close fontSize="inherit" />
+        </IconButton>
+      }
+      sx={{ height: 'auto', mb: 2, fontSize: 16, fontWeight: 500, pt: 1, color: palette.text.secondary }}
+    >
+      {errorMsg}
     </Alert>
   )
 }

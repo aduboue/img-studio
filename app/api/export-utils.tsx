@@ -14,6 +14,7 @@ export interface ExportImageFieldI {
 }
 
 export interface ExportImageFormFieldsI {
+  imageID: ExportImageFieldI
   imageGcsURI: ExportImageFieldI
   imageGenerationDate: ExportImageFieldI
   imageLeveragedModel: ExportImageFieldI
@@ -21,7 +22,7 @@ export interface ExportImageFormFieldsI {
   imagePrompt: ExportImageFieldI
   imageFormat: ExportImageFieldI
   imageRatio: ExportImageFieldI
-  imageUpscaledFactor: ExportImageFieldI
+  imageUpscaleFactor: ExportImageFieldI
   imageWidth: ExportImageFieldI
   imageHeight: ExportImageFieldI
   contextAuthorTeam: ExportImageFieldI
@@ -31,6 +32,13 @@ export interface ExportImageFormFieldsI {
 }
 
 export const ExportImageFormFields: ExportImageFormFieldsI = {
+  imageID: {
+    label: 'Image ID',
+    type: 'text-info',
+    prop: 'key',
+    isUpdatable: false,
+    isVisible: false,
+  },
   imageGcsURI: {
     label: 'Image GCS URI',
     type: 'text-info',
@@ -48,7 +56,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
   imageLeveragedModel: {
     label: 'Leveraged Model',
     type: 'text-info',
-    prop: 'modelVestion',
+    prop: 'modelVersion',
     isUpdatable: false,
     isVisible: false,
   },
@@ -80,25 +88,11 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     isUpdatable: false,
     isVisible: true,
   },
-  imageUpscaledFactor: {
+  imageUpscaleFactor: {
     label: 'Scale factor',
     type: 'radio-button',
     isUpdatable: false,
     isVisible: true,
-    options: [
-      {
-        value: '',
-        label: 'No upscaling',
-      },
-      {
-        value: 'x2',
-        label: 'Social Media content',
-      },
-      {
-        value: 'x4',
-        label: 'Human Ressources',
-      },
-    ],
   },
   imageWidth: {
     label: 'Width (px)',
@@ -238,8 +232,8 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
 
 export interface ExportImageFormI {
   imageToExport: ImageI
-  upscaledFactor: string
-  contextAuthorTeam: string
+  upscaleFactor: string
+  contextAuthorTeam: string[]
   contextAssociatedBrand: string[]
   contextCollection: string[]
   contextTargetPlatform: string[]
@@ -265,3 +259,33 @@ Object.entries(ExportImageFormFields).forEach(([name, field]) => {
 })
 
 export const MetadataImproveFields = temp
+
+export interface ImageMetadataI {
+  imageID: string
+  imageGcsURI: string
+  imageGenerationDate: string
+  imageLeveragedModel: string
+  imageAuthor: string
+  imagePrompt: string
+  imageFormat: string
+  imageRatio: string
+  imageUpscaleFactor: string
+  imageWidth: number
+  imageHeight: number
+  contextAuthorTeam: string[]
+  contextAssociatedBrand: string[]
+  contextCollection: string[]
+  contextTargetPlatform: string[]
+}
+
+let temp2: any = []
+
+Object.entries(ExportImageFormFields).forEach(([name, field]) => {
+  if (field.isVisible && field.options !== undefined) {
+    temp2.push({ key: name, field: field })
+  }
+})
+
+export const MetadataFilterFields = temp2
+
+export type ImageMetadataWithSignedUrl = ImageMetadataI & { signedUrl: string }

@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 import { Drawer, List, ListItem, Typography, ListItemButton, Stack } from '@mui/material'
 
@@ -37,18 +37,9 @@ const CustomizedMenuItem = {
   },
 }
 
-export default function PermanentDrawerLeft() {
-  const [selectedPage, setSelectedPage] = React.useState(pages.Generate.name)
+export default function SideNav() {
   const router = useRouter()
-
-  const handleListItemClick = (
-    _event: React.MouseEvent<HTMLDivElement, MouseEvent>,
-    selectedPage: string,
-    href: string
-  ) => {
-    setSelectedPage(selectedPage)
-    router.push(href)
-  }
+  const pathname = usePathname()
 
   return (
     <Drawer variant="permanent" anchor="left" sx={CustomizedDrawer}>
@@ -60,30 +51,30 @@ export default function PermanentDrawerLeft() {
         {Object.values(pages).map(({ name, description, href, status }) => (
           <ListItemButton
             key={name}
-            selected={selectedPage == name}
+            selected={pathname === href}
             disabled={status == 'coming-next'}
-            onClick={(event) => handleListItemClick(event, name, href)}
+            onClick={() => router.push(href)}
             sx={CustomizedMenuItem}
           >
             <Stack alignItems="left" direction="column" sx={{ pr: 4 }}>
               <Stack alignItems="center" direction="row" gap={1.2} pb={0.5}>
                 <Typography
                   variant="body1"
-                  color={selectedPage == name ? 'white' : palette.secondary.light}
-                  fontWeight={selectedPage == name ? 500 : 400}
+                  color={pathname === href ? 'white' : palette.secondary.light}
+                  fontWeight={pathname === href ? 500 : 400}
                 >
                   {name}
                 </Typography>
                 <Typography
                   variant="caption"
-                  color={selectedPage == name ? palette.primary.light : palette.secondary.light}
+                  color={pathname === href ? palette.primary.light : palette.secondary.light}
                 >
                   {status == 'new' ? '/ NEW' : status == 'coming-next' ? '/ SOON' : ''}
                 </Typography>
               </Stack>
               <Typography
                 variant="body1"
-                color={selectedPage == name ? palette.secondary.light : palette.secondary.main}
+                color={pathname === href ? palette.secondary.light : palette.secondary.main}
                 sx={{ fontSize: '0.9rem' }}
               >
                 {description}

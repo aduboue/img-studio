@@ -19,12 +19,12 @@ export async function GET(req: NextRequest) {
   return NextResponse.json(response);
 }
 
-// #TODO clean?
+// TODO clean?
 /*export async function GET(req: NextRequest) {
   let response = {}
 
   try {
-    // For local development #TODO just take a var .env if env=test ? might allow cloud build to work..
+    // For local development TODO just take a var .env if env=test ? might allow cloud build to work..
     const auth = new GoogleAuth({
       scopes: 'https://www.googleapis.com/auth/cloud-platform',
     });

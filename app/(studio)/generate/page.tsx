@@ -5,8 +5,8 @@ import Grid from '@mui/material/Grid2'
 import Box from '@mui/material/Box'
 import GenerateForm from '../../ui/generate-form'
 import { useState } from 'react'
-import { ImageI } from '../../api/imagen-generate/generate-utils'
-import StandardImageList from '../../ui/image-display'
+import { ImageI } from '../../api/generate-utils'
+import OutputImagesDisplay from '../../ui/imagen-output-images-display'
 import { useAppContext } from '../../context/app-context'
 import { Typography } from '@mui/material'
 
@@ -60,7 +60,7 @@ export default function Page() {
             />
           </Grid>
           <Grid size={0.9} flex={1} sx={{ pt: 11, maxWidth: 850, minWidth: 400 }}>
-            <StandardImageList isLoading={isLoading} generatedImagesInGCS={generatedImagesInGCS} />
+            <OutputImagesDisplay isLoading={isLoading} generatedImagesInGCS={generatedImagesInGCS} />
           </Grid>
         </Grid>
       </Box>
