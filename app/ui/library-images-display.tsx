@@ -5,11 +5,25 @@ import Box from '@mui/material/Box'
 import { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
 
-import { ImageList, ImageListItem, Modal, Pagination, Skeleton } from '@mui/material'
+import {
+  Avatar,
+  IconButton,
+  ImageList,
+  ImageListItem,
+  ImageListItemBar,
+  Modal,
+  Pagination,
+  Skeleton,
+} from '@mui/material'
 
 import theme from '../theme'
-import { ImageMetadataWithSignedUrl } from '@/app/api/export-utils'
+import { ImageMetadataI, ImageMetadataWithSignedUrl } from '@/app/api/export-utils'
 import { blurDataURL } from '@/app/ui/components/blurImage'
+import { FileUpload, Info, InfoSharp, QuestionMark } from '@mui/icons-material'
+import image from 'next/image'
+import { CustomizedAvatarButton, CustomizedIconButton } from './components/Button-SX'
+import { ImageI } from '../api/generate-utils'
+import ExploreDialog from './explore-dialog'
 const { palette } = theme
 
 export default function LibraryImagesDisplay({
@@ -35,6 +49,19 @@ export default function LibraryImagesDisplay({
     event.preventDefault() // Prevent the default context menu
   }
 
+  // Export form and handlers
+  const [imageExploreOpen, setImageExploreOpen] = useState(false)
+  const [imageToExplore, setImageToExplore] = useState<ImageMetadataI | undefined>()
+
+  const handleImageExploreOpen = (image: ImageMetadataI) => {
+    setImageToExplore(image)
+    setImageExploreOpen(true)
+  }
+  const handleImageExploreClose = () => {
+    setImageToExplore(undefined)
+    setImageExploreOpen(false)
+  }
+
   const imageListItems = useMemo(() => {
     return currentPageImages.map((doc: ImageMetadataWithSignedUrl) => (
       <ImageListItem key={doc.signedUrl}>
@@ -51,6 +78,19 @@ export default function LibraryImagesDisplay({
           quality={10}
           onContextMenu={handleContextMenu}
           onClick={() => handleOpenImageFullScreen(doc.signedUrl)}
+        />
+        <ImageListItemBar
+          sx={{
+            background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+          }}
+          position="top"
+          actionIcon={
+            <IconButton onClick={() => handleImageExploreOpen(doc)} aria-label="Export image" sx={{ px: 0.5 }}>
+              <Info
+                sx={{ ...CustomizedIconButton, color: 'white', fontSize: '1.3rem', '&:hover': { color: 'white' } }}
+              />
+            </IconButton>
+          }
         />
       </ImageListItem>
     ))
@@ -102,6 +142,12 @@ export default function LibraryImagesDisplay({
           loading="lazy"
         />
       </Modal>
+
+      <ExploreDialog
+        open={imageExploreOpen}
+        documentToExplore={imageToExplore}
+        handleImageExploreClose={handleImageExploreClose}
+      />
     </>
   )
 }

@@ -30,7 +30,6 @@ export default function OutputImagesDisplay({
   }
 
   // Export form and handlers
-  // Form state values are set here and not in export-dialog component, so that user don't have to set metadata for each image if they don't change
   const [imageExportOpen, setImageExportOpen] = useState(false)
   const [imageToExport, setImageToExport] = useState<ImageI | undefined>()
 

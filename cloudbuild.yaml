@@ -4,7 +4,7 @@ steps:
       [
         'build',
         '-t',
-        'img-studio',
+        'gcr.io/$PROJECT_ID/img-studio:latest', # Specify image name and tag
         '--build-arg',
         '_PROJECT_ID=${_PROJECT_ID}',
         '--build-arg',
@@ -21,3 +21,5 @@ steps:
         'NEXT_PUBLIC_TEAM_BUCKET=${_NEXT_PUBLIC_TEAM_BUCKET}',
         '.',
       ]
+images:
+  - 'gcr.io/$PROJECT_ID/img-studio:latest'

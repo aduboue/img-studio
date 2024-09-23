@@ -6,7 +6,8 @@ export interface ExportImageFieldI {
   prop?: string
   isUpdatable: boolean
   isMandatory?: boolean
-  isVisible: boolean
+  isExportVisible: boolean
+  isExploreVisible: boolean
   options?: {
     value: string
     label: string
@@ -37,83 +38,96 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     type: 'text-info',
     prop: 'key',
     isUpdatable: false,
-    isVisible: false,
+    isExportVisible: false,
+    isExploreVisible: false,
   },
   imageGcsURI: {
     label: 'Image GCS URI',
     type: 'text-info',
     prop: 'gcsUri',
     isUpdatable: false,
-    isVisible: false,
+    isExportVisible: false,
+    isExploreVisible: false,
   },
   imageGenerationDate: {
     label: 'Generation date',
     type: 'text-info',
     prop: 'date',
     isUpdatable: false,
-    isVisible: false,
+    isExportVisible: false,
+    isExploreVisible: true,
   },
   imageLeveragedModel: {
     label: 'Leveraged Model',
     type: 'text-info',
     prop: 'modelVersion',
     isUpdatable: false,
-    isVisible: false,
+    isExportVisible: false,
+    isExploreVisible: true,
   },
   imageAuthor: {
     label: 'Author',
     type: 'text-info',
     prop: 'author',
     isUpdatable: false,
-    isVisible: false,
+    isExportVisible: false,
+    isExploreVisible: true,
   },
   imagePrompt: {
     label: 'Prompt',
     type: 'text-info',
     prop: 'prompt',
     isUpdatable: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
   },
   imageFormat: {
     label: 'Format',
     type: 'text-info',
     prop: 'format',
     isUpdatable: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
   },
   imageRatio: {
     label: 'Ratio',
     type: 'text-info',
     prop: 'ratio',
     isUpdatable: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
   },
   imageUpscaleFactor: {
     label: 'Scale factor',
     type: 'radio-button',
     isUpdatable: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
   },
   imageWidth: {
     label: 'Width (px)',
     type: 'text-info',
     prop: 'width',
     isUpdatable: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
   },
   imageHeight: {
     label: 'Height (px)',
     type: 'text-info',
     prop: 'height',
     isUpdatable: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
   },
   contextAuthorTeam: {
     label: 'In which team are you?',
     type: 'select',
     isUpdatable: true,
     isMandatory: true,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
+
     options: [
       {
         value: 'marketing',
@@ -142,7 +156,9 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     type: 'multiple-select',
     isUpdatable: true,
     isMandatory: true,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
+
     options: [
       {
         value: 'mailing',
@@ -167,7 +183,9 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     type: 'multiple-select',
     isUpdatable: true,
     isMandatory: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
+
     options: [
       {
         value: 'gemo',
@@ -208,7 +226,9 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     type: 'multiple-select',
     isUpdatable: true,
     isMandatory: false,
-    isVisible: true,
+    isExportVisible: true,
+    isExploreVisible: true,
+
     options: [
       {
         value: 'spring',
@@ -246,14 +266,14 @@ export const ExportImageFieldList: (keyof ExportImageFormFieldsI)[] = Object.key
 export const MetadataReviewFields = ExportImageFieldList.filter(
   (field) =>
     ExportImageFormFields[field].type === 'text-info' &&
-    ExportImageFormFields[field].isVisible &&
+    ExportImageFormFields[field].isExportVisible &&
     !ExportImageFormFields[field].isUpdatable
 )
 
 const temp: { [key: string]: ExportImageFormFieldsI[keyof ExportImageFormFieldsI] }[] = []
 
 Object.entries(ExportImageFormFields).forEach(([name, field]) => {
-  if (field.isUpdatable && field.isVisible) {
+  if (field.isUpdatable && field.isExportVisible) {
     temp.push({ [name]: field })
   }
 })
@@ -281,7 +301,7 @@ export interface ImageMetadataI {
 let temp2: any = []
 
 Object.entries(ExportImageFormFields).forEach(([name, field]) => {
-  if (field.isVisible && field.options !== undefined) {
+  if (field.isExportVisible && field.options !== undefined) {
     temp2.push({ key: name, field: field })
   }
 })
