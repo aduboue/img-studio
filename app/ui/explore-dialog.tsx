@@ -104,7 +104,7 @@ export default function ExploreDialog({
               }
 
               const isExploreVisible = ExportImageFormFields[key as keyof typeof ExportImageFormFields].isExploreVisible
-              if (value !== undefined && value !== null && isExploreVisible) {
+              if (displayValue !== '' && isExploreVisible) {
                 return (
                   <Box key={key} display="flex" flexDirection="row">
                     <ArrowRight sx={{ color: palette.primary.main, fontSize: '1.2rem', p: 0, mt: 0.2 }} />

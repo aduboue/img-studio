@@ -18,7 +18,7 @@ steps:
         '--build-arg',
         '_NEXT_PUBLIC_IMAGE_BUCKET_PREFIX=${_NEXT_PUBLIC_IMAGE_BUCKET_PREFIX}',
         '--build-arg',
-        'NEXT_PUBLIC_TEAM_BUCKET=${_NEXT_PUBLIC_TEAM_BUCKET}',
+        '_NEXT_PUBLIC_TEAM_BUCKET=${_NEXT_PUBLIC_TEAM_BUCKET}',
         '.',
       ]
 images:
