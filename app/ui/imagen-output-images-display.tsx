@@ -114,7 +114,6 @@ export default function OutputImagesDisplay({
           quality={100}
           onClick={() => handleCloseImageFullScreen()}
           onContextMenu={handleContextMenu}
-          loading="lazy"
         />
       </Modal>
 
