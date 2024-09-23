@@ -55,7 +55,7 @@ export default function ExploreDialog({
           cursor: 'pointer',
           height: '90%',
           maxWidth: '70%',
-          width: '35%',
+          width: '40%',
           borderRadius: 1,
           background: 'white',
         },
@@ -91,6 +91,18 @@ export default function ExploreDialog({
           {documentToExplore &&
             Object.keys(ExportImageFormFields).map((key) => {
               const value = documentToExplore[key as keyof typeof documentToExplore]
+              let displayValue = `${value}`
+
+              const options = ExportImageFormFields[key as keyof typeof ExportImageFormFields].options
+              if (options && Array.isArray(value)) {
+                displayValue = value
+                  .map((val) => {
+                    const matchingOption = options.find((option) => option.value === val)
+                    return matchingOption ? matchingOption.label : val
+                  })
+                  .join(', ')
+              }
+
               const isExploreVisible = ExportImageFormFields[key as keyof typeof ExportImageFormFields].isExploreVisible
               if (value !== undefined && value !== null && isExploreVisible) {
                 return (
@@ -104,7 +116,7 @@ export default function ExploreDialog({
                         )}: `}
                       </Typography>
                       <Typography display="inline" sx={{ fontSize: '0.9rem', color: palette.text.secondary }}>
-                        {`${value}`}
+                        {`${displayValue}`}
                       </Typography>
                     </Box>
                   </Box>
