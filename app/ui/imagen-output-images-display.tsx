@@ -4,7 +4,17 @@ import { useState } from 'react'
 import { FileUpload } from '@mui/icons-material'
 
 import Image from 'next/image'
-import { Avatar, Box, IconButton, Modal, Skeleton, ImageListItem, ImageList, ImageListItemBar } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  IconButton,
+  Modal,
+  Skeleton,
+  ImageListItem,
+  ImageList,
+  ImageListItemBar,
+  Typography,
+} from '@mui/material'
 
 import { ImageI } from '../api/generate-utils'
 import { CustomizedAvatarButton, CustomizedIconButton } from './components/Button-SX'
@@ -12,6 +22,7 @@ import ExportStepper from './export-dialog'
 
 import theme from '../theme'
 import { blurDataURL } from './components/blurImage'
+import { CustomWhiteTooltip } from './components/Tooltip'
 const { palette } = theme
 
 export default function OutputImagesDisplay({
@@ -22,9 +33,9 @@ export default function OutputImagesDisplay({
   generatedImagesInGCS: ImageI[]
 }) {
   // Full screen image display
-  const [imageFullScreenSrc, setImageFullScreenSrc] = useState('')
-  const handleOpenImageFullScreen = (src: string) => setImageFullScreenSrc(src)
-  const handleCloseImageFullScreen = () => setImageFullScreenSrc('')
+  const [imageFullScreen, setImageFullScreen] = useState<ImageI>()
+  const handleOpenImageFullScreen = (image: ImageI) => setImageFullScreen(image)
+  const handleCloseImageFullScreen = () => setImageFullScreen(undefined)
   const handleContextMenu = (event: React.MouseEvent<HTMLImageElement>) => {
     event.preventDefault() // Prevent the default context menu
   }
@@ -58,20 +69,45 @@ export default function OutputImagesDisplay({
                     transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
                   }}
                 >
-                  <Image
-                    key={image.src}
-                    src={image.src}
-                    alt={image.altText}
-                    style={{ width: '100%', height: 'auto' }}
-                    width={image.width}
-                    height={image.height}
-                    placeholder="blur"
-                    blurDataURL={blurDataURL}
-                    loading="lazy"
-                    quality={80}
-                    onClick={() => handleOpenImageFullScreen(image.src)}
-                    onContextMenu={handleContextMenu}
-                  />
+                  <>
+                    <Image
+                      key={image.src}
+                      src={image.src}
+                      alt={image.altText}
+                      style={{ width: '100%', height: 'auto' }}
+                      width={image.width}
+                      height={image.height}
+                      placeholder="blur"
+                      blurDataURL={blurDataURL}
+                      loading="lazy"
+                      quality={80}
+                      onContextMenu={handleContextMenu}
+                    />
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        color: 'white',
+                        opacity: 0,
+                        transition: 'opacity 0.3s ease',
+                        '&:hover': {
+                          opacity: 1,
+                        },
+                      }}
+                      onClick={() => handleOpenImageFullScreen(image)}
+                    >
+                      <Typography variant="body1" sx={{ textAlign: 'center' }}>
+                        Click to see full screen
+                      </Typography>
+                    </Box>
+                  </>
                   <ImageListItemBar
                     sx={{
                       background:
@@ -79,15 +115,17 @@ export default function OutputImagesDisplay({
                     }}
                     position="top"
                     actionIcon={
-                      <IconButton
-                        onClick={() => handleImageExportOpen(image)}
-                        aria-label="Export image"
-                        sx={{ px: 0.5 }}
-                      >
-                        <Avatar sx={CustomizedAvatarButton}>
-                          <FileUpload sx={CustomizedIconButton} />
-                        </Avatar>
-                      </IconButton>
+                      <CustomWhiteTooltip title="Export & Download" size="small">
+                        <IconButton
+                          onClick={() => handleImageExportOpen(image)}
+                          aria-label="Export image"
+                          sx={{ px: 0.5 }}
+                        >
+                          <Avatar sx={CustomizedAvatarButton}>
+                            <FileUpload sx={CustomizedIconButton} />
+                          </Avatar>
+                        </IconButton>
+                      </CustomWhiteTooltip>
                     }
                   />
                 </ImageListItem>
@@ -96,27 +134,25 @@ export default function OutputImagesDisplay({
           </ImageList>
         )}
       </Box>
-
-      <Modal
-        open={imageFullScreenSrc !== ''}
-        onClose={handleCloseImageFullScreen}
-        sx={{ display: 'flex', m: 5, cursor: 'pointer' }}
-      >
-        <Image
-          key={'displayed-image'}
-          src={imageFullScreenSrc}
-          alt={'displayed-image'}
-          sizes="300px"
-          fill
-          style={{
-            objectFit: 'contain',
-          }}
-          quality={100}
-          onClick={() => handleCloseImageFullScreen()}
-          onContextMenu={handleContextMenu}
-        />
-      </Modal>
-
+      {imageFullScreen !== undefined && (
+        <Modal
+          open={imageFullScreen !== undefined}
+          onClose={handleCloseImageFullScreen}
+          sx={{ display: 'flex', alignContent: 'center', justifyContent: 'center', m: 5, cursor: 'pointer' }}
+        >
+          <Image
+            key={'displayed-image'}
+            src={imageFullScreen.src}
+            alt={'displayed-image'}
+            width={imageFullScreen.width}
+            height={imageFullScreen.height}
+            style={{ width: 'auto', height: '100%', objectFit: 'contain' }}
+            quality={100}
+            onClick={() => handleCloseImageFullScreen()}
+            onContextMenu={handleContextMenu}
+          />
+        </Modal>
+      )}
       <ExportStepper
         open={imageExportOpen}
         imageToExport={imageToExport}

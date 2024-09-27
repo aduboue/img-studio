@@ -32,7 +32,6 @@ export default function Page() {
       }, {} as any)
 
     try {
-      //TODO fetch depending on filters
       let documents: ImageMetadataI[][] | { error: string } = []
       if (Object.values(selectedFilters).length === 0) {
         documents = await fetchAllDocumentsInBatches(24)

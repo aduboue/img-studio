@@ -14,6 +14,7 @@ import {
   Modal,
   Pagination,
   Skeleton,
+  Typography,
 } from '@mui/material'
 
 import theme from '../theme'
@@ -24,6 +25,7 @@ import image from 'next/image'
 import { CustomizedAvatarButton, CustomizedIconButton } from './components/Button-SX'
 import { ImageI } from '../api/generate-utils'
 import ExploreDialog from './explore-dialog'
+import CustomTooltip, { CustomWhiteTooltip } from './components/Tooltip'
 const { palette } = theme
 
 export default function LibraryImagesDisplay({
@@ -42,9 +44,10 @@ export default function LibraryImagesDisplay({
     setCurrentPageImages(fetchedImagesByPage[page - 1] || [])
   }, [page, fetchedImagesByPage[page - 1]])
 
-  const [imageFullScreenSrc, setImageFullScreenSrc] = useState('')
-  const handleOpenImageFullScreen = (src: string) => setImageFullScreenSrc(src)
-  const handleCloseImageFullScreen = () => setImageFullScreenSrc('')
+  // Full screen image display
+  const [imageFullScreen, setImageFullScreen] = useState<ImageMetadataWithSignedUrl>()
+  const handleOpenImageFullScreen = (image: ImageMetadataWithSignedUrl) => setImageFullScreen(image)
+  const handleCloseImageFullScreen = () => setImageFullScreen(undefined)
   const handleContextMenu = (event: React.MouseEvent<HTMLImageElement>) => {
     event.preventDefault() // Prevent the default context menu
   }
@@ -64,32 +67,65 @@ export default function LibraryImagesDisplay({
 
   const imageListItems = useMemo(() => {
     return currentPageImages.map((doc: ImageMetadataWithSignedUrl) => (
-      <ImageListItem key={doc.signedUrl}>
-        <Image
-          key={doc.imageID}
-          src={doc.signedUrl}
-          placeholder="blur"
-          blurDataURL={blurDataURL}
-          loading="lazy"
-          alt={'temp'}
-          style={{ width: '100%', height: 'auto' }}
-          width={doc.imageWidth}
-          height={doc.imageHeight}
-          quality={10}
-          onContextMenu={handleContextMenu}
-          onClick={() => handleOpenImageFullScreen(doc.signedUrl)}
-        />
+      <ImageListItem key={doc.signedUrl} sx={{ width: '9vw', height: '9vw', overflow: 'hidden' }}>
+        <>
+          <Image
+            key={doc.imageID}
+            src={doc.signedUrl}
+            placeholder="blur"
+            blurDataURL={blurDataURL}
+            loading="lazy"
+            alt={'temp'}
+            style={{
+              width: '9vw',
+              height: '9vw',
+              objectFit: 'cover',
+              objectPosition: 'center',
+            }}
+            width={150}
+            height={150}
+            quality={50}
+            onContextMenu={handleContextMenu}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              color: 'white',
+              opacity: 0,
+              transition: 'opacity 0.3s ease',
+              '&:hover': {
+                opacity: 1,
+              },
+              cursor: 'pointer',
+            }}
+            onClick={() => handleOpenImageFullScreen(doc)}
+          >
+            <Typography variant="body1" sx={{ textAlign: 'center' }}>
+              Click to see full screen
+            </Typography>
+          </Box>
+        </>
         <ImageListItemBar
           sx={{
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
           }}
           position="top"
           actionIcon={
-            <IconButton onClick={() => handleImageExploreOpen(doc)} aria-label="Export image" sx={{ px: 0.5 }}>
-              <Info
-                sx={{ ...CustomizedIconButton, color: 'white', fontSize: '1.3rem', '&:hover': { color: 'white' } }}
-              />
-            </IconButton>
+            <CustomWhiteTooltip title="Metadata & Download" size="small">
+              <IconButton onClick={() => handleImageExploreOpen(doc)} aria-label="Export image" sx={{ px: 0.5 }}>
+                <Info
+                  sx={{ ...CustomizedIconButton, color: 'white', fontSize: '1.3rem', '&:hover': { color: 'white' } }}
+                />
+              </IconButton>
+            </CustomWhiteTooltip>
           }
         />
       </ImageListItem>
@@ -122,25 +158,25 @@ export default function LibraryImagesDisplay({
         )}
       </Box>
 
-      <Modal
-        open={imageFullScreenSrc !== ''}
-        onClose={handleCloseImageFullScreen}
-        sx={{ display: 'flex', m: 5, cursor: 'pointer' }}
-      >
-        <Image
-          key={'displayed-image'}
-          src={imageFullScreenSrc}
-          alt={'displayed-image'}
-          sizes="300px"
-          fill
-          style={{
-            objectFit: 'contain',
-          }}
-          quality={100}
-          onClick={() => handleCloseImageFullScreen()}
-          onContextMenu={handleContextMenu}
-        />
-      </Modal>
+      {imageFullScreen !== undefined && (
+        <Modal
+          open={imageFullScreen !== undefined}
+          onClose={handleCloseImageFullScreen}
+          sx={{ display: 'flex', alignContent: 'center', justifyContent: 'center', m: 5, cursor: 'pointer' }}
+        >
+          <Image
+            key={'displayed-image'}
+            src={imageFullScreen.signedUrl}
+            alt={'displayed-image'}
+            width={imageFullScreen.imageWidth}
+            height={imageFullScreen.imageHeight}
+            style={{ width: 'auto', height: '100%', objectFit: 'contain' }}
+            quality={100}
+            onClick={() => handleCloseImageFullScreen()}
+            onContextMenu={handleContextMenu}
+          />
+        </Modal>
+      )}
 
       <ExploreDialog
         open={imageExploreOpen}

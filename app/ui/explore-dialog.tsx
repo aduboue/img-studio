@@ -3,10 +3,12 @@ import { useEffect, useState } from 'react'
 
 import { Dialog, DialogContent, DialogTitle, IconButton, Slide, Box, Button, Typography } from '@mui/material'
 import { TransitionProps } from '@mui/material/transitions'
-import { ArrowForwardIos, ArrowRight, Close } from '@mui/icons-material'
+import { ArrowForwardIos, ArrowRight, Close, Download } from '@mui/icons-material'
 
 import theme from '../theme'
 import { ExportImageFormFields, ImageMetadataI } from '../api/export-utils'
+import { CustomizedSendButton } from './components/Button-SX'
+import { downloadImage } from '../api/cloud-storage/action'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
@@ -27,8 +29,23 @@ export default function ExploreDialog({
   documentToExplore: ImageMetadataI | undefined
   handleImageExploreClose: () => void
 }) {
-  const handleCheckDownload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //setIsDownload(event.target.checked)
+  const [downloadStatus, setDownloadStatus] = useState('Download')
+
+  const handleDownload = async (documentToExplore: ImageMetadataI) => {
+    try {
+      setDownloadStatus('Preparing download...')
+      const res = await downloadImage(documentToExplore.imageGcsURI)
+      const imageName = `${documentToExplore.imageID}.${documentToExplore.imageFormat.toLowerCase()}`
+      downloadBase64Image(res.image, imageName)
+
+      if (typeof res === 'object' && res['error']) {
+        throw Error(res['error'].replaceAll('Error: ', ''))
+      }
+    } catch (error: any) {
+      console.error(error)
+    } finally {
+      setDownloadStatus('Download')
+    }
   }
 
   const downloadBase64Image = (base64Data: any, filename: string) => {
@@ -126,6 +143,19 @@ export default function ExploreDialog({
               }
             })}
         </Box>
+        {documentToExplore && (
+          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+            <Button
+              variant="contained"
+              onClick={() => handleDownload(documentToExplore)}
+              endIcon={<Download />}
+              disabled={downloadStatus === 'Preparing download...'}
+              sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+            >
+              {downloadStatus}
+            </Button>
+          </Box>
+        )}
       </DialogContent>
     </Dialog>
   )

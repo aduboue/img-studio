@@ -22,7 +22,6 @@ export async function decomposeUri(uri: string) {
 
 export async function getSignedURL(gcsURI: string) {
   const { bucketName, fileName } = await decomposeUri(gcsURI)
-  console.log('getSignedURL getSignedURL getSignedURL') //TODO remove
 
   const storage = new Storage({ projectId })
 
