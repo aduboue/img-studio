@@ -164,10 +164,15 @@ export async function generateImage(
 
   // 3 - Building Imagen request body
   let generationGcsURI = ''
-  if (appContext === undefined || appContext === null || appContext.gcsURI === undefined)
+  if (
+    appContext === undefined ||
+    appContext === null ||
+    appContext.gcsURI === undefined ||
+    appContext.userID === undefined
+  )
     throw Error('No provided app context')
   else {
-    generationGcsURI = appContext.gcsURI + '/generated-images'
+    generationGcsURI = `${appContext.gcsURI}/${appContext.userID}/generated-images`
   }
   const reqData = {
     instances: [
@@ -192,7 +197,6 @@ export async function generateImage(
     method: 'POST',
     data: reqData,
   }
-  console.log('XXXX opts : ', JSON.stringify(opts, undefined, 4)) //TODO out
 
   // 4 - Generating images
   try {
@@ -219,21 +223,6 @@ export async function generateImage(
 
     return enhancedImageList
   } catch (error) {
-    //TODO clean error handling
-    /*var newError = error as any
-
-    if (Object.keys(newError).length !== 0 && 'error' in newError.response.data) {
-      const errorObject = newError.response.data.error
-
-      if (errorObject == 'invalid_grant') newError = 'Unable to authenticate your account to access images'
-      else {
-        newError = errorObject.message
-        errorObject.code == 404 && (newError = '404 - A ressource were not found.')
-      }
-    } else {
-      newError = newError.toString()
-    }*/
-
     console.error(error)
     return {
       error: 'Error while generating images.',

@@ -42,21 +42,16 @@ export async function getSignedURL(gcsURI: string) {
   }
 }
 
-// TODO new bucket > new folder in bucket to avoid IAM Bucket admin sur
+// TODO clean?
 export async function ensureBucketExists(gcsURI: string) {
   const { bucketName } = await decomposeUri(gcsURI)
 
   try {
     const storage = new Storage({ projectId })
-    const [bucketExists] = await storage.bucket(bucketName).exists()
-    const location = process.env.GCS_BUCKET_LOCATION
+    const [bucketExists] = await storage.bucket(`gs://${bucketName}`).exists()
 
     if (!bucketExists) {
-      await storage.createBucket(bucketName, {
-        location: location,
-      })
-
-      console.log(`Created new bucket: ${bucketName}`)
+      throw Error('Bucket does not exist')
     }
 
     return gcsURI

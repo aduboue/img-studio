@@ -38,7 +38,7 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
     async function fetchAndUpdateContext() {
       try {
         // 0. Check if required environment variables are available
-        if (!process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS || !process.env.NEXT_PUBLIC_IMAGE_BUCKET_PREFIX) {
+        if (!process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS || !process.env.NEXT_PUBLIC_OUTPUT_BUCKET) {
           throw Error('Missing required environment variables')
         }
 
@@ -73,22 +73,21 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           fetchedUserID = targetPrincipal
         }
 
-        // 2. Fetch GCS URI for all edited/ generated images (if userID is available)
-        let gcsURI
-        if (fetchedUserID) {
-          try {
-            gcsURI = await ensureBucketExists(`gs://${process.env.NEXT_PUBLIC_IMAGE_BUCKET_PREFIX}-${fetchedUserID}`)
-            if (typeof gcsURI === 'object' && 'error' in gcsURI) {
-              throw Error(gcsURI.error)
-            }
-          } catch (error: unknown) {
-            if (error instanceof Error) {
-              throw error
-            } else {
-              throw Error(error as string)
-            }
+        // 2. Fetch GCS URI for all edited/ generated images
+        // TODO clean?
+        let gcsURI = `gs://${process.env.NEXT_PUBLIC_OUTPUT_BUCKET}`
+        /*try {
+          gcsURI = await ensureBucketExists(`gs://${process.env.NEXT_PUBLIC_OUTPUT_BUCKET}`)
+          if (typeof gcsURI === 'object' && 'error' in gcsURI) {
+            throw Error(gcsURI.error)
           }
-        }
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            throw error
+          } else {
+            throw Error(error as string)
+          }
+        }*/
 
         // 3. Update Context with all fetched data
         setAppContext({
