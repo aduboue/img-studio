@@ -106,34 +106,34 @@ export default function ExploreDialog({
         </DialogTitle>
         <Box sx={{ pt: 1, pb: 2, width: '90%' }}>
           {documentToExplore &&
-            Object.keys(ExportImageFormFields).map((key) => {
-              const value = documentToExplore[key as keyof typeof documentToExplore]
-              let displayValue = `${value}`
+            Object.entries(ExportImageFormFields).map(([key, fieldConfig]) => {
+              const value = documentToExplore[key]
+              let displayValue = value ? `${value}` : null
 
-              const options = ExportImageFormFields[key as keyof typeof ExportImageFormFields].options
-              if (options && Array.isArray(value)) {
-                displayValue = value
+              if (displayValue && typeof value === 'object') {
+                displayValue = Object.keys(value)
+                  .filter((val) => value[val])
                   .map((val) => {
-                    const matchingOption = options.find((option) => option.value === val)
+                    const matchingOption = fieldConfig.options?.find(
+                      (option: { value: string }) => option.value === val
+                    )
                     return matchingOption ? matchingOption.label : val
                   })
                   .join(', ')
               }
 
-              const isExploreVisible = ExportImageFormFields[key as keyof typeof ExportImageFormFields].isExploreVisible
-              if (displayValue !== '' && isExploreVisible) {
+              const displayLabel = fieldConfig.name || fieldConfig.label
+
+              if (displayValue && displayValue !== '' && fieldConfig.isExploreVisible) {
                 return (
                   <Box key={key} display="flex" flexDirection="row">
                     <ArrowRight sx={{ color: palette.primary.main, fontSize: '1.2rem', p: 0, mt: 0.2 }} />
                     <Box sx={{ pb: 1 }}>
                       <Typography display="inline" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                        {`${ExportImageFormFields[key as keyof typeof ExportImageFormFields]?.label.replace(
-                          '?',
-                          ''
-                        )}: `}
+                        {`${displayLabel}: `}
                       </Typography>
                       <Typography display="inline" sx={{ fontSize: '0.9rem', color: palette.text.secondary }}>
-                        {`${displayValue}`}
+                        {displayValue}
                       </Typography>
                     </Box>
                   </Box>

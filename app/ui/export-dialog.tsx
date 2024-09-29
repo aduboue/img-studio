@@ -82,7 +82,7 @@ export default function ExportStepper({
     getValues,
     formState: { errors },
   } = useForm<ExportImageFormI>({
-    defaultValues: { upscaleFactor: imageToExport?.ratio === '1:1' ? 'x4' : '' },
+    defaultValues: { upscaleFactor: imageToExport?.ratio === '1:1' ? 'x4' : 'no' },
   })
 
   useEffect(() => {
@@ -358,7 +358,7 @@ export default function ExportStepper({
               <CustomRadio
                 label="No upscaling"
                 subLabel={imageToExport ? `${imageToExport.width} x ${imageToExport.height} px` : ''}
-                value=""
+                value="no"
                 currentSelectedValue={field.value}
                 enabled={isSquareRatio}
               />

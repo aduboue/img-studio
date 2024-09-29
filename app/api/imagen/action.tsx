@@ -80,9 +80,13 @@ export async function buildImageList({
 
       const ID = fileName
         .replaceAll('/', '')
+        .replace(userID, '')
         .replace('generated-images', '')
         .replace('sample_', '')
         .replace(`.${format.toLowerCase()}`, '')
+
+      const today = new Date()
+      const formattedDate = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
       // Get signed URL from Cloud Storage API
       try {
@@ -101,7 +105,7 @@ export async function buildImageList({
             width: usedWidth,
             height: useHeight,
             ratio: aspectRatio,
-            date: new Date(Date.now()).toISOString().slice(0, 10),
+            date: formattedDate,
             author: userID,
             modelVersion: modelVersion,
           }

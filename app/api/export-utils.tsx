@@ -2,6 +2,7 @@ import { ImageI } from './generate-utils'
 
 export interface ExportImageFieldI {
   label: string
+  name?: string
   type: string
   prop?: string
   isUpdatable: boolean
@@ -58,7 +59,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     isExploreVisible: true,
   },
   imageLeveragedModel: {
-    label: 'Leveraged Model',
+    label: 'Leveraged model',
     type: 'text-info',
     prop: 'modelVersion',
     isUpdatable: false,
@@ -100,6 +101,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
   imageUpscaleFactor: {
     label: 'Scale factor',
     type: 'radio-button',
+    prop: 'upscaleFactor',
     isUpdatable: false,
     isExportVisible: true,
     isExploreVisible: true,
@@ -122,6 +124,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
   },
   contextAuthorTeam: {
     label: 'In which team are you?',
+    name: 'Associated team(s)',
     type: 'select',
     isUpdatable: true,
     isMandatory: true,
@@ -134,8 +137,8 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
         label: 'Content marketing',
       },
       {
-        value: 'social-media',
-        label: 'Social Media',
+        value: 'communityManagement',
+        label: 'Community Management',
       },
       {
         value: 'hr',
@@ -153,6 +156,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
   },
   contextTargetPlatform: {
     label: 'For which platform is it targetted?',
+    name: 'Targetted platform(s)',
     type: 'multiple-select',
     isUpdatable: true,
     isMandatory: true,
@@ -169,7 +173,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
         label: 'Public website',
       },
       {
-        value: 'social-medias',
+        value: 'socialMedias',
         label: 'Social medias',
       },
       {
@@ -180,6 +184,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
   },
   contextAssociatedBrand: {
     label: 'For which brand(s) did you create this image?',
+    name: 'Associated brand(s)',
     type: 'multiple-select',
     isUpdatable: true,
     isMandatory: false,
@@ -192,7 +197,7 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
         label: 'Gémo',
       },
       {
-        value: 'mellow-yellow',
+        value: 'mellowYellow',
         label: 'Mellow Yellow',
       },
       {
@@ -212,17 +217,18 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
         label: 'Sessùn',
       },
       {
-        value: 'american-vintage',
+        value: 'americanVintage',
         label: 'American Vintage',
       },
       {
-        value: 'the-kooples',
+        value: 'theKooples',
         label: 'The Kooples',
       },
     ],
   },
   contextCollection: {
     label: 'To which collection(s) is it associated?',
+    name: 'Associated collection(s)',
     type: 'multiple-select',
     isUpdatable: true,
     isMandatory: false,
@@ -253,10 +259,11 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
 export interface ExportImageFormI {
   imageToExport: ImageI
   upscaleFactor: string
-  contextAuthorTeam: string[]
-  contextAssociatedBrand: string[]
-  contextCollection: string[]
-  contextTargetPlatform: string[]
+  [key: string]: any
+}
+
+export interface FilterImageFormI {
+  [key: string]: any
 }
 
 export const ExportImageFieldList: (keyof ExportImageFormFieldsI)[] = Object.keys(ExportImageFormFields).map(
@@ -283,7 +290,7 @@ export const MetadataImproveFields = temp
 export interface ImageMetadataI {
   imageID: string
   imageGcsURI: string
-  imageGenerationDate: string
+  imageGenerationDate: any
   imageLeveragedModel: string
   imageAuthor: string
   imagePrompt: string
@@ -292,10 +299,7 @@ export interface ImageMetadataI {
   imageUpscaleFactor: string
   imageWidth: number
   imageHeight: number
-  contextAuthorTeam: string[]
-  contextAssociatedBrand: string[]
-  contextCollection: string[]
-  contextTargetPlatform: string[]
+  [key: string]: any
 }
 
 let temp2: any = []

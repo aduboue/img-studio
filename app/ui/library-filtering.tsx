@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useForm, SubmitHandler } from 'react-hook-form'
+import { useForm, SubmitHandler, useWatch } from 'react-hook-form'
 import {
   Typography,
   Accordion,
@@ -20,14 +20,12 @@ import {
   Autorenew,
 } from '@mui/icons-material'
 
-import { GenerateImageFormI, ImageI } from '../api/generate-utils'
-
 import theme from '../theme'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import CustomTooltip from './components/Tooltip'
 import { CustomizedAccordion, CustomizedAccordionSummary } from './components/Accordion-SX'
-import { MetadataFilterFields } from '../api/export-utils'
+import { FilterImageFormI, MetadataFilterFields } from '../api/export-utils'
 import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
 const { palette } = theme
 
@@ -36,22 +34,53 @@ export default function LibraryFiltering({
   setIsImagesLoading,
   setErrorMsg,
   submitFilters,
+  openFilters,
+  setOpenFilters,
 }: {
   isImagesLoading: boolean
   setIsImagesLoading: any
   setErrorMsg: any
   submitFilters: any
+  openFilters: boolean
+  setOpenFilters: any
 }) {
-  const { handleSubmit, reset, control, setValue, getValues } = useForm<GenerateImageFormI>()
-  const [openFilters, setOpenFilters] = useState(false)
+  const { handleSubmit, reset, control, setValue } = useForm<FilterImageFormI>()
 
-  const onSubmit: SubmitHandler<GenerateImageFormI> = async (formData: GenerateImageFormI) => {
+  const watchedFields = useWatch({ control })
+  const watchedFieldValues = useWatch({
+    control,
+    name: MetadataFilterFields.map((field: { key: any }) => field.key),
+  })
+
+  const prevSelectedFields = useRef<Set<string>>(new Set())
+
+  useEffect(() => {
+    const activeFieldKeys = MetadataFilterFields.filter(
+      (field: { key: string | number }) => watchedFields[field.key]?.length > 0
+    ).map((field: { key: any }) => field.key)
+
+    // Check if any new fields have been selected
+    const newSelections = activeFieldKeys.filter((key: any) => !prevSelectedFields.current.has(key))
+
+    if (newSelections.length > 0) {
+      // If there are new selections, reset other fields
+      MetadataFilterFields.forEach((field: { key: any }) => {
+        if (!newSelections.includes(field.key)) {
+          setValue(field.key, [])
+        }
+      })
+    }
+
+    // Update the set of previously selected fields
+    prevSelectedFields.current = new Set(activeFieldKeys)
+  }, [watchedFieldValues, setValue])
+
+  const onSubmit: SubmitHandler<FilterImageFormI> = async (formData: FilterImageFormI) => {
     setIsImagesLoading(true)
     setOpenFilters(false)
 
     try {
       submitFilters(formData)
-      console.log(JSON.stringify(formData, undefined, 4)) //TODO remove
     } catch (error: any) {
       setErrorMsg(error.toString())
     }
@@ -76,14 +105,20 @@ export default function LibraryFiltering({
               {'Setup filters'}
             </Typography>
           </AccordionSummary>
-          <AccordionDetails>
-            <Stack direction="row" spacing={5} sx={{ pl: 2, pr: 4 }}>
+          <AccordionDetails sx={{ pt: 1, pl: 3 }}>
+            <Typography
+              display="inline"
+              sx={{ fontSize: '0.9rem', fontStyle: 'italic', color: palette.text.secondary, my: 2 }}
+            >
+              {'Filters can have multiple values, but only one filter can be used at once'}
+            </Typography>
+            <Stack direction="row" spacing={5} sx={{ pr: 4, pt: 2 }}>
               {MetadataFilterFields.map(function ({ key, field }: any) {
                 return (
                   <Box key={key} width="100%" sx={{ px: 0 }}>
                     <FormInputChipGroupMultiple
                       name={key}
-                      label={field.label}
+                      label={field.name}
                       key={key}
                       control={control}
                       setValue={setValue}
@@ -95,13 +130,13 @@ export default function LibraryFiltering({
                 )
               })}
             </Stack>
-            <Stack direction="row" gap={1}>
+            <Stack direction="row" gap={1} sx={{ pt: 2, pl: 0 }}>
               <Button
                 type="submit"
                 variant="contained"
                 disabled={isImagesLoading}
                 endIcon={isImagesLoading ? <WatchLaterIcon /> : <SendIcon />}
-                sx={CustomizedSendButton}
+                sx={{ ...CustomizedSendButton, ...{ ml: 0 } }}
               >
                 {'Fetch'}
               </Button>

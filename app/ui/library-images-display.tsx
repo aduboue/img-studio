@@ -6,13 +6,12 @@ import { useEffect, useState, useMemo } from 'react'
 import Image from 'next/image'
 
 import {
-  Avatar,
+  Button,
   IconButton,
   ImageList,
   ImageListItem,
   ImageListItemBar,
   Modal,
-  Pagination,
   Skeleton,
   Typography,
 } from '@mui/material'
@@ -20,29 +19,38 @@ import {
 import theme from '../theme'
 import { ImageMetadataI, ImageMetadataWithSignedUrl } from '@/app/api/export-utils'
 import { blurDataURL } from '@/app/ui/components/blurImage'
-import { FileUpload, Info, InfoSharp, QuestionMark } from '@mui/icons-material'
-import image from 'next/image'
-import { CustomizedAvatarButton, CustomizedIconButton } from './components/Button-SX'
-import { ImageI } from '../api/generate-utils'
+import { ArrowBackIos, ArrowForwardIos, Info } from '@mui/icons-material'
+import { CustomizedIconButton } from './components/Button-SX'
 import ExploreDialog from './explore-dialog'
-import CustomTooltip, { CustomWhiteTooltip } from './components/Tooltip'
+import { CustomWhiteTooltip } from './components/Tooltip'
 const { palette } = theme
 
 export default function LibraryImagesDisplay({
   isImagesLoading,
   fetchedImagesByPage,
+  handleLoadMore,
+  isMorePageToLoad,
 }: {
   isImagesLoading: boolean
   fetchedImagesByPage: ImageMetadataWithSignedUrl[][]
+  handleLoadMore: () => void
+  isMorePageToLoad: boolean
 }) {
   const [page, setPage] = useState(1)
+  const [maxPage, setMaxPage] = useState(0)
   const [currentPageImages, setCurrentPageImages] = useState<ImageMetadataWithSignedUrl[]>([])
-  const handleChangePage = (event: React.ChangeEvent<unknown>, newPage: number) => {
+
+  const handleChangePage = (newPage: number) => {
     setPage(newPage)
   }
+
   useEffect(() => {
-    setCurrentPageImages(fetchedImagesByPage[page - 1] || [])
-  }, [page, fetchedImagesByPage[page - 1]])
+    if (fetchedImagesByPage[page - 1]) setCurrentPageImages(fetchedImagesByPage[page - 1])
+    else if (page > fetchedImagesByPage.length && isMorePageToLoad) handleLoadMore()
+
+    const calculatedMaxPage = isMorePageToLoad ? fetchedImagesByPage.length + 1 : fetchedImagesByPage.length
+    setMaxPage(calculatedMaxPage)
+  }, [page, fetchedImagesByPage])
 
   // Full screen image display
   const [imageFullScreen, setImageFullScreen] = useState<ImageMetadataWithSignedUrl>()
@@ -55,7 +63,6 @@ export default function LibraryImagesDisplay({
   // Export form and handlers
   const [imageExploreOpen, setImageExploreOpen] = useState(false)
   const [imageToExplore, setImageToExplore] = useState<ImageMetadataI | undefined>()
-
   const handleImageExploreOpen = (image: ImageMetadataI) => {
     setImageToExplore(image)
     setImageExploreOpen(true)
@@ -144,14 +151,16 @@ export default function LibraryImagesDisplay({
                 <ImageList cols={8} gap={8}>
                   {imageListItems}
                 </ImageList>
-                <Pagination
-                  siblingCount={0}
-                  boundaryCount={0}
-                  count={fetchedImagesByPage.length}
-                  page={page}
-                  onChange={handleChangePage}
-                  sx={{ pt: 2 }}
-                />
+                <Button onClick={() => handleChangePage(page - 1)} disabled={page === 1} startIcon={<ArrowBackIos />}>
+                  Prev.
+                </Button>
+                <Button
+                  onClick={() => handleChangePage(page + 1)}
+                  disabled={maxPage === page && maxPage !== 0}
+                  endIcon={<ArrowForwardIos />}
+                >
+                  Next
+                </Button>
               </>
             )}
           </>

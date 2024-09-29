@@ -1,23 +1,40 @@
 'use server'
 
-import { ExportImageFormFields, ExportImageFormI, ImageMetadataI } from "../export-utils";
+import { Timestamp } from '@google-cloud/firestore'
+import { ExportImageFormFields, ExportImageFormI, ImageMetadataI } from '../export-utils'
 
-const {Firestore} = require('@google-cloud/firestore');
-const firestore = new Firestore();
+const { Firestore, FieldValue } = require('@google-cloud/firestore')
+const firestore = new Firestore()
+firestore.settings({ ignoreUndefinedProperties: true })
 
 export async function addNewFirestoreEntry(entryID: string, data: ExportImageFormI) {
-  const document = firestore.collection('metadata').doc(entryID);
+  const document = firestore.collection('metadata').doc(entryID)
 
   let cleanData: ImageMetadataI = {} as ImageMetadataI
-  data = { ...data.imageToExport , ...data}
+  data = { ...data.imageToExport, ...data }
+  let combinedFilters: string[] = []
 
   Object.entries(ExportImageFormFields).forEach(([name, field]) => {
-    field.prop?  (cleanData[name as keyof ImageMetadataI] as any) = data[field.prop as keyof ExportImageFormI] ? data[field.prop as keyof ExportImageFormI] : null
-    : (cleanData[name as keyof ImageMetadataI] as any) = data[name as keyof ExportImageFormI] ? data[name as keyof ExportImageFormI] : null
+    const sourceProp = field.prop || name
+    const valueFromData = data[sourceProp as keyof ExportImageFormI]
+    let transformedValue = valueFromData
+
+    if (Array.isArray(valueFromData) && valueFromData.every((item) => typeof item === 'string')) {
+      transformedValue = valueFromData.length > 0 ? Object.fromEntries(valueFromData.map((str) => [str, true])) : null
+      valueFromData.forEach((item) => combinedFilters.push(`${name}_${item}`))
+    }
+
+    cleanData[name as keyof ImageMetadataI] = transformedValue ?? null
   })
 
+  const dataToSet = {
+    ...cleanData,
+    timestamp: FieldValue.serverTimestamp(),
+    combinedFilters: combinedFilters,
+  }
+
   try {
-    const res = await document.set(cleanData)
+    const res = await document.set(dataToSet, { ignoreUndefinedProperties: true })
     return res._writeTime._seconds
   } catch (error) {
     console.error(error)
@@ -27,133 +44,92 @@ export async function addNewFirestoreEntry(entryID: string, data: ExportImageFor
   }
 }
 
-export async function fetchAllDocumentsInBatches(batchSize: number) {
-  const collection = firestore.collection('metadata');
-  let allDocuments: ImageMetadataI[][] = [];
-  let lastVisibleDocument = null;
+export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters?: any) {
+  const batchSize = 24
 
-  while (true) {
-    let query = collection.limit(batchSize)
+  const collection = firestore.collection('metadata')
+  let thisBatchDocuments: ImageMetadataI[] = []
 
+  let query = collection
+
+  if (filters) {
+    const filterEntries = Object.entries(filters).filter(([, values]) => Array.isArray(values) && values.length > 0)
+    let combinedFilterEntries: string[] = []
+    for (const [filterKey, filterValues] of filterEntries) {
+      ;(filterValues as string[]).forEach((filterValue) => {
+        combinedFilterEntries.push(filterKey + '_' + filterValue)
+      })
+    }
+    query = query.where('combinedFilters', 'array-contains-any', combinedFilterEntries)
+  }
+
+  query = query.orderBy('timestamp', 'desc').limit(batchSize)
+
+  try {
     if (lastVisibleDocument) {
-      query = query.startAfter(lastVisibleDocument)
+      query = query.startAfter(
+        new Timestamp(
+          Math.floor(lastVisibleDocument.timestamp / 1000),
+          (lastVisibleDocument.timestamp % 1000) * 1000000
+        )
+      )
     }
 
-    let snapshot
-    try {
-      snapshot = await query.get()
-    } catch (error) {
-      console.error(error)
-      return {
-        error: 'Error while fetching metadata',
-      }
-    }
+    const snapshot = await query.get()
 
+    // No more documents
     if (snapshot.empty) {
-      break; // No more documents
+      return { thisBatchDocuments: null, lastVisibleDocument: null, isMorePageToLoad: false }
     }
 
-    const batchDocuments = snapshot.docs.map((doc: { data: () => any; }) => doc.data()) as ImageMetadataI[]
-    allDocuments.push(batchDocuments)
+    thisBatchDocuments = snapshot.docs.map((doc: { data: () => any }) => {
+      const data = doc.data()
+      delete data.timestamp
+      delete data.combinedFilters
+      return data as ImageMetadataI
+    })
 
-    lastVisibleDocument = snapshot.docs[snapshot.docs.length - 1]
-  }
-
-  return allDocuments
-}
-
-/*export async function fetchedFilteredDocuments(batchSize: number, filters: any) {
-  console.log("XXXX filters " + JSON.stringify(filters, undefined, 4)) //TODO remove
-  const collection = firestore.collection('metadata');
-  let allDocuments: ImageMetadataI[][] = [];
-  let lastVisibleDocument = null;
-
-  let baseQuery = collection;
-  for (const [filterKey, filterValues] of Object.entries(filters)) {
-    baseQuery = baseQuery.where(filterKey, 'array-contains-any', filterValues);
-  }
-
-  while (true) {
-    let query = baseQuery.limit(batchSize);
-
-    if (lastVisibleDocument) {
-      query = query.startAfter(lastVisibleDocument);
+    const newLastVisibleDocument = {
+      id: snapshot.docs[snapshot.docs.length - 1].id,
+      timestamp:
+        snapshot.docs[snapshot.docs.length - 1].data().timestamp._seconds * 1000 +
+        snapshot.docs[snapshot.docs.length - 1].data().timestamp._nanoseconds / 1000000,
     }
 
-    let snapshot;
-    try {
-      snapshot = await query.get();
-      console.log("XXXX " + JSON.stringify(snapshot.docs, undefined, 4)) //TODO remove
-    } catch (error) {
-      console.error(error);
-      return {
-        error: 'Error while fetching metadata',
-      };
-    }
-
-    if (snapshot.empty) {
-      break; // No more documents
-    }
-
-    const batchDocuments = snapshot.docs.map((doc: { data: () => any; }) => doc.data()) as ImageMetadataI[]
-    allDocuments.push(batchDocuments);
-
-    lastVisibleDocument = snapshot.docs[snapshot.docs.length - 1];
-  }
-
-  return allDocuments;
-}*/
-
-export async function fetchedFilteredDocuments(batchSize: number, filters: any) {
-  const collection = firestore.collection('metadata');
-  let allDocuments: ImageMetadataI[][] = [];
-
-  // Extract filter keys and values
-  const filterEntries = Object.entries(filters)
-    .filter(([, values]) => Array.isArray(values) && values.length > 0);
-
-  // If no filters, fetch all documents
-  if (filterEntries.length === 0) {
-    return fetchAllDocumentsInBatches(batchSize);
-  }
-
-  // Apply filters sequentially
-  let currentDocuments: ImageMetadataI[] = [];
-  for (const [filterKey, filterValues] of filterEntries) {
-    let filteredBatchDocuments: ImageMetadataI[][] = [];
-    let lastVisibleDocument = null;
-
-    while (true) {
-      let query = collection.where(filterKey, 'array-contains-any', filterValues).limit(batchSize);
-
-      if (lastVisibleDocument) {
-        query = query.startAfter(lastVisibleDocument);
+    // Check if there's a next page
+    let nextPageQuery = collection
+    if (filters) {
+      const filterEntries = Object.entries(filters).filter(([, values]) => Array.isArray(values) && values.length > 0)
+      let combinedFilterEntries: string[] = []
+      for (const [filterKey, filterValues] of filterEntries) {
+        ;(filterValues as string[]).forEach((filterValue) => {
+          combinedFilterEntries.push(filterKey + '_' + filterValue)
+        })
       }
-
-      const snapshot = await query.get();
-
-      if (snapshot.empty) {
-        break;
-      }
-
-      const batchDocuments = snapshot.docs.map((doc: { data: () => any; }) => doc.data()) as ImageMetadataI[]
-      filteredBatchDocuments.push(batchDocuments);
-
-      lastVisibleDocument = snapshot.docs[snapshot.docs.length - 1];
+      nextPageQuery = nextPageQuery.where('combinedFilters', 'array-contains-any', combinedFilterEntries)
     }
 
-    // Filter the current documents based on the new batch
-    currentDocuments = currentDocuments.length === 0
-      ? filteredBatchDocuments.flat()
-      : currentDocuments.filter(doc =>
-          filteredBatchDocuments.flat().some(filteredDoc => filteredDoc.imageID === doc.imageID)
-        );
-  }
+    nextPageQuery = nextPageQuery
+      .orderBy('timestamp', 'desc')
+      .limit(1)
+      .startAfter(
+        new Timestamp(
+          Math.floor(newLastVisibleDocument.timestamp / 1000),
+          (newLastVisibleDocument.timestamp % 1000) * 1000000
+        )
+      )
+    const nextPageSnapshot = await nextPageQuery.get()
+    const isMorePageToLoad = !nextPageSnapshot.empty
 
-  // Divide the final filtered documents into batches
-  for (let i = 0; i < currentDocuments.length; i += batchSize) {
-    allDocuments.push(currentDocuments.slice(i, i + batchSize));
+    return {
+      thisBatchDocuments: thisBatchDocuments,
+      lastVisibleDocument: newLastVisibleDocument,
+      isMorePageToLoad: isMorePageToLoad,
+    }
+  } catch (error) {
+    console.error(error)
+    return {
+      error: 'Error while fetching metadata',
+    }
   }
-
-  return allDocuments;
 }

@@ -76,11 +76,17 @@ export async function copyImageToTeamBucket(actualGcsUri: string, imageID: strin
 
     const sourceObject = storage.bucket(bucketName).file(fileName)
     const destinationBucket = storage.bucket(destinationBucketName)
+    const destinationFile = destinationBucket.file(imageID)
 
-    await sourceObject.copy(destinationBucket.file(imageID))
-    const newUri = `gs://${destinationBucketName}/${imageID}`
+    // Check if file already exists in destination bucket
+    const [exists] = await destinationFile.exists()
 
-    return newUri
+    if (!exists) {
+      // File doesn't exist, proceed with copy
+      await sourceObject.copy(destinationFile)
+    }
+
+    return `gs://${destinationBucketName}/${imageID}`
   } catch (error) {
     console.error(error)
     return {
