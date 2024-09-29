@@ -25,6 +25,13 @@ import ExploreDialog from './explore-dialog'
 import { CustomWhiteTooltip } from './components/Tooltip'
 const { palette } = theme
 
+const CustomizedNavButtons = {
+  '&:hover': { bgcolor: 'transparent', fontWeight: 700 },
+  fontSize: '1.1rem',
+  fontWeight: 500,
+  '&.Mui-disabled': { fontWeight: 500, fontSize: '1.05rem' },
+}
+
 export default function LibraryImagesDisplay({
   isImagesLoading,
   fetchedImagesByPage,
@@ -74,8 +81,17 @@ export default function LibraryImagesDisplay({
 
   const imageListItems = useMemo(() => {
     return currentPageImages.map((doc: ImageMetadataWithSignedUrl) => (
-      <ImageListItem key={doc.signedUrl} sx={{ width: '9vw', height: '9vw', overflow: 'hidden' }}>
-        <>
+      <ImageListItem
+        key={doc.signedUrl}
+        sx={{
+          width: '9vw',
+          height: '9vw',
+          overflow: 'hidden',
+          boxShadow: '0px 5px 10px -1px rgb(0 0 0 / 70%)',
+          transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
+        }}
+      >
+        <React.Fragment key={doc.imageID}>
           <Image
             key={doc.imageID}
             src={doc.signedUrl}
@@ -119,7 +135,7 @@ export default function LibraryImagesDisplay({
               Click to see full screen
             </Typography>
           </Box>
-        </>
+        </React.Fragment>
         <ImageListItemBar
           sx={{
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
@@ -148,16 +164,22 @@ export default function LibraryImagesDisplay({
           <>
             {currentPageImages !== undefined && currentPageImages.length !== 0 && (
               <>
-                <ImageList cols={8} gap={8}>
+                <ImageList cols={8} gap={8} sx={{ cursor: 'pointer', '&.MuiImageList-root': { pb: 5, px: 1 } }}>
                   {imageListItems}
                 </ImageList>
-                <Button onClick={() => handleChangePage(page - 1)} disabled={page === 1} startIcon={<ArrowBackIos />}>
+                <Button
+                  onClick={() => handleChangePage(page - 1)}
+                  disabled={page === 1}
+                  startIcon={<ArrowBackIos sx={{ '&.MuiSvgIcon-root': { fontSize: '0.95rem' } }} />}
+                  sx={CustomizedNavButtons}
+                >
                   Prev.
                 </Button>
                 <Button
                   onClick={() => handleChangePage(page + 1)}
                   disabled={maxPage === page && maxPage !== 0}
-                  endIcon={<ArrowForwardIos />}
+                  endIcon={<ArrowForwardIos sx={{ '&.MuiSvgIcon-root': { fontSize: '0.95rem' } }} />}
+                  sx={CustomizedNavButtons}
                 >
                   Next
                 </Button>

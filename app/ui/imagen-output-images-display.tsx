@@ -69,7 +69,7 @@ export default function OutputImagesDisplay({
                     transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
                   }}
                 >
-                  <>
+                  <React.Fragment key={image.key}>
                     <Image
                       key={image.src}
                       src={image.src}
@@ -107,7 +107,7 @@ export default function OutputImagesDisplay({
                         Click to see full screen
                       </Typography>
                     </Box>
-                  </>
+                  </React.Fragment>
                   <ImageListItemBar
                     sx={{
                       background:
