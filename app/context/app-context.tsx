@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, useState, useEffect, useContext } from 'react'
-import { ensureBucketExists } from '../api/cloud-storage/action'
 
 export interface appContextDataI {
   gcsURI?: string
@@ -73,21 +72,8 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           fetchedUserID = targetPrincipal
         }
 
-        // 2. Fetch GCS URI for all edited/ generated images
-        // TODO clean?
+        // 2. Set GCS URI for all edited/ generated images
         let gcsURI = `gs://${process.env.NEXT_PUBLIC_OUTPUT_BUCKET}`
-        /*try {
-          gcsURI = await ensureBucketExists(`gs://${process.env.NEXT_PUBLIC_OUTPUT_BUCKET}`)
-          if (typeof gcsURI === 'object' && 'error' in gcsURI) {
-            throw Error(gcsURI.error)
-          }
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            throw error
-          } else {
-            throw Error(error as string)
-          }
-        }*/
 
         // 3. Update Context with all fetched data
         setAppContext({

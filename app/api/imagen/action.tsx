@@ -288,7 +288,7 @@ export async function upscaleImage(modelVersion: string, sourceUri: string, upsc
     console.log('XXXX opts : ', JSON.stringify(res, undefined, 4)) //TODO out
 
     if (res.data.predictions === undefined) {
-      throw Error('There were an issue, images could not be upscaled') //TODO other error msg in prediction?
+      throw Error('There were an issue, images could not be upscaled')
     }
 
     const newGcsUri: string = res.data.predictions[0].gcsUri

@@ -42,27 +42,6 @@ export async function getSignedURL(gcsURI: string) {
   }
 }
 
-// TODO clean?
-export async function ensureBucketExists(gcsURI: string) {
-  const { bucketName } = await decomposeUri(gcsURI)
-
-  try {
-    const storage = new Storage({ projectId })
-    const [bucketExists] = await storage.bucket(`gs://${bucketName}`).exists()
-
-    if (!bucketExists) {
-      throw Error('Bucket does not exist')
-    }
-
-    return gcsURI
-  } catch (error) {
-    console.error(error)
-    return {
-      error: 'Erorr while initializing content storage.',
-    }
-  }
-}
-
 export async function copyImageToTeamBucket(actualGcsUri: string, imageID: string) {
   const storage = new Storage({ projectId })
   const { bucketName, fileName } = await decomposeUri(actualGcsUri)
