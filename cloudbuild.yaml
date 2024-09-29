@@ -1,8 +1,11 @@
 steps:
-  - name: 'ubuntu'
-    args: ['echo', 'Copied file provided URI ${_EXPORT_FIELDS_OPTIONS_URI}']
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['-m', 'cp', '${_EXPORT_FIELDS_OPTIONS_URI}', '.']
+  - name: 'ubuntu' # Or any other suitable base image with a shell
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "_EXPORT_FIELDS_OPTIONS_URI=${_EXPORT_FIELDS_OPTIONS_URI}"
+        gsutil -m cp "${_EXPORT_FIELDS_OPTIONS_URI}" .
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
