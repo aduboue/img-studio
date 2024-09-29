@@ -516,7 +516,7 @@ export default function ExportStepper({
                 <TagStep />
               </StepContent>
             </Step>
-
+            {/*
             <Step key="upscale">
               <StepLabel StepIconComponent={CustomStepIcon}>
                 <CustomStepLabel text="Upscale resolution" step={2} />
@@ -526,9 +526,11 @@ export default function ExportStepper({
               </StepContent>
             </Step>
 
+            {//TODO update to 3 when put back upscale v
+            */}
             <Step key="export">
               <StepLabel StepIconComponent={CustomStepIcon}>
-                <CustomStepLabel text="Ready to export!" step={3} />
+                <CustomStepLabel text="Ready to export!" step={2} />
               </StepLabel>
               <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
                 <ExportStep />
