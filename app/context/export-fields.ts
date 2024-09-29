@@ -1,4 +1,4 @@
-import { filterFields } from './export-fields-options'
+import { filterFields } from 'app/context/export-fields-options'
 
 export interface ExportImageFieldI {
   label: string
