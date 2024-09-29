@@ -34,12 +34,7 @@ import {
 } from '@mui/icons-material'
 import { CustomRadio } from './components/InputRadioButton'
 
-import {
-  ExportImageFormFields,
-  ExportImageFormI,
-  MetadataImproveFields,
-  MetadataReviewFields,
-} from '../api/export-utils'
+import { ExportImageFormI, MetadataImproveFields, MetadataReviewFields } from '../api/export-utils'
 import { Controller, set, SubmitHandler, useForm } from 'react-hook-form'
 import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
 import { CloseWithoutSubmitWarning, ExportErrorWarning } from './components/ExportAlerts'
@@ -48,6 +43,7 @@ import theme from '../theme'
 import { copyImageToTeamBucket, downloadImage } from '../api/cloud-storage/action'
 import { upscaleImage } from '../api/imagen/action'
 import { addNewFirestoreEntry } from '../api/firestore/action'
+import { ExportImageFormFields } from '../context/export-fields'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(

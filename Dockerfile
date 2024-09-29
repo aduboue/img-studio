@@ -17,6 +17,9 @@ WORKDIR /app
 # Copy the rest of the application code
 COPY . .
 
+# Copy export field file from GCS (fetched in cloudbuild.yaml)
+COPY export-fields_options.ts /app/context/export-fields_options.ts
+
 # Set environment variables from build arguments
 ARG _PROJECT_ID
 ARG _VERTEX_API_LOCATION

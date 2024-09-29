@@ -75,7 +75,15 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
         // 2. Set GCS URI for all edited/ generated images
         let gcsURI = `gs://${process.env.NEXT_PUBLIC_OUTPUT_BUCKET}`
 
-        // 3. Update Context with all fetched data
+        // 3. Check if export fields options file exists
+        let exportFields: any = {}
+        try {
+          exportFields = require('./export-fields-options')
+        } catch (error) {
+          throw Error("Cannot find 'export-fields-options' file")
+        }
+
+        // 4. Update Context with all fetched data
         setAppContext({
           userID: fetchedUserID,
           gcsURI: gcsURI?.toString(),

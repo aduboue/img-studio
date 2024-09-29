@@ -6,9 +6,10 @@ import { TransitionProps } from '@mui/material/transitions'
 import { ArrowForwardIos, ArrowRight, Close, Download } from '@mui/icons-material'
 
 import theme from '../theme'
-import { ExportImageFormFields, ImageMetadataI } from '../api/export-utils'
+import { ImageMetadataI } from '../api/export-utils'
 import { CustomizedSendButton } from './components/Button-SX'
 import { downloadImage } from '../api/cloud-storage/action'
+import { ExportImageFormFields } from '../context/export-fields'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(

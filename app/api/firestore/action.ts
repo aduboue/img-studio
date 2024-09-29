@@ -1,7 +1,8 @@
 'use server'
 
 import { Timestamp } from '@google-cloud/firestore'
-import { ExportImageFormFields, ExportImageFormI, ImageMetadataI } from '../export-utils'
+import { ExportImageFormI, ImageMetadataI } from '../export-utils'
+import { ExportImageFormFields } from '../../context/export-fields'
 
 const { Firestore, FieldValue } = require('@google-cloud/firestore')
 const firestore = new Firestore()

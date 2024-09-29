@@ -1,3 +1,5 @@
+import { filterFields } from './export-fields-options'
+
 export interface ExportImageFieldI {
   label: string
   name?: string
@@ -25,10 +27,7 @@ export interface ExportImageFormFieldsI {
   imageUpscaleFactor: ExportImageFieldI
   imageWidth: ExportImageFieldI
   imageHeight: ExportImageFieldI
-  contextAuthorTeam: ExportImageFieldI
-  contextAssociatedBrand: ExportImageFieldI
-  contextCollection: ExportImageFieldI
-  contextTargetPlatform: ExportImageFieldI
+  [key: string]: ExportImageFieldI
 }
 
 export const ExportImageFormFields: ExportImageFormFieldsI = {
@@ -120,135 +119,5 @@ export const ExportImageFormFields: ExportImageFormFieldsI = {
     isExportVisible: true,
     isExploreVisible: true,
   },
-  contextAuthorTeam: {
-    label: 'In which team are you?',
-    name: 'Associated team(s)',
-    type: 'select',
-    isUpdatable: true,
-    isMandatory: true,
-    isExportVisible: true,
-    isExploreVisible: true,
-
-    options: [
-      {
-        value: 'marketing',
-        label: 'Content marketing',
-      },
-      {
-        value: 'communityManagement',
-        label: 'Community Management',
-      },
-      {
-        value: 'hr',
-        label: 'Human Ressources',
-      },
-      {
-        value: 'product',
-        label: 'Product development',
-      },
-      {
-        value: 'sales',
-        label: 'Sales enablement',
-      },
-    ],
-  },
-  contextTargetPlatform: {
-    label: 'For which platform is it targetted?',
-    name: 'Targetted platform(s)',
-    type: 'multiple-select',
-    isUpdatable: true,
-    isMandatory: true,
-    isExportVisible: true,
-    isExploreVisible: true,
-
-    options: [
-      {
-        value: 'mailing',
-        label: 'Mailing compaign',
-      },
-      {
-        value: 'website',
-        label: 'Public website',
-      },
-      {
-        value: 'socialMedias',
-        label: 'Social medias',
-      },
-      {
-        value: 'product',
-        label: 'Product development',
-      },
-    ],
-  },
-  contextAssociatedBrand: {
-    label: 'For which brand(s) did you create this image?',
-    name: 'Associated brand(s)',
-    type: 'multiple-select',
-    isUpdatable: true,
-    isMandatory: false,
-    isExportVisible: true,
-    isExploreVisible: true,
-    options: [
-      {
-        value: 'gemo',
-        label: 'Gémo',
-      },
-      {
-        value: 'mellowYellow',
-        label: 'Mellow Yellow',
-      },
-      {
-        value: 'bocage',
-        label: 'Bocage',
-      },
-      {
-        value: 'maje',
-        label: 'Maje',
-      },
-      {
-        value: 'bash',
-        label: 'Ba&sh',
-      },
-      {
-        value: 'sessun',
-        label: 'Sessùn',
-      },
-      {
-        value: 'americanVintage',
-        label: 'American Vintage',
-      },
-      {
-        value: 'theKooples',
-        label: 'The Kooples',
-      },
-    ],
-  },
-  contextCollection: {
-    label: 'To which collection(s) is it associated?',
-    name: 'Associated collection(s)',
-    type: 'multiple-select',
-    isUpdatable: true,
-    isMandatory: false,
-    isExportVisible: true,
-    isExploreVisible: true,
-
-    options: [
-      {
-        value: 'spring',
-        label: 'Spring',
-      },
-      {
-        value: 'summer',
-        label: 'Summer',
-      },
-      {
-        value: 'fall',
-        label: 'Fall',
-      },
-      {
-        value: 'winter',
-        label: 'Winter',
-      },
-    ],
-  },
+  ...filterFields,
 }
