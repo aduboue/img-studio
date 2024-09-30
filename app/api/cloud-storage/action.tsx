@@ -7,7 +7,7 @@ interface optionsI {
   action: 'read' | 'write' | 'delete' | 'resumable'
   expires: number
 }
-const projectId = process.env.PROJECT_ID
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
 
 export async function decomposeUri(uri: string) {
   const sourceUriParts = uri.replace('gs://', '').split('/')

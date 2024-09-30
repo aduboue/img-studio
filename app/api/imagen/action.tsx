@@ -144,8 +144,8 @@ export async function generateImage(
       error: 'Unable to authenticate your account to access images',
     }
   }
-  const location = process.env.VERTEX_API_LOCATION
-  const projectId = process.env.PROJECT_ID
+  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const modelVersion = formData['modelVersion']
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
@@ -248,8 +248,8 @@ export async function upscaleImage(modelVersion: string, sourceUri: string, upsc
       error: 'Unable to authenticate your account to access images',
     }
   }
-  const location = process.env.VERTEX_API_LOCATION
-  const projectId = process.env.PROJECT_ID
+  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
   const reqData = {
