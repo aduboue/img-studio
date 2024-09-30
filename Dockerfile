@@ -42,10 +42,19 @@ ENV PROJECT_ID=$_PROJECT_ID \
 
 
 
-# List the contents of the /app/context directory after the build
-RUN ls -la /app/.next/server/app/context
 # Build the Next.js application
-RUN npm run build
+RUN npm run build || true
+
+# Debugging stage to inspect the build output
+FROM builder AS debugger
+WORKDIR /app
+
+# List the top-level contents of the .next directory
+RUN ls -la /app/.next
+
+# List the contents of the /app/.next/server directory (if it exists)
+RUN if [ -d "/app/.next/server" ]; then ls -la /app/.next/server; fi
+
 
 
 # Use a smaller Node.js image for production
