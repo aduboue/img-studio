@@ -4,7 +4,7 @@ steps:
       [
         'build',
         '-t',
-        'gcr.io/$NEXT_PUBLIC_PROJECT_ID/img-studio:latest',
+        'gcr.io/$PROJECT_ID/img-studio:latest',
         '--build-arg',
         '_NEXT_PUBLIC_PROJECT_ID=$PROJECT_ID',
         '--build-arg',
