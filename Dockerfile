@@ -20,6 +20,10 @@ COPY . .
 # Copy export field file from GCS (fetched in cloudbuild.yaml)
 COPY export-fields-options.ts /app/context/export-fields-options.ts
 
+# TODO remove
+RUN ls -la /app/context
+
+
 # Set environment variables from build arguments
 ARG _PROJECT_ID
 ARG _VERTEX_API_LOCATION
