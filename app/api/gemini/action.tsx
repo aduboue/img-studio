@@ -7,9 +7,9 @@ function cleanResult(inputString: string) {
 }
 
 export async function rewriteWithGemini(userPrompt: string) {
-  const location = process.env.VERTEX_API_LOCATION
-  const geminiModel = process.env.GEMINI_MODEL
-  const projectId = process.env.PROJECT_ID
+  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
+  const geminiModel = process.env.NEXT_PUBLIC_GEMINI_MODEL
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const vertexAI = new VertexAI({ project: projectId, location: location })
 
   const generativeModel = vertexAI.getGenerativeModel({

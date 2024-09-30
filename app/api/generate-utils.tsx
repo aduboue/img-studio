@@ -334,7 +334,7 @@ export const fullPromptAdditionalFields = generateFieldList.filter(
 )
 
 // Interface of result sent back by Imagen
-export interface GeneratedImagesInGCSI {
+export interface VisionGenerativeModelResultI {
   gcsUri: string
   mimeType: string
 }
@@ -352,7 +352,7 @@ export interface ImageI {
   prompt: string
   date: string
   author: string
-  modelVestion: string
+  modelVersion: string
 }
 
 // List of Imagen available ratio and their corresponding generation dimentions
@@ -366,23 +366,23 @@ export const RatioToPixel = [
 
 // Random prompt list the user can use if they lack prompt ideas
 export const RandomPrompts = [
-  'Shot in the style of DSLR camera with the polarizing filter. A photo of two hot air balloons floating over the unique rock formations in Cappadocia, Turkey. The colors and patterns on these balloons contrast beautifully against the earthy tones of the landscape. below. This shot captures the sense of adventure that comes with enjoying such an experience.',
-  'Close-up photo of an origami bird soaring through a cityscape, in a flock with others of different colors and patterns, casting intricate shadows on the buildings below.',
-  'Three women stand together laughing, with one woman slightly out of focus in the foreground. The sun is setting behind the women, creating a lens flare and a warm glow that highlights their hair and creates a bokeh effect in the background. The photography style is candid and captures a genuine moment of connection and happiness between friends. The warm light of golden hour lends a nostalgic and intimate feel to the image.',
-  'A weathered, wooden mech robot covered in flowering vines stands peacefully in a field of tall wildflowers, with a small bluebird resting on its outstretched hand. Digital cartoon, with warm colors and soft lines. A large cliff with a waterfall looms behind.',
-  'Photographic portrait of a real life dragon resting peacefully in a zoo, curled up next to its pet sheep. Cinematic movie still, high quality DSLR photo.',
-  "A view of a person's hand holding a eucalyptus sprig a macro DSLR image highlighting the balance of human and nature.",
-  'A large, colorful bouquet of flowers in an old blue glass vase on the table. In front is one beautiful peony flower surrounded by various other blossoms like roses, lilies, daisies, orchids, fruits, berries, green leaves. The background is dark gray. Oil painting in the style of the Dutch Golden Age.',
+  'Shot in the style of DSLR camera with the polarizing filter. A photo of two hot air balloons floating over the unique rock formations in Cappadocia, Turkey. The colors and patterns on these balloons contrast beautifully against the earthy tones of the landscape. below. This shot captures the sense of adventure that comes with enjoying such an experience',
+  'Close-up photo of an origami bird soaring through a cityscape, in a flock with others of different colors and patterns, casting intricate shadows on the buildings below',
+  'Three women stand together laughing, with one woman slightly out of focus in the foreground. The sun is setting behind the women, creating a lens flare and a warm glow that highlights their hair and creates a bokeh effect in the background. The photography style is candid and captures a genuine moment of connection and happiness between friends. The warm light of golden hour lends a nostalgic and intimate feel to the image',
+  'A weathered, wooden mech robot covered in flowering vines stands peacefully in a field of tall wildflowers, with a small bluebird resting on its outstretched hand. Digital cartoon, with warm colors and soft lines. A large cliff with a waterfall looms behind',
+  'Photographic portrait of a real life dragon resting peacefully in a zoo, curled up next to its pet sheep. Cinematic movie still, high quality DSLR photo',
+  "A view of a person's hand holding a eucalyptus sprig a macro DSLR image highlighting the balance of human and nature",
+  'A large, colorful bouquet of flowers in an old blue glass vase on the table. In front is one beautiful peony flower surrounded by various other blossoms like roses, lilies, daisies, orchids, fruits, berries, green leaves. The background is dark gray. Oil painting in the style of the Dutch Golden Age',
   'Detailed illustration of majestic lion roaring proudly in a dream-like jungle, purple white line art background, clipart on light violet paper texture',
   'Claymation scene. A medium wide shot of an elderly woman. She is wearing flowing clothing. She is standing in a lush garden watering the plants with an orange watering can',
   'Elephant amigurumi walking in savanna, a professional photograph, blurry background',
-  "A view of a person's hand as they hold a little clay figurine of a bird in their hand and sculpt it with a modeling tool in their other hand. You can see the sculptor's scarf. Their hands are covered in clay dust. a macro DSLR image highlighting the texture and craftsmanship.",
-  "White fluffy bear toy is sleeping in a children's room, on the floor of a baby bedroom with toy boxes and toys around, in the style of photorealistic 3D rendering.",
+  "A view of a person's hand as they hold a little clay figurine of a bird in their hand and sculpt it with a modeling tool in their other hand. You can see the sculptor's scarf. Their hands are covered in clay dust. a macro DSLR image highlighting the texture and craftsmanship",
+  "White fluffy bear toy is sleeping in a children's room, on the floor of a baby bedroom with toy boxes and toys around, in the style of photorealistic 3D rendering",
   "Word 'light' made from various colorful feathers, black background",
   "A single comic book panel of an old dog and an adult man on a grassy hill, staring at the sunset. A speech bubble points from the man's mouth and says: 'The sun will rise again'. Muted, late 1990s coloring style",
   "A photograph of a stately library entrance with the words 'Central Library' carved into the stone",
   'A close up of a  warm and fuzzy colorful Peruvian poncho laying on a top of a chair in a bright day',
   'An old woman but super modern and cool, her is smiling and wearing yellow modern and nice clothes, using her high-tech cell phone to take selfie in her beautiful garden, happy atmosphere, high resolution, hyper-realistic',
-  'A bright style- magazine  shot of a woman putting on mascara.',
+  'A bright style- magazine  shot of a woman putting on mascara',
   'Close up shot, In a dimly lit jazz club, a soulful saxophone player, their face contorted in concentration, pours their heart out through their music. A small group of people listen intently, feeling every emotion',
 ]

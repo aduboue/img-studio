@@ -7,9 +7,22 @@ interface optionsI {
   action: 'read' | 'write' | 'delete' | 'resumable'
   expires: number
 }
-const projectId = process.env.PROJECT_ID
+const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
 
-export async function getSignedURL(bucketName: string, fileName: string) {
+export async function decomposeUri(uri: string) {
+  const sourceUriParts = uri.replace('gs://', '').split('/')
+  const sourceBucketName = sourceUriParts[0]
+  const sourceObjectName = sourceUriParts.slice(1).join('/')
+
+  return {
+    bucketName: sourceBucketName,
+    fileName: sourceObjectName,
+  }
+}
+
+export async function getSignedURL(gcsURI: string) {
+  const { bucketName, fileName } = await decomposeUri(gcsURI)
+
   const storage = new Storage({ projectId })
 
   const options: optionsI = {
@@ -29,26 +42,77 @@ export async function getSignedURL(bucketName: string, fileName: string) {
   }
 }
 
-export async function ensureBucketExists(uri: string) {
+export async function copyImageToTeamBucket(actualGcsUri: string, imageID: string) {
+  const storage = new Storage({ projectId })
+  const { bucketName, fileName } = await decomposeUri(actualGcsUri)
+
   try {
-    const storage = new Storage({ projectId })
-    const bucketName = uri.replace(/^gs:\/\//, '')
-    const [bucketExists] = await storage.bucket(bucketName).exists()
-    const location = process.env.GCS_BUCKET_LOCATION
+    const destinationBucketName = process.env.NEXT_PUBLIC_TEAM_BUCKET
 
-    if (!bucketExists) {
-      await storage.createBucket(bucketName, {
-        location: location,
-      })
-
-      console.log(`Created new bucket: ${bucketName}`)
+    if (!bucketName || !fileName || !destinationBucketName) {
+      throw new Error('Invalid source or destination URI.')
     }
 
-    return uri
+    const sourceObject = storage.bucket(bucketName).file(fileName)
+    const destinationBucket = storage.bucket(destinationBucketName)
+    const destinationFile = destinationBucket.file(imageID)
+
+    // Check if file already exists in destination bucket
+    const [exists] = await destinationFile.exists()
+
+    if (!exists) {
+      // File doesn't exist, proceed with copy
+      await sourceObject.copy(destinationFile)
+    }
+
+    return `gs://${destinationBucketName}/${imageID}`
   } catch (error) {
     console.error(error)
     return {
-      error: 'Erorr while initializing content storage .',
+      error: 'Error while moving image to team Library',
     }
+  }
+}
+
+export async function downloadImage(gcsUri: string) {
+  const storage = new Storage({ projectId })
+
+  const { bucketName, fileName } = await decomposeUri(gcsUri)
+
+  try {
+    const [res] = await storage.bucket(bucketName).file(fileName).download() // Assuming download returns an array with the data at index 0
+
+    const base64Image = Buffer.from(res).toString('base64')
+
+    return {
+      image: base64Image,
+    }
+  } catch (error) {
+    console.error(error)
+    return {
+      error: 'Error while downloading the image',
+    }
+  }
+}
+
+export async function fetchJsonFromStorage(gcsUri: string) {
+  const storage = new Storage({ projectId })
+
+  try {
+    const { bucketName, fileName } = await decomposeUri(gcsUri)
+
+    const bucket = storage.bucket(bucketName)
+    const file = bucket.file(fileName)
+
+    const [contents] = await file.download()
+
+    const jsonData = JSON.parse(contents.toString())
+    return jsonData
+  } catch (error) {
+    console.error('Error fetching JSON from storage:', error)
+    if (error instanceof SyntaxError) {
+      console.error('JSON parsing error. Downloaded content might not be valid JSON.')
+    }
+    throw error
   }
 }

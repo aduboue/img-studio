@@ -12,18 +12,27 @@ const CustomizedChip = {
   mb: 0.2,
   border: 1,
   borderColor: palette.secondary.light,
+  letterSpacing: '0.05px',
   '&:hover': {
     borderColor: palette.primary.main,
     bgcolor: palette.primary.main,
     transition: 'none',
     color: palette.text.primary,
     fontWeight: 500,
+    letterSpacing: '0px',
   },
   '&:active': {
     boxShadow: 0,
   },
   '&.MuiChip-filled': {
     color: 'white',
+    letterSpacing: '0.05px',
+    '&:hover': {
+      letterSpacing: '0px',
+    },
+  },
+  '& .MuiChip-label': {
+    px: 1,
   },
 }
 
@@ -51,10 +60,6 @@ export default function FormInputChipGroupMultiple({
       name={name}
       control={control}
       key={name}
-      rules={{
-        required: required,
-        validate: (value) => value.length > 0 || 'At least one chip must be selected', // Ensure at least one is selected
-      }}
       render={({ field: { onChange, value = [] } }) => (
         <Box
           sx={{

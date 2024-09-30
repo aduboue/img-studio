@@ -1,11 +1,13 @@
 'use client'
 
 import { createContext, useState, useEffect, useContext } from 'react'
-import { ensureBucketExists } from '../api/cloud-storage/action'
+import { ExportImageFormFieldsFixed, ExportImageFormFieldsI } from '../api/export-utils'
+import { fetchJsonFromStorage } from '../api/cloud-storage/action'
 
 export interface appContextDataI {
   gcsURI?: string
   userID?: string
+  exportFields?: ExportImageFormFieldsI
   isLoading: boolean
 }
 
@@ -16,9 +18,10 @@ interface AppContextType {
   setError: React.Dispatch<React.SetStateAction<Error | string | null>>
 }
 
-const appContextDataDefault = {
+export const appContextDataDefault = {
   gcsURI: '',
   userID: '',
+  exportFields: undefined,
   isLoading: true,
 }
 
@@ -38,7 +41,16 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
     async function fetchAndUpdateContext() {
       try {
         // 0. Check if required environment variables are available
-        if (!process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS || !process.env.NEXT_PUBLIC_IMAGE_BUCKET_PREFIX) {
+        if (
+          !process.env.NEXT_PUBLIC_PROJECT_ID ||
+          !process.env.NEXT_PUBLIC_VERTEX_API_LOCATION ||
+          !process.env.NEXT_PUBLIC_GCS_BUCKET_LOCATION ||
+          !process.env.NEXT_PUBLIC_GEMINI_MODEL ||
+          !process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS ||
+          !process.env.NEXT_PUBLIC_OUTPUT_BUCKET ||
+          !process.env.NEXT_PUBLIC_TEAM_BUCKET ||
+          !process.env.NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI
+        ) {
           throw Error('Missing required environment variables')
         }
 
@@ -73,27 +85,25 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           fetchedUserID = targetPrincipal
         }
 
-        // 2. Fetch GCS URI for all edited/ generated images (if userID is available)
-        let gcsURI
-        if (fetchedUserID) {
-          try {
-            gcsURI = await ensureBucketExists(`gs://${process.env.NEXT_PUBLIC_IMAGE_BUCKET_PREFIX}-${fetchedUserID}`)
-            if (typeof gcsURI === 'object' && 'error' in gcsURI) {
-              throw Error(gcsURI.error)
-            }
-          } catch (error: unknown) {
-            if (error instanceof Error) {
-              throw error
-            } else {
-              throw Error(error as string)
-            }
-          }
-        }
+        // 2. Set GCS URI for all edited/ generated images
+        let gcsURI = `gs://${process.env.NEXT_PUBLIC_OUTPUT_BUCKET}`
 
-        // 3. Update Context with all fetched data
+        // 3. Check if export fields options file exists
+        let exportFields: any = {}
+        const exportFieldsURI = process.env.NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI
+        try {
+          exportFields = await fetchJsonFromStorage(exportFieldsURI)
+          if (!exportFields) throw Error('Not found')
+        } catch (error) {
+          throw Error('Could not fetch export fields options')
+        }
+        const ExportImageFormFields: ExportImageFormFieldsI = { ...ExportImageFormFieldsFixed, ...exportFields }
+
+        // 4. Update Context with all fetched data
         setAppContext({
           userID: fetchedUserID,
           gcsURI: gcsURI?.toString(),
+          exportFields: ExportImageFormFields,
           isLoading: false,
         })
         setRetries(0)

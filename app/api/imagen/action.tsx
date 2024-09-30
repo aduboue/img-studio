@@ -3,11 +3,11 @@
 import {
   fullPromptAdditionalFields,
   GenerateImageFormI,
-  GeneratedImagesInGCSI,
+  VisionGenerativeModelResultI,
   ImageI,
   RatioToPixel,
-} from './generate-utils'
-import { getSignedURL } from '../cloud-storage/action'
+} from '../generate-utils'
+import { decomposeUri, getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 const { GoogleAuth } = require('google-auth-library')
@@ -52,36 +52,45 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
 }
 
 export async function buildImageList({
-  generatedImagesInGCS,
+  imagesInGCS,
   aspectRatio,
   usedPrompt,
   userID,
-  modelVestion,
+  modelVersion,
 }: {
-  generatedImagesInGCS: GeneratedImagesInGCSI[]
+  imagesInGCS: VisionGenerativeModelResultI[]
   aspectRatio: string
   usedPrompt: string
   userID: string
-  modelVestion: string
+  modelVersion: string
 }) {
-  const promises = generatedImagesInGCS.map(async (image) => {
+  const promises = imagesInGCS.map(async (image) => {
     if ('raiFilteredReason' in image) {
       return {
         warning: `${image['raiFilteredReason']}`,
       }
     } else {
-      const path = image.gcsUri.replace('gs://', '')
-      const parts = path.split('/')
-      const bucketName = parts[0]
-      const fileName = parts.slice(1).join('/') // Handle filenames with '/' in them
+      const { fileName } = await decomposeUri(image.gcsUri)
 
       const usedRatio = RatioToPixel.find((item) => item.ratio === aspectRatio)
       const usedWidth = usedRatio?.width
       const useHeight = usedRatio?.height
 
+      const format = image.mimeType.replace('image/', '').toUpperCase()
+
+      const ID = fileName
+        .replaceAll('/', '')
+        .replace(userID, '')
+        .replace('generated-images', '')
+        .replace('sample_', '')
+        .replace(`.${format.toLowerCase()}`, '')
+
+      const today = new Date()
+      const formattedDate = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+
       // Get signed URL from Cloud Storage API
       try {
-        const signedURL: string | { error: string } = await getSignedURL(bucketName, fileName)
+        const signedURL: string | { error: string } = await getSignedURL(image.gcsUri)
 
         if (typeof signedURL === 'object' && 'error' in signedURL) {
           throw Error(cleanResult(signedURL.error))
@@ -89,16 +98,16 @@ export async function buildImageList({
           return {
             src: signedURL,
             gcsUri: image.gcsUri,
-            format: image.mimeType.replace('image/', ' ').toUpperCase(),
+            format: format,
             prompt: usedPrompt,
             altText: `Generated image ${fileName}`,
-            key: fileName,
+            key: ID,
             width: usedWidth,
             height: useHeight,
             ratio: aspectRatio,
-            date: new Date(Date.now()).toLocaleString().split(',')[0],
-            author: userID, //#TODO get auth user name from IAP
-            modelVestion: modelVestion,
+            date: formattedDate,
+            author: userID,
+            modelVersion: modelVersion,
           }
         }
       } catch (error) {
@@ -135,10 +144,10 @@ export async function generateImage(
       error: 'Unable to authenticate your account to access images',
     }
   }
-  const location = process.env.VERTEX_API_LOCATION
-  const projectId = process.env.PROJECT_ID
-  const modelVestion = formData['modelVersion']
-  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVestion}:predict`
+  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
+  const modelVersion = formData['modelVersion']
+  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
   // 2 - Building the prompt and rewrite it if needed with Gemini
   let fullPrompt
@@ -159,10 +168,15 @@ export async function generateImage(
 
   // 3 - Building Imagen request body
   let generationGcsURI = ''
-  if (appContext === undefined || appContext === null || appContext.gcsURI === undefined)
+  if (
+    appContext === undefined ||
+    appContext === null ||
+    appContext.gcsURI === undefined ||
+    appContext.userID === undefined
+  )
     throw Error('No provided app context')
   else {
-    generationGcsURI = appContext.gcsURI + '/generated-images'
+    generationGcsURI = `${appContext.gcsURI}/${appContext.userID}/generated-images`
   }
   const reqData = {
     instances: [
@@ -190,8 +204,6 @@ export async function generateImage(
 
   // 4 - Generating images
   try {
-    console.log('Generating image(s) using parameters > ' + JSON.stringify(reqData, undefined, 4))
-
     const res = await client.request(opts)
 
     if (res.data.predictions === undefined) {
@@ -204,35 +216,88 @@ export async function generateImage(
 
     console.log('Image generated with success')
 
-    const imgGCSlist: GeneratedImagesInGCSI[] = res.data.predictions
+    const imagesInGCS: VisionGenerativeModelResultI[] = res.data.predictions
     const enhancedImageList = await buildImageList({
-      generatedImagesInGCS: imgGCSlist,
+      imagesInGCS: imagesInGCS,
       aspectRatio: opts.data.parameters.aspectRatio,
       usedPrompt: opts.data.instances[0].prompt,
       userID: appContext?.userID ? appContext?.userID : '',
-      modelVestion: modelVestion,
+      modelVersion: modelVersion,
     })
 
     return enhancedImageList
   } catch (error) {
-    //#TODO clean error handling
-    /*var newError = error as any
-
-    if (Object.keys(newError).length !== 0 && 'error' in newError.response.data) {
-      const errorObject = newError.response.data.error
-
-      if (errorObject == 'invalid_grant') newError = 'Unable to authenticate your account to access images'
-      else {
-        newError = errorObject.message
-        errorObject.code == 404 && (newError = '404 - A ressource were not found.')
-      }
-    } else {
-      newError = newError.toString()
-    }*/
-
     console.error(error)
     return {
       error: 'Error while generating images.',
+    }
+  }
+}
+
+export async function upscaleImage(modelVersion: string, sourceUri: string, upscaleFactor: string) {
+  // 1 - Atempting to authent to Google Cloud & fetch project informations
+  let client
+  try {
+    const auth = new GoogleAuth({
+      scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    })
+    client = await auth.getClient()
+  } catch (error) {
+    console.error(error)
+    return {
+      error: 'Unable to authenticate your account to access images',
+    }
+  }
+  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
+  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
+
+  const reqData = {
+    instances: [
+      {
+        prompt: '',
+        image: {
+          gcsUri: sourceUri,
+        },
+      },
+    ],
+    parameters: {
+      sampleCount: 1,
+      mode: 'upscale',
+      upscaleConfig: {
+        upscaleFactor: upscaleFactor,
+      },
+    },
+  }
+  const opts = {
+    url: imagenAPIurl,
+    method: 'POST',
+    data: reqData,
+  }
+
+  console.log('XXXX opts : ', JSON.stringify(opts, undefined, 4)) //TODO out
+
+  // 2 - Upscaling images
+  try {
+    const timeout = 20000 // ms, 20s
+
+    const res = await Promise.race([
+      client.request(opts),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Upscaling timed out')), timeout)),
+    ])
+    console.log('XXXX opts : ', JSON.stringify(res, undefined, 4)) //TODO out
+
+    if (res.data.predictions === undefined) {
+      throw Error('There were an issue, images could not be upscaled')
+    }
+
+    const newGcsUri: string = res.data.predictions[0].gcsUri
+
+    return newGcsUri
+  } catch (error) {
+    console.error(error)
+    return {
+      error: 'Error while upscaling images.',
     }
   }
 }

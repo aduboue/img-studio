@@ -1,9 +1,4 @@
-import {
-  advancedSettingsI,
-  chipGroupFieldsI,
-  generalSettingsI,
-  selectFieldsI,
-} from '../../api/imagen-generate/generate-utils'
+import { advancedSettingsI, chipGroupFieldsI, generalSettingsI, selectFieldsI } from '../../api/generate-utils'
 
 export interface FormTextInputI {
   name: string
@@ -39,7 +34,6 @@ export interface FormChipGroupMultipleInputI {
   label: string
   control: any
   width: string
-  mandatory: boolean
   setValue?: any
   options?: { value: string; label: string }[]
   required: boolean

@@ -12,18 +12,28 @@ const CustomizedChip = {
   mb: 0.2,
   border: 1,
   borderColor: palette.secondary.light,
+  letterSpacing: '0.06px',
   '&:hover': {
     borderColor: palette.primary.main,
     bgcolor: palette.primary.main,
     transition: 'none',
     color: palette.text.primary,
     fontWeight: 500,
+    letterSpacing: '0px',
+    px: 0.05,
   },
   '&:active': {
     boxShadow: 0,
   },
   '&.MuiChip-filled': {
     color: 'white',
+    letterSpacing: '0.05px',
+    '&:hover': {
+      letterSpacing: '0px',
+    },
+  },
+  '& .MuiChip-label': {
+    px: 0.5,
   },
 }
 
