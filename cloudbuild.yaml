@@ -24,7 +24,7 @@ steps:
         '.',
       ]
 images:
-  - 'gcr.io/$NEXT_PUBLIC_PROJECT_ID/img-studio:latest'
+  - 'gcr.io/$PROJECT_ID/img-studio:latest'
 
 options:
   logging: CLOUD_LOGGING_ONLY
