@@ -1,22 +1,22 @@
 'use server'
 
 import { Timestamp } from '@google-cloud/firestore'
-import { ExportImageFormI, ImageMetadataI } from '../export-utils'
-import { useAppContext, appContextDataDefault } from '../../context/app-context'
+import { ExportImageFormI, ImageMetadataI, ExportImageFormFieldsI } from '../export-utils'
 
 const { Firestore, FieldValue } = require('@google-cloud/firestore')
 const firestore = new Firestore()
 firestore.settings({ ignoreUndefinedProperties: true })
 
-export async function addNewFirestoreEntry(entryID: string, data: ExportImageFormI) {
+export async function addNewFirestoreEntry(
+  entryID: string,
+  data: ExportImageFormI,
+  ExportImageFormFields: ExportImageFormFieldsI
+) {
   const document = firestore.collection('metadata').doc(entryID)
 
   let cleanData: ImageMetadataI = {} as ImageMetadataI
   data = { ...data.imageToExport, ...data }
   let combinedFilters: string[] = []
-
-  const { appContext } = useAppContext()
-  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
 
   if (ExportImageFormFields) {
     Object.entries(ExportImageFormFields).forEach(([name, field]) => {

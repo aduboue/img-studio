@@ -109,6 +109,42 @@ export default function ExportStepper({
     document.body.removeChild(link)
   }
 
+  const { appContext } = useAppContext()
+  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
+
+  let MetadataReviewFields: any
+  var infoToReview: { label: string; value: string }[] = []
+  let temp: { [key: string]: ExportImageFormFieldsI[keyof ExportImageFormFieldsI] }[] = []
+  if (ExportImageFormFields) {
+    const ExportImageFieldList: (keyof ExportImageFormFieldsI)[] = Object.keys(ExportImageFormFields).map(
+      (key) => key as keyof ExportImageFormFieldsI
+    )
+
+    MetadataReviewFields = ExportImageFieldList.filter(
+      (field) =>
+        ExportImageFormFields[field].type === 'text-info' &&
+        ExportImageFormFields[field].isExportVisible &&
+        !ExportImageFormFields[field].isUpdatable
+    )
+    imageToExport &&
+      MetadataReviewFields.forEach((field: any) => {
+        const prop = ExportImageFormFields[field].prop ? ExportImageFormFields[field].prop : ''
+        if (prop !== '')
+          infoToReview.push({
+            label: ExportImageFormFields[field].label,
+            value: imageToExport[prop as keyof ImageI].toString(),
+          })
+      })
+
+    Object.entries(ExportImageFormFields).forEach(([name, field]) => {
+      if (field.isUpdatable && field.isExportVisible) {
+        temp.push({ [name]: field })
+      }
+    })
+  }
+
+  const MetadataImproveFields = temp
+
   const handleImageExportSubmit: SubmitHandler<ExportImageFormI> = React.useCallback(
     async (formData: ExportImageFormI) => {
       setIsExporting(true)
@@ -158,7 +194,13 @@ export default function ExportStepper({
         // 3. Upload metadata to firestore
         try {
           setExportStatus('Saving data...')
-          const res = await addNewFirestoreEntry(imageID, formData)
+
+          let res
+          if (ExportImageFormFields) {
+            res = await addNewFirestoreEntry(imageID, formData, ExportImageFormFields)
+          } else {
+            throw Error("Can't find ExportImageFormFields")
+          }
 
           if (typeof res === 'object' && 'error' in res) {
             throw Error(res['error'].replaceAll('Error: ', ''))
@@ -221,42 +263,6 @@ export default function ExportStepper({
     resetField('imageToExport')
   }
   const isSquareRatio = imageToExport ? imageToExport.ratio === '1:1' : true
-
-  const { appContext } = useAppContext()
-  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
-
-  let MetadataReviewFields: any
-  var infoToReview: { label: string; value: string }[] = []
-  let temp: { [key: string]: ExportImageFormFieldsI[keyof ExportImageFormFieldsI] }[] = []
-  if (ExportImageFormFields) {
-    const ExportImageFieldList: (keyof ExportImageFormFieldsI)[] = Object.keys(ExportImageFormFields).map(
-      (key) => key as keyof ExportImageFormFieldsI
-    )
-
-    MetadataReviewFields = ExportImageFieldList.filter(
-      (field) =>
-        ExportImageFormFields[field].type === 'text-info' &&
-        ExportImageFormFields[field].isExportVisible &&
-        !ExportImageFormFields[field].isUpdatable
-    )
-    imageToExport &&
-      MetadataReviewFields.forEach((field: any) => {
-        const prop = ExportImageFormFields[field].prop ? ExportImageFormFields[field].prop : ''
-        if (prop !== '')
-          infoToReview.push({
-            label: ExportImageFormFields[field].label,
-            value: imageToExport[prop as keyof ImageI].toString(),
-          })
-      })
-
-    Object.entries(ExportImageFormFields).forEach(([name, field]) => {
-      if (field.isUpdatable && field.isExportVisible) {
-        temp.push({ [name]: field })
-      }
-    })
-  }
-
-  const MetadataImproveFields = temp
 
   function CustomStepIcon(props: StepIconProps) {
     const { active, completed, icon } = props
