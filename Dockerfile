@@ -49,11 +49,11 @@ RUN npm run build || true
 FROM builder AS debugger
 WORKDIR /app
 
-# List the top-level contents of the .next directory
-RUN ls -la /app/.next
+# List the contents of the /app/.next/server directory
+RUN ls -la /app/.next/server
 
-# List the contents of the /app/.next/server directory (if it exists)
-RUN if [ -d "/app/.next/server" ]; then ls -la /app/.next/server; fi
+# List the contents of the /app/.next/server/app directory (if it exists)
+RUN if [ -d "/app/.next/server/app" ]; then ls -la /app/.next/server/app; fi
 
 
 
