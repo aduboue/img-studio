@@ -43,19 +43,7 @@ ENV PROJECT_ID=$_PROJECT_ID \
 
 
 # Build the Next.js application
-RUN npm run build || true
-
-# Debugging stage to inspect the build output
-FROM builder AS debugger
-WORKDIR /app
-
-# List the contents of the /app/.next/server directory
-RUN ls -la .
-RUN ls -la /app
-RUN ls -la /app/context
-RUN find /app -name 'export-fields-options.ts'
-
-
+RUN npm run build
 
 # Use a smaller Node.js image for production
 FROM node:20-alpine AS runner
