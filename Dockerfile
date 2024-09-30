@@ -40,8 +40,13 @@ ENV PROJECT_ID=$_PROJECT_ID \
     NEXT_PUBLIC_OUTPUT_BUCKET=$_NEXT_PUBLIC_OUTPUT_BUCKET \
     NEXT_PUBLIC_TEAM_BUCKET=$_NEXT_PUBLIC_TEAM_BUCKET
 
+
+
+# List the contents of the /app/context directory after the build
+RUN ls -la /app/.next/server/app/context
 # Build the Next.js application
 RUN npm run build
+
 
 # Use a smaller Node.js image for production
 FROM node:20-alpine AS runner
