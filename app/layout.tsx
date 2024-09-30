@@ -5,7 +5,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import theme from './theme'
 import { ContextProvider } from './context/app-context'
 
-import 'app/context/export-fields-options'
+import '/app/context/export-fields-options'
 
 export const metadata = {
   title: 'ImgStudio',

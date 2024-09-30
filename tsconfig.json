@@ -29,7 +29,8 @@
     "types/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+     "app/context"
 , "app/api/verify-iap.js"  ],
   "exclude": ["node_modules"]
 }

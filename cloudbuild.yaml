@@ -1,6 +1,13 @@
 steps:
-  - name: 'google/cloud-sdk'
-    args: ['gsutil', '-m', 'cp', '${_EXPORT_FIELDS_OPTIONS_URI}', '.']
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', '${_EXPORT_FIELDS_OPTIONS_URI}', '.']
+
+  - name: 'node' # Or your preferred base image with a shell
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        ls -la /app/context
 
   - name: 'gcr.io/cloud-builders/docker'
     args:
