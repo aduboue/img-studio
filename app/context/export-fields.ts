@@ -1,4 +1,4 @@
-import { filterFields } from './export-fields-options'
+const { filterFields } = require('./export-fields-options')
 
 export interface ExportImageFieldI {
   label: string
