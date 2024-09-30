@@ -50,10 +50,10 @@ FROM builder AS debugger
 WORKDIR /app
 
 # List the contents of the /app/.next/server directory
-RUN ls -la /app/.next/server
-
-# List the contents of the /app/.next/server/app directory (if it exists)
-RUN if [ -d "/app/.next/server/app" ]; then ls -la /app/.next/server/app; fi
+RUN ls -la .
+RUN ls -la /app
+RUN ls -la /app/context
+RUN find /app -name 'export-fields-options.ts'
 
 
 
