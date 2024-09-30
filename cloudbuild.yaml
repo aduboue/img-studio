@@ -6,7 +6,7 @@ steps:
         '-t',
         'gcr.io/$NEXT_PUBLIC_PROJECT_ID/img-studio:latest',
         '--build-arg',
-        '_NEXT_PUBLIC_PROJECT_ID=${_NEXT_PUBLIC_PROJECT_ID}',
+        '_NEXT_PUBLIC_PROJECT_ID=${$PROJECT_ID}',
         '--build-arg',
         '_NEXT_PUBLIC_VERTEX_API_LOCATION=${_NEXT_PUBLIC_VERTEX_API_LOCATION}',
         '--build-arg',
