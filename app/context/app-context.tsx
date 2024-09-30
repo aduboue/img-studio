@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useState, useEffect, useContext } from 'react'
+import { filterFields } from './export-fields-options'
 
 export interface appContextDataI {
   gcsURI?: string
@@ -78,7 +79,8 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
         // 3. Check if export fields options file exists
         let exportFields: any = {}
         try {
-          exportFields = require('./export-fields-options')
+          exportFields = filterFields
+          if (!exportFields) throw Error('Not found')
         } catch (error) {
           throw Error("Cannot find 'export-fields-options' file")
         }

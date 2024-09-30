@@ -45,6 +45,7 @@ ENV PROJECT_ID=$_PROJECT_ID \
 # Build the Next.js application
 RUN npm run build
 
+
 # Use a smaller Node.js image for production
 FROM node:20-alpine AS runner
 
