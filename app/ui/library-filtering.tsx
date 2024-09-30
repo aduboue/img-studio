@@ -22,11 +22,13 @@ import {
 
 import theme from '../theme'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import CustomTooltip from './components/Tooltip'
 import { CustomizedAccordion, CustomizedAccordionSummary } from './components/Accordion-SX'
-import { FilterImageFormI, MetadataFilterFields } from '../api/export-utils'
+import { FilterImageFormI } from '../api/export-utils'
 import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
+import { useAppContext, appContextDataDefault } from '../context/app-context'
+
 const { palette } = theme
 
 export default function LibraryFiltering({
@@ -45,6 +47,19 @@ export default function LibraryFiltering({
   setOpenFilters: any
 }) {
   const { handleSubmit, reset, control, setValue } = useForm<FilterImageFormI>()
+
+  const { appContext } = useAppContext()
+  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
+  let temp2: any = []
+  if (ExportImageFormFields) {
+    Object.entries(ExportImageFormFields).forEach(([name, field]) => {
+      if (field.isExportVisible && field.options !== undefined) {
+        temp2.push({ key: name, field: field })
+      }
+    })
+  }
+
+  const MetadataFilterFields = temp2
 
   const watchedFields = useWatch({ control })
   const watchedFieldValues = useWatch({

@@ -1,11 +1,13 @@
 'use client'
 
 import { createContext, useState, useEffect, useContext } from 'react'
-import { filterFields } from './export-fields-options'
+import { ExportImageFormFieldsFixed, ExportImageFormFieldsI } from '../api/export-utils'
+import { fetchJsonFromStorage } from '../api/cloud-storage/action'
 
 export interface appContextDataI {
   gcsURI?: string
   userID?: string
+  exportFields?: ExportImageFormFieldsI
   isLoading: boolean
 }
 
@@ -16,9 +18,10 @@ interface AppContextType {
   setError: React.Dispatch<React.SetStateAction<Error | string | null>>
 }
 
-const appContextDataDefault = {
+export const appContextDataDefault = {
   gcsURI: '',
   userID: '',
+  exportFields: undefined,
   isLoading: true,
 }
 
@@ -38,7 +41,11 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
     async function fetchAndUpdateContext() {
       try {
         // 0. Check if required environment variables are available
-        if (!process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS || !process.env.NEXT_PUBLIC_OUTPUT_BUCKET) {
+        if (
+          !process.env.NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS ||
+          !process.env.NEXT_PUBLIC_OUTPUT_BUCKET ||
+          !process.env.NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI
+        ) {
           throw Error('Missing required environment variables')
         }
 
@@ -78,17 +85,20 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
 
         // 3. Check if export fields options file exists
         let exportFields: any = {}
+        const exportFieldsURI = process.env.NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI
         try {
-          exportFields = filterFields
+          exportFields = await fetchJsonFromStorage(exportFieldsURI)
           if (!exportFields) throw Error('Not found')
         } catch (error) {
-          throw Error("Cannot find 'export-fields-options' file")
+          throw Error('Could not fetch export fields options')
         }
+        const ExportImageFormFields: ExportImageFormFieldsI = { ...ExportImageFormFieldsFixed, ...exportFields }
 
         // 4. Update Context with all fetched data
         setAppContext({
           userID: fetchedUserID,
           gcsURI: gcsURI?.toString(),
+          exportFields: ExportImageFormFields,
           isLoading: false,
         })
         setRetries(0)

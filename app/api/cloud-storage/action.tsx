@@ -94,3 +94,25 @@ export async function downloadImage(gcsUri: string) {
     }
   }
 }
+
+export async function fetchJsonFromStorage(gcsUri: string) {
+  const storage = new Storage({ projectId })
+
+  try {
+    const { bucketName, fileName } = await decomposeUri(gcsUri)
+
+    const bucket = storage.bucket(bucketName)
+    const file = bucket.file(fileName)
+
+    const [contents] = await file.download()
+
+    const jsonData = JSON.parse(contents.toString())
+    return jsonData
+  } catch (error) {
+    console.error('Error fetching JSON from storage:', error)
+    if (error instanceof SyntaxError) {
+      console.error('JSON parsing error. Downloaded content might not be valid JSON.')
+    }
+    throw error
+  }
+}

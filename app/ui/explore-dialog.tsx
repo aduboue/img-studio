@@ -1,15 +1,15 @@
 import * as React from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import { Dialog, DialogContent, DialogTitle, IconButton, Slide, Box, Button, Typography } from '@mui/material'
 import { TransitionProps } from '@mui/material/transitions'
-import { ArrowForwardIos, ArrowRight, Close, Download } from '@mui/icons-material'
+import { ArrowRight, Close, Download } from '@mui/icons-material'
+import { useAppContext, appContextDataDefault } from '../context/app-context'
 
 import theme from '../theme'
 import { ImageMetadataI } from '../api/export-utils'
 import { CustomizedSendButton } from './components/Button-SX'
 import { downloadImage } from '../api/cloud-storage/action'
-import { ExportImageFormFields } from '../context/export-fields'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
@@ -58,106 +58,110 @@ export default function ExploreDialog({
     document.body.removeChild(link)
   }
 
-  return (
-    <Dialog
-      open={open}
-      onClose={handleImageExploreClose}
-      aria-describedby="parameter the export of an image"
-      TransitionComponent={Transition}
-      PaperProps={{
-        sx: {
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'left',
-          p: 1,
-          cursor: 'pointer',
-          height: '90%',
-          maxWidth: '70%',
-          width: '40%',
-          borderRadius: 1,
-          background: 'white',
-        },
-      }}
-    >
-      <IconButton
-        aria-label="close"
-        onClick={handleImageExploreClose}
-        sx={{
-          position: 'absolute',
-          right: 8,
-          top: 8,
-          color: palette.secondary.dark,
+  const { appContext } = useAppContext()
+  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
+
+  if (ExportImageFormFields)
+    return (
+      <Dialog
+        open={open}
+        onClose={handleImageExploreClose}
+        aria-describedby="parameter the export of an image"
+        TransitionComponent={Transition}
+        PaperProps={{
+          sx: {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'left',
+            p: 1,
+            cursor: 'pointer',
+            height: '90%',
+            maxWidth: '70%',
+            width: '40%',
+            borderRadius: 1,
+            background: 'white',
+          },
         }}
       >
-        <Close sx={{ fontSize: '1.5rem', '&:hover': { color: palette.primary.main } }} />
-      </IconButton>
-      <DialogContent sx={{ m: 1 }}>
-        <DialogTitle sx={{ p: 0, pb: 3 }}>
-          <Typography
-            sx={{
-              fontSize: '1.7rem',
-              color: palette.text.primary,
-              fontWeight: 400,
-              display: 'flex',
-              alignContent: 'center',
-            }}
-          >
-            {'Explore image metadata'}
-          </Typography>
-        </DialogTitle>
-        <Box sx={{ pt: 1, pb: 2, width: '90%' }}>
-          {documentToExplore &&
-            Object.entries(ExportImageFormFields).map(([key, fieldConfig]) => {
-              const value = documentToExplore[key]
-              let displayValue = value ? `${value}` : null
-
-              if (displayValue && typeof value === 'object') {
-                displayValue = Object.keys(value)
-                  .filter((val) => value[val])
-                  .map((val) => {
-                    const matchingOption = fieldConfig.options?.find(
-                      (option: { value: string }) => option.value === val
-                    )
-                    return matchingOption ? matchingOption.label : val
-                  })
-                  .join(', ')
-              }
-
-              const displayLabel = fieldConfig.name || fieldConfig.label
-
-              if (displayValue && displayValue !== '' && fieldConfig.isExploreVisible) {
-                return (
-                  <Box key={key} display="flex" flexDirection="row">
-                    <ArrowRight sx={{ color: palette.primary.main, fontSize: '1.2rem', p: 0, mt: 0.2 }} />
-                    <Box sx={{ pb: 1 }}>
-                      <Typography display="inline" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
-                        {`${displayLabel}: `}
-                      </Typography>
-                      <Typography display="inline" sx={{ fontSize: '0.9rem', color: palette.text.secondary }}>
-                        {displayValue}
-                      </Typography>
-                    </Box>
-                  </Box>
-                )
-              } else {
-                return null
-              }
-            })}
-        </Box>
-        {documentToExplore && (
-          <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
-            <Button
-              variant="contained"
-              onClick={() => handleDownload(documentToExplore)}
-              endIcon={<Download />}
-              disabled={downloadStatus === 'Preparing download...'}
-              sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+        <IconButton
+          aria-label="close"
+          onClick={handleImageExploreClose}
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            color: palette.secondary.dark,
+          }}
+        >
+          <Close sx={{ fontSize: '1.5rem', '&:hover': { color: palette.primary.main } }} />
+        </IconButton>
+        <DialogContent sx={{ m: 1 }}>
+          <DialogTitle sx={{ p: 0, pb: 3 }}>
+            <Typography
+              sx={{
+                fontSize: '1.7rem',
+                color: palette.text.primary,
+                fontWeight: 400,
+                display: 'flex',
+                alignContent: 'center',
+              }}
             >
-              {downloadStatus}
-            </Button>
+              {'Explore image metadata'}
+            </Typography>
+          </DialogTitle>
+          <Box sx={{ pt: 1, pb: 2, width: '90%' }}>
+            {documentToExplore &&
+              Object.entries(ExportImageFormFields).map(([key, fieldConfig]) => {
+                const value = documentToExplore[key]
+                let displayValue = value ? `${value}` : null
+
+                if (displayValue && typeof value === 'object') {
+                  displayValue = Object.keys(value)
+                    .filter((val) => value[val])
+                    .map((val) => {
+                      const matchingOption = fieldConfig.options?.find(
+                        (option: { value: string }) => option.value === val
+                      )
+                      return matchingOption ? matchingOption.label : val
+                    })
+                    .join(', ')
+                }
+
+                const displayLabel = fieldConfig.name || fieldConfig.label
+
+                if (displayValue && displayValue !== '' && fieldConfig.isExploreVisible) {
+                  return (
+                    <Box key={key} display="flex" flexDirection="row">
+                      <ArrowRight sx={{ color: palette.primary.main, fontSize: '1.2rem', p: 0, mt: 0.2 }} />
+                      <Box sx={{ pb: 1 }}>
+                        <Typography display="inline" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                          {`${displayLabel}: `}
+                        </Typography>
+                        <Typography display="inline" sx={{ fontSize: '0.9rem', color: palette.text.secondary }}>
+                          {displayValue}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )
+                } else {
+                  return null
+                }
+              })}
           </Box>
-        )}
-      </DialogContent>
-    </Dialog>
-  )
+          {documentToExplore && (
+            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+              <Button
+                variant="contained"
+                onClick={() => handleDownload(documentToExplore)}
+                endIcon={<Download />}
+                disabled={downloadStatus === 'Preparing download...'}
+                sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+              >
+                {downloadStatus}
+              </Button>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
+    )
 }

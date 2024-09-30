@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material'
 import { CustomRadio } from './components/InputRadioButton'
 
-import { ExportImageFormI, MetadataImproveFields, MetadataReviewFields } from '../api/export-utils'
+import { ExportImageFormFieldsI, ExportImageFormI } from '../api/export-utils'
 import { Controller, set, SubmitHandler, useForm } from 'react-hook-form'
 import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
 import { CloseWithoutSubmitWarning, ExportErrorWarning } from './components/ExportAlerts'
@@ -43,7 +43,7 @@ import theme from '../theme'
 import { copyImageToTeamBucket, downloadImage } from '../api/cloud-storage/action'
 import { upscaleImage } from '../api/imagen/action'
 import { addNewFirestoreEntry } from '../api/firestore/action'
-import { ExportImageFormFields } from '../context/export-fields'
+import { useAppContext, appContextDataDefault } from '../context/app-context'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
@@ -222,16 +222,41 @@ export default function ExportStepper({
   }
   const isSquareRatio = imageToExport ? imageToExport.ratio === '1:1' : true
 
+  const { appContext } = useAppContext()
+  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
+
+  let MetadataReviewFields: any
   var infoToReview: { label: string; value: string }[] = []
-  imageToExport &&
-    MetadataReviewFields.forEach((field) => {
-      const prop = ExportImageFormFields[field].prop ? ExportImageFormFields[field].prop : ''
-      if (prop !== '')
-        infoToReview.push({
-          label: ExportImageFormFields[field].label,
-          value: imageToExport[prop as keyof ImageI].toString(),
-        })
+  let temp: { [key: string]: ExportImageFormFieldsI[keyof ExportImageFormFieldsI] }[] = []
+  if (ExportImageFormFields) {
+    const ExportImageFieldList: (keyof ExportImageFormFieldsI)[] = Object.keys(ExportImageFormFields).map(
+      (key) => key as keyof ExportImageFormFieldsI
+    )
+
+    MetadataReviewFields = ExportImageFieldList.filter(
+      (field) =>
+        ExportImageFormFields[field].type === 'text-info' &&
+        ExportImageFormFields[field].isExportVisible &&
+        !ExportImageFormFields[field].isUpdatable
+    )
+    imageToExport &&
+      MetadataReviewFields.forEach((field: any) => {
+        const prop = ExportImageFormFields[field].prop ? ExportImageFormFields[field].prop : ''
+        if (prop !== '')
+          infoToReview.push({
+            label: ExportImageFormFields[field].label,
+            value: imageToExport[prop as keyof ImageI].toString(),
+          })
+      })
+
+    Object.entries(ExportImageFormFields).forEach(([name, field]) => {
+      if (field.isUpdatable && field.isExportVisible) {
+        temp.push({ [name]: field })
+      }
     })
+  }
+
+  const MetadataImproveFields = temp
 
   function CustomStepIcon(props: StepIconProps) {
     const { active, completed, icon } = props

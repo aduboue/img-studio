@@ -1,7 +1,4 @@
 steps:
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', '${_EXPORT_FIELDS_OPTIONS_URI}', '.']
-
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
@@ -22,6 +19,8 @@ steps:
         '_NEXT_PUBLIC_OUTPUT_BUCKET=${_NEXT_PUBLIC_OUTPUT_BUCKET}',
         '--build-arg',
         '_NEXT_PUBLIC_TEAM_BUCKET=${_NEXT_PUBLIC_TEAM_BUCKET}',
+        '--build-arg',
+        '_NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI=${_NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI}',
         '.',
       ]
 images:

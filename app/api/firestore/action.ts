@@ -2,7 +2,7 @@
 
 import { Timestamp } from '@google-cloud/firestore'
 import { ExportImageFormI, ImageMetadataI } from '../export-utils'
-import { ExportImageFormFields } from '../../context/export-fields'
+import { useAppContext, appContextDataDefault } from '../../context/app-context'
 
 const { Firestore, FieldValue } = require('@google-cloud/firestore')
 const firestore = new Firestore()
@@ -15,18 +15,23 @@ export async function addNewFirestoreEntry(entryID: string, data: ExportImageFor
   data = { ...data.imageToExport, ...data }
   let combinedFilters: string[] = []
 
-  Object.entries(ExportImageFormFields).forEach(([name, field]) => {
-    const sourceProp = field.prop || name
-    const valueFromData = data[sourceProp as keyof ExportImageFormI]
-    let transformedValue = valueFromData
+  const { appContext } = useAppContext()
+  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
 
-    if (Array.isArray(valueFromData) && valueFromData.every((item) => typeof item === 'string')) {
-      transformedValue = valueFromData.length > 0 ? Object.fromEntries(valueFromData.map((str) => [str, true])) : null
-      valueFromData.forEach((item) => combinedFilters.push(`${name}_${item}`))
-    }
+  if (ExportImageFormFields) {
+    Object.entries(ExportImageFormFields).forEach(([name, field]) => {
+      const sourceProp = field.prop || name
+      const valueFromData = data[sourceProp as keyof ExportImageFormI]
+      let transformedValue = valueFromData
 
-    cleanData[name as keyof ImageMetadataI] = transformedValue ?? null
-  })
+      if (Array.isArray(valueFromData) && valueFromData.every((item) => typeof item === 'string')) {
+        transformedValue = valueFromData.length > 0 ? Object.fromEntries(valueFromData.map((str) => [str, true])) : null
+        valueFromData.forEach((item) => combinedFilters.push(`${name}_${item}`))
+      }
+
+      cleanData[name as keyof ImageMetadataI] = transformedValue ?? null
+    })
+  }
 
   const dataToSet = {
     ...cleanData,
