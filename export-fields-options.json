@@ -1,0 +1,130 @@
+{
+  "contextAuthorTeam": {
+    "label": "In which team are you?",
+    "name": "Associated team(s)",
+    "type": "multiple-select",
+    "isUpdatable": true,
+    "isMandatory": true,
+    "isExportVisible": true,
+    "isExploreVisible": true,
+    "options": [
+      {
+        "value": "marketing",
+        "label": "Content marketing"
+      },
+      {
+        "value": "communityManagement",
+        "label": "Community Management"
+      },
+      {
+        "value": "hr",
+        "label": "Human Ressources"
+      },
+      {
+        "value": "product",
+        "label": "Product development"
+      },
+      {
+        "value": "sales",
+        "label": "Sales enablement"
+      }
+    ]
+  },
+  "contextTargetPlatform": {
+    "label": "For which platform is it targetted?",
+    "name": "Targetted platform(s)",
+    "type": "multiple-select",
+    "isUpdatable": true,
+    "isMandatory": true,
+    "isExportVisible": true,
+    "isExploreVisible": true,
+    "options": [
+      {
+        "value": "mailing",
+        "label": "Mailing compaign"
+      },
+      {
+        "value": "website",
+        "label": "Public website"
+      },
+      {
+        "value": "socialMedias",
+        "label": "Social medias"
+      },
+      {
+        "value": "product",
+        "label": "Product development"
+      }
+    ]
+  },
+  "contextAssociatedBrand": {
+    "label": "For which brand(s) did you create this image?",
+    "name": "Associated brand(s)",
+    "type": "multiple-select",
+    "isUpdatable": true,
+    "isMandatory": false,
+    "isExportVisible": true,
+    "isExploreVisible": true,
+    "options": [
+      {
+        "value": "gemo",
+        "label": "G\u00e9mo"
+      },
+      {
+        "value": "mellowYellow",
+        "label": "Mellow Yellow"
+      },
+      {
+        "value": "bocage",
+        "label": "Bocage"
+      },
+      {
+        "value": "maje",
+        "label": "Maje"
+      },
+      {
+        "value": "bash",
+        "label": "Ba&sh"
+      },
+      {
+        "value": "sessun",
+        "label": "Sess\u00f9n"
+      },
+      {
+        "value": "americanVintage",
+        "label": "American Vintage"
+      },
+      {
+        "value": "theKooples",
+        "label": "The Kooples"
+      }
+    ]
+  },
+  "contextCollection": {
+    "label": "To which collection(s) is it associated?",
+    "name": "Associated collection(s)",
+    "type": "multiple-select",
+    "isUpdatable": true,
+    "isMandatory": false,
+    "isExportVisible": true,
+    "isExploreVisible": true,
+    "options": [
+      {
+        "value": "spring",
+        "label": "Spring"
+      },
+      {
+        "value": "summer",
+        "label": "Summer"
+      },
+      {
+        "value": "fall",
+        "label": "Fall"
+      },
+      {
+        "value": "winter",
+        "label": "Winter"
+      }
+    ]
+  }
+}
