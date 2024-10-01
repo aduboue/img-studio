@@ -40,10 +40,10 @@ import {
   formDataResetableFields,
   ImageI,
   RandomPrompts,
-} from '../api/imagen-generate/generate-utils'
+} from '../api/generate-utils'
 
 import theme from '../theme'
-import { generateImage } from '../api/imagen-generate/action'
+import { generateImage } from '../api/imagen/action'
 import { GeminiSwitch } from './components/GeminiSwitch'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
 import { useEffect, useState } from 'react'
@@ -97,7 +97,6 @@ export default function GenerateForm({
         })
 
         onImageGeneration(newGeneratedImages)
-        // #TODO add logic to save image history metadata in DB AFTER the load of images to not impact perfs
       }
     } catch (error: any) {
       onNewErrorMsg(error.toString())
@@ -136,7 +135,7 @@ export default function GenerateForm({
         <Box sx={{ pb: 5 }}>
           <Stack direction="row" spacing={2} justifyContent="flex-start" alignItems="center">
             <Typography variant="h1" color={palette.text.secondary} sx={{ fontSize: '1.8rem' }}>
-              {'Generating with'}
+              {'Generate with'}
             </Typography>
             <FormInputDropdown
               name="modelVersion"
@@ -216,7 +215,7 @@ export default function GenerateForm({
             endIcon={isLoading ? <WatchLaterIcon /> : <SendIcon />}
             sx={CustomizedSendButton}
           >
-            {'Send'}
+            {'Generate'}
           </Button>
         </Stack>
         <Accordion disableGutters sx={CustomizedAccordion} defaultExpanded>

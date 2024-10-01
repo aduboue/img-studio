@@ -24,6 +24,26 @@ const CustomizedSmallTooltip = {
   ],
 }
 
+const CustomizedSmallWhiteTooltip = {
+  sx: {
+    '& .MuiTooltip-tooltip': {
+      backgroundColor: 'white',
+      color: palette.text.primary,
+      width: 80,
+      fontWeight: 400,
+      fontSize: 12,
+      lineHeight: 0.9,
+      textAlign: 'center',
+    },
+  },
+  modifiers: [
+    {
+      name: 'offset',
+      options: { offset: [1, -20] },
+    },
+  ],
+}
+
 const CustomizedBigTooltip = {
   sx: {
     '& .MuiTooltip-tooltip': {
@@ -68,6 +88,49 @@ export default function CustomTooltip({
       TransitionProps={{ timeout: 600 }}
       slotProps={{
         popper: { ...(size === 'small' && CustomizedSmallTooltip), ...(size === 'big' && CustomizedBigTooltip) },
+      }}
+    >
+      <Box
+        onMouseEnter={handleTooltipOpen}
+        onMouseLeave={handleTooltipClose}
+        onClick={handleTooltipClose}
+        sx={{ display: 'flex' }}
+      >
+        {children ? children : null}
+      </Box>
+    </Tooltip>
+  )
+}
+
+export function CustomWhiteTooltip({
+  children,
+  title,
+  size,
+}: {
+  children: React.ReactElement
+  title: string
+  size: string
+}) {
+  const [open, setOpen] = React.useState(false)
+
+  const handleTooltipOpen = () => {
+    setOpen(true)
+  }
+
+  const handleTooltipClose = () => {
+    setOpen(false)
+  }
+
+  return (
+    <Tooltip
+      title={title}
+      open={open}
+      placement={'bottom'}
+      disableInteractive
+      TransitionComponent={Fade}
+      TransitionProps={{ timeout: 600 }}
+      slotProps={{
+        popper: { ...CustomizedSmallWhiteTooltip },
       }}
     >
       <Box

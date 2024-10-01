@@ -9,6 +9,7 @@
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
+    "@google-cloud/firestore": "^7.10.0",
     "@google-cloud/iap": "^3.4.0",
     "@google-cloud/storage": "^7.12.1",
     "@google-cloud/vertexai": "^1.6.0",
@@ -17,11 +18,15 @@
     "@mui/material-nextjs": "^6.0.2",
     "@tailwindcss/forms": "^0.5.7",
     "autoprefixer": "^10.4.20",
+    "fs": "^0.0.1-security",
     "google-auth-library": "^9.13.0",
+    "install": "^0.13.0",
     "next-auth": "5.0.0-beta.19",
+    "npm": "^10.8.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.2",
+    "sharp": "^0.33.5",
     "tailwindcss": "3.4.4"
   },
   "devDependencies": {
@@ -31,7 +36,9 @@
     "@types/react": "^18.3.3",
     "@types/react-dom": "18.3.0",
     "@types/react-window": "^1.8.8",
+    "html-loader": "^5.1.0",
     "next": "^14.2.11",
+    "ts-loader": "^9.5.1",
     "typescript": "^5.6.2"
   },
   "engines": {

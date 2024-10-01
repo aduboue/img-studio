@@ -3,7 +3,7 @@ export const pages = {
       name: "Generate",
       description: "Generate new content from scratch",
       href: "/generate",
-      status: "new",
+      status: "",
     },
     Edit: {
       name: "Edit",
@@ -13,8 +13,8 @@ export const pages = {
     },
     Library: {
       name: "Library",
-      description: "Browse your personal & shared content library",
-      href: "/content-library",
-      status: "coming-next",
+      description: "Browse your team's shared content",
+      href: "/library",
+      status: "new",
     },
 };
