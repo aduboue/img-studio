@@ -4,6 +4,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import theme from './theme'
 import { ContextProvider } from './context/app-context'
+import './globals.css'
 
 export const metadata = {
   title: 'ImgStudio',
