@@ -1,6 +1,10 @@
-# Infrastructure setup guide for ImgStudio
+## Next.js App Router Course - Starter
 
-## 1\\ Create **Cloud Storage** buckets
+This is the starter template for the Next.js App Router Course. It contains the starting code for the dashboard application.
+
+<<<<<<< Updated upstream
+For more information, see the [course curriculum](https://nextjs.org/learn) on the Next.js Website.
+=======
 
 - **Specifications:** Regional in your desired region (ex: `europe-west9` in Paris)
 - **Create 3 buckets**
@@ -85,7 +89,17 @@
 - \> Create
 - _NB: if you try to access the published URL for the new service you should receive an error message stating “Error: Page Not Found”, this is due to the fact that we are only allowing ingress for external traffic from a Load Balancer_
 
-## 6\\ Grant **Permissions** on Cloud Run service
+## 6\\ Grant IAP **Permissions** on Cloud Run service
+
+- Create the **IAP service account address**
+
+- Go to the top right of the console \> Shell icon “Activate Cloud Shell”
+- Wait for machine to setup
+- In the terminal, use this command and **copy the output** service account address
+  - `gcloud beta services identity create --service=iap.googleapis.com --project=PROJECT_ID`
+- The format of the output you can **copy** should be
+
+  - `service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com`
 
 - From the Cloud Run Services list, select the checkbox next to the name of your service, then \> **Permissions**
 - \> **Add Principal**
@@ -159,3 +173,4 @@
 ## 11\\ **Firestore** Database creation
 
 - Your application should be configured to automatically create the **default Firestore database** for metadata upon the first deployment or access
+  > > > > > > > Stashed changes

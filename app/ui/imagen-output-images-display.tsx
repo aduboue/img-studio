@@ -55,7 +55,7 @@ export default function OutputImagesDisplay({
 
   return (
     <>
-      <Box sx={{ height: '79vh', maxHeight: 650, overflowY: 'scroll', width: '90%' }}>
+      <Box sx={{ height: '79vh', maxHeight: 650, width: '90%' }}>
         {isLoading ? ( // Conditional rendering based on loading state
           <Skeleton variant="rounded" width={450} height={450} sx={{ mt: 2, bgcolor: palette.primary.light }} />
         ) : (

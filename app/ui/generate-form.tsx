@@ -230,58 +230,52 @@ export default function GenerateForm({
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Stack direction="column" gap={2} pl={1.5}>
-              <Box>
-                <Stack
-                  direction="row"
-                  spacing={3}
-                  flexWrap="wrap"
-                  justifyContent="flex-start"
-                  alignItems="flex-start"
-                  sx={{ pt: 1, height: 100 }}
-                >
-                  <FormInputDropdown
-                    name="style"
-                    label="Primary style"
-                    control={control}
-                    field={imgStyleField}
-                    styleSize="small"
-                    width="140px"
-                    required={true}
-                  />
-                  <FormInputChipGroup
-                    name="secondary_style"
-                    label={subImgStyleField(control).label}
-                    control={control}
-                    setValue={setValue}
-                    width="400px"
-                    mandatory={false}
-                    field={subImgStyleField(control)}
-                    required={false}
-                  />
-                </Stack>
-              </Box>
-              <Box>
-                <Stack direction="row" spacing={0} sx={{ flexWrap: 'wrap', justifyContent: 'flex-start' }}>
-                  {Object.entries(compositionFields).map(function ([param, field]) {
-                    return (
-                      <Box key={param} py={1} width="50%">
-                        <FormInputChipGroup
-                          name={param}
-                          label={field.label}
-                          key={param}
-                          control={control}
-                          setValue={setValue}
-                          width="250px"
-                          mandatory={false}
-                          field={field}
-                          required={false}
-                        />
-                      </Box>
-                    )
-                  })}
-                </Stack>
-              </Box>
+            <Stack
+              direction="row"
+              spacing={3}
+              flexWrap="wrap"
+              justifyContent="flex-start"
+              alignItems="flex-start"
+              sx={{ pt: 1, height: 100 }}
+            >
+              <FormInputDropdown
+                name="style"
+                label="Primary style"
+                control={control}
+                field={imgStyleField}
+                styleSize="small"
+                width="140px"
+                required={true}
+              />
+              <FormInputChipGroup
+                name="secondary_style"
+                label={subImgStyleField(control).label}
+                control={control}
+                setValue={setValue}
+                width="400px"
+                mandatory={false}
+                field={subImgStyleField(control)}
+                required={false}
+              />
+            </Stack>
+            <Stack direction="row" spacing={0} sx={{ pt: 2, flexWrap: 'wrap', justifyContent: 'flex-start' }}>
+              {Object.entries(compositionFields).map(function ([param, field]) {
+                return (
+                  <Box key={param} py={1} width="50%">
+                    <FormInputChipGroup
+                      name={param}
+                      label={field.label}
+                      key={param}
+                      control={control}
+                      setValue={setValue}
+                      width="250px"
+                      mandatory={false}
+                      field={field}
+                      required={false}
+                    />
+                  </Box>
+                )
+              })}
             </Stack>
           </AccordionDetails>
         </Accordion>

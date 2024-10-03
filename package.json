@@ -9,6 +9,7 @@
     "@emotion/cache": "latest",
     "@emotion/react": "latest",
     "@emotion/styled": "latest",
+    "@fontsource/roboto": "^5.1.0",
     "@google-cloud/firestore": "^7.10.0",
     "@google-cloud/iap": "^3.4.0",
     "@google-cloud/storage": "^7.12.1",
@@ -37,7 +38,7 @@
     "@types/react-dom": "18.3.0",
     "@types/react-window": "^1.8.8",
     "html-loader": "^5.1.0",
-    "next": "^14.2.11",
+    "next": "^14.2.14",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.2"
   },

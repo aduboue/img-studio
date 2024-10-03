@@ -3,7 +3,6 @@ const { palette } = theme
 
 export const CustomizedAccordion = {
   maxHeight: '430px',
-  overflowY: 'scroll',
   bgcolor: 'transparent',
   boxShadow: 0,
   '&:before': {
