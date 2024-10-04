@@ -8,7 +8,7 @@
   - **Shared content**: `YOUR_COMPANY-imgstudio-library`
   - **Configuration file bucket**: `YOUR_COMPANY-imgstudio-export-config`
     - Here upload `export-fields-options.json` a **configuration file specific** to your usage that you can find an [exemple](https://github.com/aduboue/img-studio/blob/main/export-fields-options.json) of in the [repository](https://github.com/aduboue/img-studio), its purpose is to setup the desired **metadata** you want to set for your generated content
-    - In this file, for each **fields** (ex: contextAuthorTeam, contextTargetPlatform, contextAssociatedBrand, contextCollection), you can only change the **ID** of the field (ex: `“contextAuthorTeam”`), it’s **label** (ex: `“In which team are you?”`), it’s **name** (ex: `“Associated team(s)”`), it’s tag **isMandatory** (ex: `true`) and finally it’s **options**
+    - In this file, for each **fields** (ex: contextAuthorTeam, contextTargetPlatform, contextAssociatedBrand, contextCollection), you can only change the **ID** of the field (ex: `“contextAuthorTeam”`), its **label** (ex: `“In which team are you?”`), its **name** (ex: `“Associated team(s)”`), its tag **isMandatory** (ex: `true`) and finally its **options**
     - Attention\! The ID and the options’ values must only be letters, no spaces, no special characters, starting with a lowercase letter
 
 ## 2\\ Setup **Cloud Build** trigger
@@ -40,7 +40,7 @@
     - The sections of your users’ email address used to log in via IAP that will need to be removed in order to get their user ID, separated by commas
     - Ex: my email address is ‘admin-jdupont@company.com’, the value to set would be `admin-,@company.com` so that the user ID jdupont can be extracted
 - \> Save
-- **Mannualy run your first build \!**
+- **Manualy run your first build \!**
 
 ## 3\\ Enable **IAP** & configure **oAuth Consent Screen**
 
@@ -164,5 +164,36 @@
 
 ## 11\\ **Firestore** Database creation
 
-- Your application should be configured to automatically create the **default Firestore database** for metadata upon the first deployment or access
-  > > > > > > > Stashed changes
+- Firestore \> Create database
+  - Firestore **mode**: `Native mode`, \> Continue
+  - Database **ID**: `(default)` (**very important you keep it that way**)
+  - Location type: `Region`
+  - Region: your desired region (ex: `europe-west9` in Paris)
+  - Secure rules: `Production rules`
+- Firestore \> Indexes \> **Composite indexes** \> Create Index
+  - **Collection ID**: `metadata`
+  - **Fields to index**
+    - Field path 1: `combinedFilters`, Index options 1: `Array contains`
+    - Field path 2: `timestamp`, Index options 2: `Descending`
+    - Field path 3: `__name__`, Index options 3: `Descending`
+  - Query **scope**: `Collection`
+  - \> Create
+  - **Wait for the index to be successfully created\!**
+- Let’s **setup security rules on your database**, and only allow your Cloud Run service account to access it
+  - In a new tab, go to
+    - `https://console.firebase.google.com/project/PROJECT_ID/firestore/databases/-default-/rules`
+    - If necessary, follow the steps to **setup your Firebase project**
+    - Once in Firestore Database \> Rules, go to the **security rules editor**
+    - Write the following content, don’t forget to replace `YOUR_COMPANY` & `PROJECT_ID` in the Cloud Run service account
+  ```
+  rules_version = '2';
+  service cloud.firestore {
+  match /databases/{database}/documents {
+      match /{document=**} {
+        allow read, get, list, create, update: if get(/databases/$(database)/documents/request.auth.uid).data.serviceAccount == 'YOUR_COMPANY-imgstudio-sa@PROJECT_ID.iam.gserviceaccount.com';
+        allow delete: if false;
+      }
+    }
+  }
+  ```
+  - \> **Publish**
