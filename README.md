@@ -1,10 +1,6 @@
-## Next.js App Router Course - Starter
+# Infrastructure setup guide for ImgStudio
 
-This is the starter template for the Next.js App Router Course. It contains the starting code for the dashboard application.
-
-<<<<<<< Updated upstream
-For more information, see the [course curriculum](https://nextjs.org/learn) on the Next.js Website.
-=======
+## 1\\ Create **Cloud Storage** buckets
 
 - **Specifications:** Regional in your desired region (ex: `europe-west9` in Paris)
 - **Create 3 buckets**
@@ -92,18 +88,14 @@ For more information, see the [course curriculum](https://nextjs.org/learn) on t
 ## 6\\ Grant IAP **Permissions** on Cloud Run service
 
 - Create the **IAP service account address**
-
 - Go to the top right of the console \> Shell icon “Activate Cloud Shell”
 - Wait for machine to setup
 - In the terminal, use this command and **copy the output** service account address
   - `gcloud beta services identity create --service=iap.googleapis.com --project=PROJECT_ID`
-- The format of the output you can **copy** should be
-
-  - `service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com`
-
-- From the Cloud Run Services list, select the checkbox next to the name of your service, then \> **Permissions**
-- \> **Add Principal**
-- Grant the `Cloud Run Invoker` role to the **IAP service account** `service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com` (you project number can be found in the console \> Cloud Overview \> Dashboard)
+  - The format of the output you can **copy** should be `service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com`
+- Go to Cloud Run, in the Services list, select the checkbox next to the name of your service
+  - Click on **Permissions** \> **Add Principal**
+  - Grant the `Cloud Run Invoker` role to the previously created/ fetched **IAP service account**
 
 ## 7\\ Create **DNS Zone**
 
