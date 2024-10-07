@@ -46,7 +46,9 @@
 
 - Go to **Security \> Identity Aware Proxy** and enable the API
 - \> **Configure consent screen** (oAuth)
-  - **User type**: `Internal`
+  - **User type**:
+    - `Internal`: if you want to limit IAP users to **your GCP org domain**
+    - `External`: if you have some users on a **different domain** than your GCP org’s
   - \> Create
   - Fill in
     - App Name: `YOUR_COMPANY-imgstudio`
