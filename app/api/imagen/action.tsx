@@ -227,9 +227,19 @@ export async function generateImage(
 
     return enhancedImageList
   } catch (error) {
-    console.error(error)
-    return {
-      error: 'Error while generating images.',
+    const errorString = error instanceof Error ? error.toString() : ''
+    if (
+      errorString.includes('safety settings for peopleface generation') ||
+      errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines")
+    ) {
+      return {
+        error: errorString.replace('Error: ', ''),
+      }
+    } else {
+      console.error(error)
+      return {
+        error: 'Error while generating images.',
+      }
     }
   }
 }
