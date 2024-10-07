@@ -364,6 +364,13 @@ export const RatioToPixel = [
   { ratio: '4:3', width: 1280, height: 896 },
 ]
 
+// List of Imagen upscaling options
+export const UpscaleToPixel = [
+  { upscale: 'no', width: 1024, height: 1024 },
+  { upscale: 'x2', width: 2048, height: 2048 },
+  { upscale: 'x4', width: 4096, height: 4096 },
+]
+
 // Random prompt list the user can use if they lack prompt ideas
 export const RandomPrompts = [
   'Shot in the style of DSLR camera with the polarizing filter. A photo of two hot air balloons floating over the unique rock formations in Cappadocia, Turkey. The colors and patterns on these balloons contrast beautifully against the earthy tones of the landscape. below. This shot captures the sense of adventure that comes with enjoying such an experience',

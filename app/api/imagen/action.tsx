@@ -7,7 +7,7 @@ import {
   ImageI,
   RatioToPixel,
 } from '../generate-utils'
-import { decomposeUri, getSignedURL } from '../cloud-storage/action'
+import { decomposeUri, downloadImage, getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 const { GoogleAuth } = require('google-auth-library')
@@ -234,7 +234,7 @@ export async function generateImage(
   }
 }
 
-export async function upscaleImage(modelVersion: string, sourceUri: string, upscaleFactor: string) {
+export async function upscaleImage(sourceUri: string, upscaleFactor: string, appContext: appContextDataI | null) {
   // 1 - Atempting to authent to Google Cloud & fetch project informations
   let client
   try {
@@ -250,14 +250,39 @@ export async function upscaleImage(modelVersion: string, sourceUri: string, upsc
   }
   const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
-  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
+  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/imagegeneration@002:predict`
 
+  // 2 Downloading source image
+  let res
+  try {
+    res = await downloadImage(sourceUri)
+
+    if (typeof res === 'object' && res['error']) {
+      throw Error(res['error'].replaceAll('Error: ', ''))
+    }
+  } catch (error: any) {
+    throw Error(error)
+  }
+  const { image } = res
+
+  // 3 - Building Imagen request body
+  let targetGCSuri = ''
+  if (
+    appContext === undefined ||
+    appContext === null ||
+    appContext.gcsURI === undefined ||
+    appContext.userID === undefined
+  )
+    throw Error('No provided app context')
+  else {
+    targetGCSuri = `${appContext.gcsURI}/${appContext.userID}/upscaled-images`
+  }
   const reqData = {
     instances: [
       {
         prompt: '',
         image: {
-          gcsUri: sourceUri,
+          bytesBase64Encoded: image,
         },
       },
     ],
@@ -267,6 +292,7 @@ export async function upscaleImage(modelVersion: string, sourceUri: string, upsc
       upscaleConfig: {
         upscaleFactor: upscaleFactor,
       },
+      storageUri: targetGCSuri,
     },
   }
   const opts = {
@@ -275,18 +301,14 @@ export async function upscaleImage(modelVersion: string, sourceUri: string, upsc
     data: reqData,
   }
 
-  console.log('XXXX opts : ', JSON.stringify(opts, undefined, 4)) //TODO out
-
-  // 2 - Upscaling images
+  // 4 - Upscaling images
   try {
-    const timeout = 20000 // ms, 20s
+    const timeout = 60000 // ms, 20s
 
     const res = await Promise.race([
       client.request(opts),
       new Promise((_, reject) => setTimeout(() => reject(new Error('Upscaling timed out')), timeout)),
     ])
-    console.log('XXXX opts : ', JSON.stringify(res, undefined, 4)) //TODO out
-
     if (res.data.predictions === undefined) {
       throw Error('There were an issue, images could not be upscaled')
     }
