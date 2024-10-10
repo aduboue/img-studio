@@ -39,6 +39,7 @@
   - `_NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS`
     - The sections of your users’ email address used to log in via IAP that will need to be removed in order to get their user ID, separated by commas
     - Ex: my email address is ‘admin-jdupont@company.com’, the value to set would be `admin-,@company.com` so that the user ID jdupont can be extracted
+- Service account: select the **default already existing Cloud Build service account** `PROJECT_NUMBER-compute@developer.gserviceaccount.com`
 - \> Save
 - **Manualy run your first build \!**
 
