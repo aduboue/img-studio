@@ -20,7 +20,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material'
-import { ImageI } from '../api/generate-utils'
+import { ImageI, UpscaleToPixel } from '../api/generate-utils'
 import { TransitionProps } from '@mui/material/transitions'
 import { CustomizedSendButton } from './components/Button-SX'
 import {
@@ -154,25 +154,23 @@ export default function ExportStepper({
         // 1. Upscale if needed
         let upscaledGcsUri
         const upscaleFactor = formData['upscaleFactor']
-        /*if (upscaleFactor === 'x2' || upscaleFactor === 'x4') {
+        if (upscaleFactor === 'x2' || upscaleFactor === 'x4') {
           try {
             setExportStatus('Upscaling...')
 
-            upscaledGcsUri = await upscaleImage(
-              formData['imageToExport']['modelVersion'],
-              formData['imageToExport']['gcsUri'],
-              upscaleFactor
-            )
-
+            upscaledGcsUri = await upscaleImage(formData['imageToExport']['gcsUri'], upscaleFactor, appContext)
             if (typeof upscaledGcsUri === 'object' && 'error' in upscaledGcsUri) {
               throw Error(upscaledGcsUri['error'].replaceAll('Error: ', ''))
             }
-
             formData['imageToExport']['gcsUri'] = upscaledGcsUri
+
+            const upscaleToPixel = UpscaleToPixel.find((item) => item.upscale === upscaleFactor)
+            formData['imageToExport']['width'] = upscaleToPixel ? upscaleToPixel.width : 1024
+            formData['imageToExport']['height'] = upscaleToPixel ? upscaleToPixel.height : 1024
           } catch (error: any) {
             throw Error(error)
           }
-        }*/ //TODO make it work...
+        }
 
         // 2. Copy image to team library
         const currentGcsUri = formData['imageToExport']['gcsUri']
@@ -543,7 +541,6 @@ export default function ExportStepper({
                 <TagStep />
               </StepContent>
             </Step>
-            {/*
             <Step key="upscale">
               <StepLabel StepIconComponent={CustomStepIcon}>
                 <CustomStepLabel text="Upscale resolution" step={2} />
@@ -552,12 +549,9 @@ export default function ExportStepper({
                 <UpscaleStep />
               </StepContent>
             </Step>
-
-            {//TODO update to 3 when put back upscale v
-            */}
             <Step key="export">
               <StepLabel StepIconComponent={CustomStepIcon}>
-                <CustomStepLabel text="Ready to export!" step={2} />
+                <CustomStepLabel text="Ready to export!" step={3} />
               </StepLabel>
               <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
                 <ExportStep />

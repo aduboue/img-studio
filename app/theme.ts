@@ -1,6 +1,5 @@
-'use client';
-import { createTheme } from '@mui/material/styles';
-
+'use client'
+import { createTheme } from '@mui/material/styles'
 
 const theme = createTheme({
   palette: {
@@ -13,7 +12,7 @@ const theme = createTheme({
     secondary: {
       main: '#5F6368',
       dark: '#202124',
-      light: '#E8EAED'
+      light: '#E8EAED',
     },
     text: {
       primary: '#202124',
@@ -49,7 +48,7 @@ const theme = createTheme({
     fontFamily: 'Roboto',
     fontSize: 20,
     button: {
-      textTransform: 'none'
+      textTransform: 'none',
     },
     h1: {
       fontSize: '5rem',
@@ -101,10 +100,10 @@ const theme = createTheme({
   components: {
     MuiButtonBase: {
       defaultProps: {
-        disableRipple: true
+        disableRipple: true,
       },
     },
   },
-});
+})
 
-export default theme;
+export default theme
