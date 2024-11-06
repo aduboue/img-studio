@@ -37,6 +37,71 @@ const CustomizedChip = {
   },
 }
 
+export const ChipGroup = ({
+  width,
+  label,
+  required,
+  options,
+  value,
+  onChange,
+  handleChipClick,
+}: {
+  width: string
+  label: string
+  required: boolean
+  options: string[]
+  value: string
+  onChange: any
+  handleChipClick: any
+}) => {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start',
+        alignContent: 'flex-start',
+        width: width,
+      }}
+    >
+      <Typography
+        variant="caption"
+        sx={{
+          color: palette.text.primary,
+          fontSize: '0.75rem',
+          fontWeight: 500,
+          lineHeight: '1.3em',
+          pb: 0.5,
+        }}
+      >
+        {label + (required ? ' *' : '')}
+      </Typography>
+      <Stack
+        direction="row"
+        spacing={0}
+        sx={{
+          flexWrap: 'wrap',
+          justifyContent: 'flex-start',
+        }}
+      >
+        {options.map((chipValue) => (
+          <Chip
+            key={chipValue}
+            label={chipValue}
+            size="small"
+            component={'button'}
+            onClick={() => handleChipClick({ clickedValue: chipValue, currentValue: value })}
+            onChange={onChange}
+            variant={value === chipValue ? 'filled' : 'outlined'}
+            color={value === chipValue ? 'primary' : 'secondary'}
+            sx={CustomizedChip}
+          />
+        ))}
+      </Stack>
+    </Box>
+  )
+}
+
 export default function FormInputChipGroup({
   name,
   label,
@@ -62,50 +127,15 @@ export default function FormInputChipGroup({
         key={name}
         rules={{ required: required }}
         render={({ field: { onChange, value } }) => (
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              alignContent: 'flex-start',
-              width: width,
-            }}
-          >
-            <Typography
-              variant="caption"
-              sx={{
-                color: palette.text.primary,
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                lineHeight: '1.3em',
-                pb: 0.5,
-              }}
-            >
-              {label + (required ? ' *' : '')}
-            </Typography>
-            <Stack
-              direction="row"
-              spacing={0}
-              sx={{
-                flexWrap: 'wrap',
-                justifyContent: 'flex-start',
-              }}
-            >
-              {field.options.map((chipValue) => (
-                <Chip
-                  key={chipValue}
-                  label={chipValue}
-                  size="small"
-                  component={'button'}
-                  onClick={() => handleChipClick({ clickedValue: chipValue, currentValue: value })}
-                  onChange={onChange}
-                  variant={value === chipValue ? 'filled' : 'outlined'}
-                  color={value === chipValue ? 'primary' : 'secondary'}
-                  sx={CustomizedChip}
-                />
-              ))}
-            </Stack>
-          </Box>
+          <ChipGroup
+            width={width}
+            label={label}
+            required={required}
+            options={field.options}
+            value={value}
+            onChange={onChange}
+            handleChipClick={handleChipClick}
+          />
         )}
       />
     </FormControl>

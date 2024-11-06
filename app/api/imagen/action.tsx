@@ -10,6 +10,8 @@ import {
 import { decomposeUri, downloadImage, getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
+import { EditImageFormI } from '../edit-utils'
+import { processImageBase64 } from '../vertex-seg/action'
 const { GoogleAuth } = require('google-auth-library')
 
 function cleanResult(inputString: string) {
@@ -54,15 +56,21 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
 export async function buildImageList({
   imagesInGCS,
   aspectRatio,
+  width,
+  height,
   usedPrompt,
   userID,
   modelVersion,
+  mode,
 }: {
   imagesInGCS: VisionGenerativeModelResultI[]
   aspectRatio: string
+  width: number
+  height: number
   usedPrompt: string
   userID: string
   modelVersion: string
+  mode: string
 }) {
   const promises = imagesInGCS.map(async (image) => {
     if ('raiFilteredReason' in image) {
@@ -72,16 +80,13 @@ export async function buildImageList({
     } else {
       const { fileName } = await decomposeUri(image.gcsUri)
 
-      const usedRatio = RatioToPixel.find((item) => item.ratio === aspectRatio)
-      const usedWidth = usedRatio?.width
-      const useHeight = usedRatio?.height
-
       const format = image.mimeType.replace('image/', '').toUpperCase()
 
       const ID = fileName
         .replaceAll('/', '')
         .replace(userID, '')
         .replace('generated-images', '')
+        .replace('edited-images', '')
         .replace('sample_', '')
         .replace(`.${format.toLowerCase()}`, '')
 
@@ -102,12 +107,13 @@ export async function buildImageList({
             prompt: usedPrompt,
             altText: `Generated image ${fileName}`,
             key: ID,
-            width: usedWidth,
-            height: useHeight,
+            width: width,
+            height: height,
             ratio: aspectRatio,
             date: formattedDate,
             author: userID,
             modelVersion: modelVersion,
+            mode: mode,
           }
         }
       } catch (error) {
@@ -216,13 +222,20 @@ export async function generateImage(
 
     console.log('Image generated with success')
 
+    const usedRatio = RatioToPixel.find((item) => item.ratio === opts.data.parameters.aspectRatio)
+    const usedWidth = usedRatio?.width
+    const useHeight = usedRatio?.height
+
     const imagesInGCS: VisionGenerativeModelResultI[] = res.data.predictions
     const enhancedImageList = await buildImageList({
       imagesInGCS: imagesInGCS,
       aspectRatio: opts.data.parameters.aspectRatio,
+      width: usedWidth ?? 0,
+      height: useHeight ?? 0,
       usedPrompt: opts.data.instances[0].prompt,
       userID: appContext?.userID ? appContext?.userID : '',
       modelVersion: modelVersion,
+      mode: 'Generated',
     })
 
     return enhancedImageList
@@ -238,8 +251,160 @@ export async function generateImage(
     } else {
       console.error(error)
       return {
-        error: 'Error while generating images.',
+        error: 'Issue while generating images.',
       }
+    }
+  }
+}
+
+export async function editImage(formData: EditImageFormI, appContext: appContextDataI | null) {
+  // 1 - Atempting to authent to Google Cloud & fetch project informations
+  let client
+  try {
+    const auth = new GoogleAuth({
+      scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    })
+    client = await auth.getClient()
+  } catch (error) {
+    console.error(error)
+    return {
+      error: 'Unable to authenticate your account to access images',
+    }
+  }
+  //TODO when not in preview, put europe location
+  const location = 'us-central1'
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
+  const modelVersion = formData['modelVersion']
+  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
+
+  // 2 - Building the prompt TODO
+  let fullPrompt = formData.prompt
+
+  if (appContext === undefined) throw Error('No provided app context')
+
+  // 3 - Building Imagen request body
+  let editGcsURI = ''
+  if (
+    appContext === undefined ||
+    appContext === null ||
+    appContext.gcsURI === undefined ||
+    appContext.userID === undefined
+  )
+    throw Error('No provided app context')
+  else {
+    editGcsURI = `${appContext.gcsURI}/${appContext.userID}/edited-images`
+  }
+
+  const editMode = formData['editMode']
+  let customDilation = 0.01
+  if (editMode === 'EDIT_MODE_OUTPAINT') customDilation = 0.03
+  let customSteps = 35
+  if (editMode === 'EDIT_MODE_INPAINT_REMOVAL') customSteps = 12
+
+  const reqData = {
+    instances: [
+      {
+        prompt: formData.prompt as string,
+        referenceImages: [
+          {
+            referenceType: 'REFERENCE_TYPE_RAW',
+            referenceId: 1,
+            referenceImage: {
+              bytesBase64Encoded: await processImageBase64(formData['inputImage']),
+            },
+          },
+          {
+            referenceType: 'REFERENCE_TYPE_MASK',
+            referenceId: 2,
+            referenceImage: {
+              bytesBase64Encoded: await processImageBase64(formData['inputMask']),
+            },
+            maskImageConfig: {
+              maskMode: 'MASK_MODE_USER_PROVIDED',
+              dilation: customDilation,
+            },
+          },
+        ],
+      },
+    ],
+    parameters: {
+      negativePrompt: formData['negativePrompt'],
+      promptLanguage: 'en',
+      seed: 1,
+      editConfig: {
+        baseSteps: customSteps,
+      },
+      editMode: editMode,
+      sampleCount: parseInt(formData['sampleCount']),
+      outputOptions: {
+        mimeType: formData['outputOptions'],
+      },
+      includeRaiReason: true,
+      personGeneration: formData['personGeneration'],
+      storageUri: editGcsURI,
+    },
+  }
+
+  const opts = {
+    url: imagenAPIurl,
+    method: 'POST',
+    data: reqData,
+  }
+
+  // 4 - Editing image
+  let res
+  try {
+    res = await client.request(opts)
+
+    if (res.data.predictions === undefined) {
+      throw Error('There were an issue, no images were generated')
+    }
+    // NO images at all were generated out of all samples
+    if ('raiFilteredReason' in res.data.predictions[0]) {
+      throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
+    }
+
+    console.log('Image generated with success')
+  } catch (error) {
+    console.error(error)
+
+    const errorString = error instanceof Error ? error.toString() : ''
+    if (
+      errorString.includes('safety settings for peopleface generation') ||
+      errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines")
+    ) {
+      return {
+        error: errorString.replace('Error: ', ''),
+      }
+    }
+
+    const myError = error as Error & { errors: any[] }
+    const myErrorMsg = myError.errors[0].message
+
+    return {
+      error: myErrorMsg,
+    }
+  }
+
+  // 5 Creating output image list
+  try {
+    const imagesInGCS: VisionGenerativeModelResultI[] = res.data.predictions
+    const enhancedImageList = await buildImageList({
+      imagesInGCS: imagesInGCS,
+      aspectRatio: formData['ratio'],
+      width: formData['width'],
+      height: formData['height'],
+      usedPrompt: opts.data.instances[0].prompt,
+      userID: appContext?.userID ? appContext?.userID : '',
+      modelVersion: modelVersion,
+      mode: 'Edited',
+    })
+
+    return enhancedImageList
+  } catch (error) {
+    console.error(error)
+    return {
+      error: 'Issue while editing image.',
     }
   }
 }
@@ -302,7 +467,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
       upscaleConfig: {
         upscaleFactor: upscaleFactor,
       },
-      storageUri: targetGCSuri,
+      //storageUri: targetGCSuri,
     },
   }
   const opts = {

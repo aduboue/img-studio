@@ -7,10 +7,11 @@ const { palette } = theme
 
 import FormInputDropdown from './components/InputDropdown'
 import FormInputChipGroup from './components/InputChipGroup'
-import { FormInputGenerateSettingsI } from './components/InputInterface'
+import { EditSettingsFieldsI } from '../api/edit-utils'
 import { FormInputTextSmall } from './components/InputTextSmall'
 import { Settings } from '@mui/icons-material'
 import CustomTooltip from './components/Tooltip'
+import { FormInputSlider } from './components/InputSlider'
 
 const CustomizedMenu = {
   '& .MuiPaper-root': {
@@ -26,12 +27,15 @@ const CustomizedMenu = {
   },
 }
 
-export default function FormInputGenerateSettings({
+export default function FormInputEditSettings({
   control,
   setValue,
-  generalSettingsFields,
-  advancedSettingsFields,
-}: FormInputGenerateSettingsI) {
+  editSettingsFields,
+}: {
+  control: any
+  setValue: any
+  editSettingsFields: EditSettingsFieldsI
+}) {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -61,51 +65,75 @@ export default function FormInputGenerateSettings({
       <Menu
         anchorEl={anchorEl}
         anchorOrigin={{
-          vertical: 'bottom',
+          vertical: 'top',
           horizontal: 'center',
         }}
         transformOrigin={{
-          vertical: 'top',
+          vertical: 'bottom',
           horizontal: 'center',
         }}
         open={open}
         onClose={handleClose}
         sx={CustomizedMenu}
       >
-        {Object.entries(generalSettingsFields).map(function ([param, field]) {
-          return (
-            <MenuItem key={param}>
-              <FormInputChipGroup
-                name={param}
-                label={field.label}
-                key={param}
-                control={control}
-                setValue={setValue}
-                width="260px"
-                mandatory={true}
-                field={field}
-                required={true}
-              />
-            </MenuItem>
-          )
-        })}
+        <MenuItem key={editSettingsFields.sampleCount.label}>
+          <FormInputChipGroup
+            name={'sampleCount'}
+            label={editSettingsFields.sampleCount.label ?? ''}
+            key={'sampleCount'}
+            control={control}
+            setValue={setValue}
+            width="260px"
+            mandatory={true}
+            field={editSettingsFields.sampleCount as any}
+            required={true}
+          />
+        </MenuItem>
 
-        {Object.entries(advancedSettingsFields).map(function ([param, field]) {
-          return (
-            <MenuItem key={param}>
-              <FormInputDropdown
-                name={param}
-                label={field.label}
-                key={param}
-                control={control}
-                field={field}
-                styleSize="small"
-                width="150px"
-                required={true}
-              />
-            </MenuItem>
-          )
-        })}
+        <MenuItem key={editSettingsFields.maskDilation.label} sx={{ py: 0, pt: 1 }}>
+          <FormInputSlider
+            name="maskDilation"
+            control={control}
+            field={editSettingsFields.maskDilation as any}
+            required={true}
+          />
+        </MenuItem>
+
+        <MenuItem key={editSettingsFields.guidanceScale.label} sx={{ py: 0 }}>
+          <FormInputSlider
+            name="guidanceScale"
+            control={control}
+            field={editSettingsFields.guidanceScale as any}
+            required={true}
+          />
+        </MenuItem>
+
+        <MenuItem key={editSettingsFields.outputOptions.label}>
+          <FormInputDropdown
+            name="outputOptions"
+            label={editSettingsFields.outputOptions.label}
+            key={editSettingsFields.outputOptions.label}
+            control={control}
+            field={editSettingsFields.outputOptions as any}
+            styleSize="small"
+            width="150px"
+            required={true}
+          />
+        </MenuItem>
+
+        <MenuItem key={editSettingsFields.personGeneration.label}>
+          <FormInputDropdown
+            name="personGeneration"
+            label={editSettingsFields.personGeneration.label}
+            key={editSettingsFields.personGeneration.label}
+            control={control}
+            field={editSettingsFields.personGeneration as any}
+            styleSize="small"
+            width="150px"
+            required={true}
+          />
+        </MenuItem>
+
         <MenuItem key={'negativePrompt'}>
           <Box
             sx={{
@@ -130,11 +158,11 @@ export default function FormInputGenerateSettings({
             </Typography>
 
             <FormInputTextSmall
-              rows={2}
               name="negativePrompt"
               label="negativePrompt"
               control={control}
               required={false}
+              rows={3}
             />
           </Box>
         </MenuItem>

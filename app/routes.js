@@ -9,12 +9,12 @@ export const pages = {
       name: "Edit",
       description: "Import and edit existing content",
       href: "/edit",
-      status: "coming-next",
+      status: "new",
     },
     Library: {
       name: "Library",
       description: "Browse your team's shared content",
       href: "/library",
-      status: "new",
+      status: "",
     },
 };

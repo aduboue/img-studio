@@ -76,6 +76,7 @@ export default function GenerateForm({
     setIsGeminiRewrite(event.target.checked)
   }
 
+  //TODO get from Gemini ideas
   const getRandomPrompt = () => {
     return RandomPrompts[Math.floor(Math.random() * RandomPrompts.length)]
   }
@@ -127,6 +128,7 @@ export default function GenerateForm({
   // Does not reset settings - only prompt, prompt parameters and negative prompt
   const onReset = () => {
     formDataResetableFields.forEach((field) => resetField(field as keyof GenerateImageFormI))
+    onNewErrorMsg('')
   }
 
   return (
@@ -177,6 +179,7 @@ export default function GenerateForm({
           control={control}
           label="Prompt - What would you like to generate?"
           required={true}
+          rows={4}
         />
 
         <Stack justifyContent="flex-end" direction="row" gap={0} pb={3}>
@@ -193,7 +196,13 @@ export default function GenerateForm({
             </IconButton>
           </CustomTooltip>
           <CustomTooltip title="Reset all fields" size="small">
-            <IconButton onClick={() => onReset()} aria-label="Reset form" disableRipple sx={{ px: 0.5 }}>
+            <IconButton
+              disabled={isLoading}
+              onClick={() => onReset()}
+              aria-label="Reset form"
+              disableRipple
+              sx={{ px: 0.5 }}
+            >
               <Avatar sx={CustomizedAvatarButton}>
                 <Autorenew sx={CustomizedIconButton} />
               </Avatar>
