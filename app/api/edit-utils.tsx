@@ -1,0 +1,324 @@
+export interface EditImageFieldStyleI {
+  type: string
+  label: string
+  description?: string
+  default?: number | string
+  min?: number
+  max?: number
+  step?: number
+  isDataResetable: boolean
+  options?:
+    | {
+        value: string
+        label: string
+        indication?: string
+        description?: string
+        mandatoryPrompt?: boolean
+        mandatoryMask?: boolean
+        maskType?: string[]
+      }[]
+    | string[]
+}
+
+// TODO
+export interface EditImageFormFieldsI {
+  modelVersion: EditImageFieldStyleI
+  inputImage: EditImageFieldStyleI
+  inputMask: EditImageFieldStyleI
+  prompt: EditImageFieldStyleI
+  sampleCount: EditImageFieldStyleI
+  negativePrompt: EditImageFieldStyleI
+  editMode: EditImageFieldStyleI
+  maskDilation: EditImageFieldStyleI
+  guidanceScale: EditImageFieldStyleI
+  outputOptions: EditImageFieldStyleI
+  personGeneration: EditImageFieldStyleI
+}
+
+export const EditImageFormFields = {
+  modelVersion: {
+    type: 'select',
+    label: 'Model version',
+    default: 'imagen-3.0-capability-preview-0930',
+    options: [
+      {
+        value: 'imagen-3.0-capability-preview-0930',
+        label: 'Imagen 3',
+        indication: 'Edit your images with Imagen 3',
+      },
+    ],
+    isDataResetable: false,
+  },
+  inputImage: {
+    type: 'base64 encoded string',
+    label: 'Input image',
+    isDataResetable: true,
+  },
+  inputMask: {
+    type: 'base64 encoded string',
+    label: 'Input mask',
+    isDataResetable: true,
+  },
+  prompt: {
+    type: 'textInput',
+    label: 'Prompt',
+    isDataResetable: true,
+  },
+  sampleCount: {
+    label: 'Quantity of outputs',
+    type: 'chip-group',
+    default: '4',
+    options: ['1', '2', '3', '4'],
+    isDataResetable: false,
+  },
+  negativePrompt: {
+    label: 'Negative prompt',
+    type: 'textInput',
+    isDataResetable: true,
+  },
+  editMode: {
+    type: 'in-place-menu',
+    label: 'What do you want to do with your image?',
+    default: 'EDIT_MODE_INPAINT_INSERTION',
+    options: [
+      {
+        value: 'EDIT_MODE_INPAINT_INSERTION',
+        label: 'Insert',
+        description: 'Add a new object',
+        icon: 'add_photo_alternate',
+        mandatoryPrompt: true,
+        promptIndication: 'Prompt - Describe what you want to insert to selected zone',
+        mandatoryMask: true,
+        maskButtonLabel: 'Select zone',
+        maskButtonIcon: 'ads_click',
+        maskDialogTitle: 'Select a zone where to insert',
+        maskDialogIndication: 'Only pixels within the zone can and will be edited',
+        maskType: ['manual', 'background', 'foreground', 'semantic', 'interactive', 'prompt'],
+        enabled: true,
+      },
+      {
+        value: 'EDIT_MODE_INPAINT_REMOVAL',
+        label: 'Remove',
+        description: 'Erase selected object(s)',
+        icon: 'cancel',
+        mandatoryPrompt: false,
+        mandatoryMask: true,
+        maskButtonLabel: 'Select object(s)',
+        maskButtonIcon: 'category',
+        maskDialogTitle: 'Select object(s) to be removed',
+        maskDialogIndication: 'Only selected pixels within can and will be edited',
+        maskType: ['manual', 'background', 'foreground', 'semantic', 'interactive', 'prompt'],
+        enabled: true,
+      },
+      {
+        value: 'EDIT_MODE_OUTPAINT',
+        label: 'Outpaint',
+        description: 'Extend the image',
+        icon: 'aspect_ratio',
+        mandatoryPrompt: false,
+        promptIndication: '(Optional) Prompt - If you want, be specific on what to put in extended space',
+        mandatoryMask: true,
+        maskButtonLabel: 'New ratio',
+        maskButtonIcon: 'crop',
+        maskDialogTitle: 'Select your new image format',
+        maskDialogIndication: 'Only pixels in outpaint zone will be edited',
+        maskType: ['outpaint'], // Vertical/ Horizontal zones generated from new ratio and image position within it
+        enabled: true,
+      },
+      {
+        value: 'EDIT_MODE_BGSWAP',
+        label: 'Product showcase',
+        description: 'Place product in a new scene',
+        icon: 'store',
+        mandatoryPrompt: true,
+        promptIndication: 'Prompt - Describe in what situation you want to put the product',
+        mandatoryMask: true,
+        maskDialogTitle: "Isolate your product's background",
+        maskDialogIndication: 'No pixels of the product should be altered',
+        maskButtonLabel: 'Isolate product',
+        maskButtonIcon: 'crop_free',
+        maskType: ['background'],
+        enabled: true,
+      },
+      {
+        value: 'EDIT_MODE_DEFAULT',
+        label: 'Transform',
+        description: "Change what's happening",
+        icon: 'model_training',
+        mandatoryPrompt: true,
+        promptIndication: 'Prompt - Describe what you want to see change in the image',
+        mandatoryMask: false,
+        enabled: false,
+      },
+    ],
+    isDataResetable: false,
+  },
+  maskDilation: {
+    type: 'float',
+    label: 'Mask dilation',
+    description: 'Determines the dilation percentage of the mask provided',
+    default: 0.03,
+    min: 0,
+    max: 1,
+    step: 0.01,
+    isDataResetable: true,
+  },
+  guidanceScale: {
+    type: 'integer',
+    label: 'Guidance scale',
+    description:
+      'Controls how much the model adheres to the text prompt. Large values increase output and prompt alignment, but may compromise image quality',
+    default: 60,
+    min: 0,
+    max: 500,
+    step: 1,
+    isDataResetable: true,
+  },
+  outputOptions: {
+    label: 'Ouput format',
+    type: 'select',
+    default: 'image/png',
+    options: [
+      {
+        value: 'image/png',
+        label: 'PNG',
+      },
+      {
+        value: 'image/jpeg',
+        label: 'JPEG',
+      },
+    ],
+    isDataResetable: false,
+  },
+  personGeneration: {
+    label: 'People generation',
+    type: 'select',
+    default: 'allow_adult',
+    options: [
+      {
+        value: 'allow_adult',
+        label: 'Allow adult only',
+      },
+      {
+        value: 'dont_allow',
+        label: "Don't allow",
+      },
+    ],
+    isDataResetable: false,
+  },
+}
+
+export const maskTypes = [
+  {
+    value: 'manual',
+    label: 'Manual selection',
+    description: 'One or more zone(s) you manually brush over',
+    readOnlyCanvas: false,
+    requires: 'manualSelection',
+  },
+  {
+    value: 'background',
+    label: 'Background',
+    description: 'Everything except the primary object, person, or subject',
+    readOnlyCanvas: true,
+  },
+  {
+    value: 'foreground',
+    label: 'Foreground',
+    description: 'Primary object, person, or subject only',
+    readOnlyCanvas: true,
+  },
+  {
+    value: 'semantic',
+    label: 'Semantic',
+    description: 'One or more element(s) by their semantic class(es)',
+    readOnlyCanvas: true,
+    requires: 'semanticDropdown',
+  },
+  {
+    value: 'interactive',
+    label: 'Interactive',
+    description: 'A zone targetted by circling or brushing over it',
+    readOnlyCanvas: false,
+    requires: 'manualSelection',
+  },
+  {
+    value: 'prompt',
+    label: 'Descriptive',
+    description: 'A zone targetted through a written description of it',
+    readOnlyCanvas: true,
+    requires: 'promptInput',
+  },
+  {
+    value: 'outpaint',
+    label: 'Configure outpaint zone',
+    description: 'A new image format to be edited in',
+    readOnlyCanvas: true,
+    requires: 'ratioSelection',
+  },
+]
+
+export const semanticClasses = [
+  { class_id: 43, value: 'Floor' },
+  { class_id: 94, value: 'Gravel' },
+  { class_id: 95, value: 'Platform' },
+  { class_id: 96, value: 'Playingfield' },
+  { class_id: 186, value: 'River Lake' },
+  { class_id: 98, value: 'Road' },
+  { class_id: 101, value: 'Runway' },
+  { class_id: 187, value: 'Sea' },
+  { class_id: 100, value: 'Sidewalk Pavement' },
+  { class_id: 142, value: 'Sky' },
+  { class_id: 99, value: 'Snow' },
+  { class_id: 189, value: 'Swimming Pool' },
+  { class_id: 102, value: 'Terrain' },
+  { class_id: 191, value: 'Wall' },
+  { class_id: 188, value: 'Water' },
+  { class_id: 190, value: 'Waterfall' },
+]
+
+// Interface of Edit form fields
+export interface EditImageFormI {
+  modelVersion: string
+  inputImage: string
+  ratio: string
+  width: number
+  height: number
+  inputMask: string
+  prompt: string
+  sampleCount: string
+  negativePrompt: string
+  editMode: string
+  maskMode?: string
+  maskDilation: string
+  guidanceScale: string
+  outputOptions: string
+  personGeneration: string
+}
+
+// Sort out Edit fields depending on purpose
+export interface EditSettingsFieldsI {
+  sampleCount: EditImageFieldStyleI
+  maskDilation: EditImageFieldStyleI
+  guidanceScale: EditImageFieldStyleI
+  outputOptions: EditImageFieldStyleI
+  personGeneration: EditImageFieldStyleI
+  negativePrompt: EditImageFieldStyleI
+}
+export const editSettingsFields: EditSettingsFieldsI = {
+  sampleCount: EditImageFormFields.sampleCount,
+  maskDilation: EditImageFormFields.maskDilation,
+  guidanceScale: EditImageFormFields.guidanceScale,
+  outputOptions: EditImageFormFields.outputOptions,
+  personGeneration: EditImageFormFields.personGeneration,
+  negativePrompt: EditImageFormFields.negativePrompt,
+}
+
+// Set default values for Edit Form
+const editFieldList: [keyof EditImageFormFieldsI] = Object.keys(EditImageFormFields) as [keyof EditImageFormFieldsI]
+export var formDataEditDefaults: any
+editFieldList.forEach((field) => {
+  const fieldParams: EditImageFieldStyleI = EditImageFormFields[field]
+  const defaultValue = 'default' in fieldParams ? fieldParams.default : ''
+  formDataEditDefaults = { ...formDataEditDefaults, [field]: defaultValue }
+})

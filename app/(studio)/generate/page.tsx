@@ -16,7 +16,7 @@ const { palette } = theme
 export default function Page() {
   const [generatedImagesInGCS, setGeneratedImagesInGCS] = useState<ImageI[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [errorMsg, setErrorMsg] = useState('')
+  const [generationErrorMsg, setGenerationErrorMsg] = useState('')
   const { appContext, error } = useAppContext()
 
   const handleImageGeneration = (newImages: ImageI[]) => {
@@ -26,11 +26,11 @@ export default function Page() {
 
   const handleRequestSent = (valid: boolean) => {
     setIsLoading(valid)
-    setErrorMsg('')
+    setGenerationErrorMsg('')
   }
   const handleNewErrorMsg = (newErrorMsg: string) => {
     setIsLoading(false)
-    setErrorMsg(newErrorMsg)
+    setGenerationErrorMsg(newErrorMsg)
   }
 
   if (appContext?.isLoading === true) {
@@ -56,7 +56,7 @@ export default function Page() {
               onRequestSent={handleRequestSent}
               onImageGeneration={handleImageGeneration}
               onNewErrorMsg={handleNewErrorMsg}
-              errorMsg={errorMsg}
+              errorMsg={generationErrorMsg}
             />
           </Grid>
           <Grid size={0.9} flex={1} sx={{ pt: 11, maxWidth: 850, minWidth: 400 }}>

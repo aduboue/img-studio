@@ -250,7 +250,7 @@ export const GenerateImageFormFields = {
 export interface chipGroupFieldsI {
   label: string
   subID?: string
-  default?: string
+  default?: string | number
   options: string[]
 }
 ;[]
@@ -353,6 +353,7 @@ export interface ImageI {
   date: string
   author: string
   modelVersion: string
+  mode: string
 }
 
 // List of Imagen available ratio and their corresponding generation dimentions

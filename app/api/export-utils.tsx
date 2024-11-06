@@ -63,6 +63,14 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: false,
     isExploreVisible: true,
   },
+  imageCreationMode: {
+    label: 'Creation mode',
+    type: 'text-info',
+    prop: 'mode',
+    isUpdatable: false,
+    isExportVisible: false,
+    isExploreVisible: true,
+  },
   imageAuthor: {
     label: 'Author',
     type: 'text-info',

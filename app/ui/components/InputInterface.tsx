@@ -5,6 +5,7 @@ export interface FormTextInputI {
   label: string
   control: any
   required: boolean
+  rows: number
 }
 
 export interface FormDropdownInputI {

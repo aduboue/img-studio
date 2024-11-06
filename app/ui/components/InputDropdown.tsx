@@ -15,7 +15,7 @@ const CustomizedInput = (styleSize: string) => {
     style = { ...style, ...{ fontWeight: 700, fontSize: '2.5rem', pr: 2 } }
   }
   if (styleSize === 'small') {
-    style = { ...style, ...{ fontWeight: 400, pr: 0.5 } }
+    style = { ...style, ...{ fontWeight: 400, fontSize: '1rem', pr: 0.5 } }
   }
 
   return style

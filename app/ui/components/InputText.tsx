@@ -5,7 +5,7 @@ import { FormTextInputI } from './InputInterface'
 import theme from '../../theme'
 const { palette } = theme
 
-export const FormInputText = ({ name, control, label, required }: FormTextInputI) => {
+export const FormInputText = ({ name, control, label, required, rows }: FormTextInputI) => {
   return (
     <Controller
       name={name}
@@ -19,9 +19,9 @@ export const FormInputText = ({ name, control, label, required }: FormTextInputI
           helperText={error ? error.message : null}
           error={!!error}
           fullWidth
-          required
+          required={required}
           multiline
-          rows={4}
+          rows={rows}
           sx={{
             fontSize: '4rem',
             '& .MuiOutlinedInput-root': {

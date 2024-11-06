@@ -29,14 +29,14 @@ export const CustomRadio = ({ label, subLabel, value, currentSelectedValue, enab
           <Typography
             sx={{
               fontSize: '1rem',
-              fontStyle: value == '' || enabled ? 'normal' : 'italic',
+              fontWeight: 400,
               color:
                 value == '' || enabled
                   ? currentSelectedValue === value
                     ? palette.primary.main
                     : palette.text.primary
                   : palette.text.disabled,
-              '&:hover': { cursor: value == '' || enabled ? 'pointer' : 'no-drop' },
+              '&:hover': { cursor: value == 'no' || enabled ? 'pointer' : 'no-drop' },
             }}
           >
             {label}
@@ -45,8 +45,15 @@ export const CustomRadio = ({ label, subLabel, value, currentSelectedValue, enab
             color={palette.secondary.main}
             sx={{
               fontSize: '0.8rem',
-              fontStyle: value == '' || enabled ? 'normal' : 'italic',
-              '&:hover': { cursor: value == '' || enabled ? 'pointer' : 'no-drop' },
+              fontWeight: value == '' || enabled ? (currentSelectedValue === value ? 400 : 300) : 300,
+              color:
+                value == '' || enabled
+                  ? currentSelectedValue === value
+                    ? palette.text.primary
+                    : palette.text.secondary
+                  : palette.text.disabled,
+              fontStyle: value == 'no' || enabled ? 'normal' : 'italic',
+              '&:hover': { cursor: value == 'no' || enabled ? 'pointer' : 'no-drop' },
             }}
           >
             {subLabel}
