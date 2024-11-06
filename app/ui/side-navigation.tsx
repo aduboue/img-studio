@@ -83,36 +83,32 @@ export default function SideNav() {
           </ListItemButton>
         ))}
       </List>
-      {/*<List dense sx={{ position: 'absolute', bottom: '0', right: '0' }}>
-        <Tooltip
-          title="Log out"
-          placement="left"
-          TransitionComponent={Fade}
-          TransitionProps={{ timeout: 600 }}
-          enterDelay={100}
-          leaveDelay={300}
-          slotProps={{
-            popper: {
-              modifiers: [
-                {
-                  name: 'offset',
-                  options: { offset: [0, -25] },
-                },
-              ],
-            },
+      <Typography
+        variant="caption"
+        align="left"
+        sx={{
+          position: 'absolute',
+          bottom: 15,
+          left: 15,
+          width: '100%',
+          fontSize: '0.6rem',
+          fontWeight: 400,
+          color: palette.secondary.light,
+        }}
+      >
+        / Made with <span style={{ margin: 2, color: palette.primary.main }}>❤</span> by
+        <a
+          href="https://www.linkedin.com/in/aduboue/"
+          style={{
+            color: 'white',
+            fontWeight: 700,
+            textDecoration: 'none',
+            margin: 2,
           }}
         >
-          <IconButton onClick={() => signOut()} aria-label="Log out" sx={{ px: 2, py: 1 }}>
-            <LogoutIcon
-              sx={{
-                fontSize: 30,
-                color: palette.secondary.light,
-                '&:hover': { color: 'white' },
-              }}
-            />
-          </IconButton>
-        </Tooltip>
-      </List>*/}
+          @Agathe
+        </a>
+      </Typography>
     </Drawer>
   )
 }
