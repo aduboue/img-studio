@@ -11,6 +11,7 @@ import { Typography } from '@mui/material'
 
 import theme from '../../theme'
 import EditForm from '@/app/ui/edit-form'
+import { redirect } from 'next/navigation'
 const { palette } = theme
 
 export default function Page() {
@@ -51,7 +52,9 @@ export default function Page() {
         </Typography>
       </Box>
     )
-  } else
+  } else if (process.env.NEXT_PUBLIC_EDIT_ENABLED === 'false') {
+    redirect('/generate')
+  } else {
     return (
       <Box p={5} sx={{ maxHeight: '100vh' }}>
         <Grid wrap="nowrap" container spacing={6} direction="row" columns={2}>
@@ -70,4 +73,5 @@ export default function Page() {
         </Grid>
       </Box>
     )
+  }
 }

@@ -52,7 +52,7 @@ export default function SideNav() {
           <ListItemButton
             key={name}
             selected={pathname === href}
-            disabled={status == 'coming-next'}
+            disabled={status == 'false'}
             onClick={() => router.push(href)}
             sx={CustomizedMenuItem}
           >
@@ -69,7 +69,7 @@ export default function SideNav() {
                   variant="caption"
                   color={pathname === href ? palette.primary.light : palette.secondary.light}
                 >
-                  {status == 'new' ? '/ NEW' : status == 'coming-next' ? '/ SOON' : ''}
+                  {status == 'false' ? '/ SOON' : ''}
                 </Typography>
               </Stack>
               <Typography
