@@ -194,16 +194,18 @@ export default function ExploreDialog({
                     {'Replay prompt'}
                   </Button>
                 </Box>
-                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
-                  <Button
-                    variant="contained"
-                    onClick={() => handleEditClick(documentToExplore ? documentToExplore.imageGcsURI : '')}
-                    endIcon={<Edit />}
-                    sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
-                  >
-                    {'Edit'}
-                  </Button>
-                </Box>
+                {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && (
+                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+                    <Button
+                      variant="contained"
+                      onClick={() => handleEditClick(documentToExplore ? documentToExplore.imageGcsURI : '')}
+                      endIcon={<Edit />}
+                      sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+                    >
+                      {'Edit'}
+                    </Button>
+                  </Box>
+                )}
               </>
             )}
           </Stack>

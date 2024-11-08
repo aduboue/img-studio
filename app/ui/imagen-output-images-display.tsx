@@ -133,17 +133,19 @@ export default function OutputImagesDisplay({
                     position="top"
                     actionIcon={
                       <Stack direction="row" gap={0} pb={3}>
-                        <CustomWhiteTooltip title="Export & Download" size="small">
-                          <IconButton
-                            onClick={() => handleEditClick(image.gcsUri)}
-                            aria-label="Export image"
-                            sx={{ px: 0.5 }}
-                          >
-                            <Avatar sx={CustomizedAvatarButton}>
-                              <Edit sx={CustomizedIconButton} />
-                            </Avatar>
-                          </IconButton>
-                        </CustomWhiteTooltip>
+                        {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && (
+                          <CustomWhiteTooltip title="Export & Download" size="small">
+                            <IconButton
+                              onClick={() => handleEditClick(image.gcsUri)}
+                              aria-label="Export image"
+                              sx={{ px: 0.5 }}
+                            >
+                              <Avatar sx={CustomizedAvatarButton}>
+                                <Edit sx={CustomizedIconButton} />
+                              </Avatar>
+                            </IconButton>
+                          </CustomWhiteTooltip>
+                        )}
                         <CustomWhiteTooltip title="Export & Download" size="small">
                           <IconButton
                             onClick={() => handleImageExportOpen(image)}
