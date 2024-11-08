@@ -7,7 +7,7 @@ import { fileToBase64 } from '../edit-form'
 import { useAppContext } from '@/app/context/app-context'
 const { palette } = theme
 
-function getAspectRatio(width: number, height: number): string {
+export function getAspectRatio(width: number, height: number): string {
   const gcd = (a: number, b: number): number => {
     return b === 0 ? a : gcd(b, a % b)
   }
@@ -117,11 +117,6 @@ export default function ImageDropzone({
     if (isOutpaintingMode && outpaintedImage) {
       initializeCanvas(maskSize.width, maskSize.height)
     } else if (imageToEdit) {
-      const img = new Image()
-      img.onload = () => {
-        initializeCanvas(img.width, img.height)
-      }
-      img.src = imageToEdit
       initiateDimensions(imageToEdit)
     } else if (!imageToEdit && !maskImage) {
       resetImagePreview()
@@ -164,7 +159,7 @@ export default function ImageDropzone({
           p: 0,
           display: 'flex',
           alignItems: 'center',
-          overflow: 'hidden', // Add this line
+          overflow: 'hidden',
         }}
       >
         {!imageToEdit && (

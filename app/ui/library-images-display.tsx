@@ -91,51 +91,49 @@ export default function LibraryImagesDisplay({
           transition: 'box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms',
         }}
       >
-        <React.Fragment key={doc.imageID}>
-          <Image
-            key={doc.imageID}
-            src={doc.signedUrl}
-            placeholder="blur"
-            blurDataURL={blurDataURL}
-            loading="lazy"
-            alt={'temp'}
-            style={{
-              width: '9vw',
-              height: '9vw',
-              objectFit: 'cover',
-              objectPosition: 'center',
-            }}
-            width={150}
-            height={150}
-            quality={50}
-            onContextMenu={handleContextMenu}
-          />
-          <Box
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-              color: 'white',
-              opacity: 0,
-              transition: 'opacity 0.3s ease',
-              '&:hover': {
-                opacity: 1,
-              },
-              cursor: 'pointer',
-            }}
-            onClick={() => handleOpenImageFullScreen(doc)}
-          >
-            <Typography variant="body1" sx={{ textAlign: 'center' }}>
-              Click to see full screen
-            </Typography>
-          </Box>
-        </React.Fragment>
+        <Image
+          key={doc.imageID}
+          src={doc.signedUrl}
+          placeholder="blur"
+          blurDataURL={blurDataURL}
+          loading="lazy"
+          alt={'temp'}
+          style={{
+            width: '9vw',
+            height: '9vw',
+            objectFit: 'cover',
+            objectPosition: 'center',
+          }}
+          width={150}
+          height={150}
+          quality={50}
+          onContextMenu={handleContextMenu}
+        />
+        <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            color: 'white',
+            opacity: 0,
+            transition: 'opacity 0.3s ease',
+            '&:hover': {
+              opacity: 1,
+            },
+            cursor: 'pointer',
+          }}
+          onClick={() => handleOpenImageFullScreen(doc)}
+        >
+          <Typography variant="body1" sx={{ textAlign: 'center' }}>
+            Click to see full screen
+          </Typography>
+        </Box>
         <ImageListItemBar
           sx={{
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',

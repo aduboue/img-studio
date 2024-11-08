@@ -30,6 +30,7 @@ import FormInputDropdownMultiple from './components/InputDropdownMultiple'
 import OutpaintingMaskSettings from './outpainting-mask-settings'
 import { segmentImage } from '../api/vertex-seg/action'
 import CustomTooltip from './components/Tooltip'
+import { getAspectRatio } from './components/ImageDropzone'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
@@ -51,11 +52,13 @@ export default function SetMaskDialog({
   maskPreview,
   setMaskImage,
   setMaskPreview,
+  setValue,
   imageToEdit,
   imageSize,
   maskSize,
   setMaskSize,
   setOutpaintedImage,
+  outpaintedImage,
 }: {
   open: boolean
   handleMaskDialogClose: () => void
@@ -65,11 +68,13 @@ export default function SetMaskDialog({
   maskPreview: string | null
   setMaskPreview: React.Dispatch<React.SetStateAction<string | null>>
   setMaskImage: React.Dispatch<React.SetStateAction<string | null>>
+  setValue: any
   imageToEdit: any
   imageSize: { width: number; height: number; ratio: string }
   maskSize: { width: number; height: number }
   setMaskSize: any
   setOutpaintedImage: any
+  outpaintedImage: string
 }) {
   const [maskType, setMaskType] = useState(availableMaskTypes[0].value)
   const [maskOptions, setMaskOptions] = useState(
@@ -220,6 +225,15 @@ export default function SetMaskDialog({
 
   const onValidate = async () => {
     if (maskType === 'manual') await generateManualMask()
+    if (selectedEditMode.value === 'EDIT_MODE_OUTPAINT') {
+      const img = new Image()
+      img.onload = () => {
+        setValue('width', img.width)
+        setValue('height', img.height)
+        setValue('ratio', getAspectRatio(img.width, img.height))
+      }
+      img.src = outpaintedImage
+    }
     setPromptSelection('')
     setSemanticSelection([])
     handleMaskDialogClose()

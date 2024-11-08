@@ -1,5 +1,14 @@
 # Infrastructure setup guide for ImgStudio
 
+## 0\\ Get access to **Imagen models**
+
+- **In general, for Vertex:** in the console **(new\!)**
+  - Go to `Vertex AI` \> `Enable all recommended APIs`
+  - They should include: **Vertex AI API, Cloud Storage API**
+- **For Imagen Generation:** reach out to your Google Cloud contacts to get granted access to Imagen 3 editing models \- **Imagen 3 Generate** (imagen-3.0-generate-001) and **Imagen 3 Generate Fast** (imagen-3.0-fast-generate-001)
+- **For Imagen Editing**: reach out to your Google Cloud contacts to ask Preview access, or get notified when it is GA
+  - **For Vertex Segmentation**: you will need access to this new model as well when using editing
+
 ## 1\\ Create **Cloud Storage** buckets
 
 - **Specifications:** Regional in your desired region (ex: `europe-west9` in Paris)
@@ -11,11 +20,13 @@
     - In this file, for each **fields** (ex: contextAuthorTeam, contextTargetPlatform, contextAssociatedBrand, contextCollection), you can only change the **ID** of the field (ex: `“contextAuthorTeam”`), its **label** (ex: `“In which team are you?”`), its **name** (ex: `“Associated team(s)”`), its tag **isMandatory** (ex: `true`) and finally its **options**
     - Attention\! The ID and the options’ values must only be letters, no spaces, no special characters, starting with a lowercase letter
 
-## 2\\ Setup **Cloud Build** trigger
+2\\ Setup **Cloud Build** trigger
 
 - Name: `YOUR_COMPANY-imgstudio`
 - **Event:** `Manual invocation`
-- **Source:** [https://github.com/aduboue/img-studio](https://github.com/aduboue/img-studio)
+- **Source:**
+  - Setup a [**GitHub fork**](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) from the public repository [https://github.com/aduboue/img-studio](https://github.com/aduboue/img-studio), which will **create a copy repository in your own GitHub account**, and notify you when you’re no longer up to date with the original
+  - In Cloud Build, **log into your GitHub account**, then select the newly created repository
 - **Configuration:** `Cloud Build configuration file (yaml or json)`
   - Cloud Build configuration file location: `/cloudbuild.yaml`
 - Put in 7 **substitution variables:**
@@ -39,7 +50,16 @@
   - `_NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS`
     - The sections of your users’ email address used to log in via IAP that will need to be removed in order to get their user ID, separated by commas
     - Ex: my email address is ‘admin-jdupont@company.com’, the value to set would be `admin-,@company.com` so that the user ID jdupont can be extracted
+  - `_NEXT_PUBLIC_EDIT_ENABLED` **(new\!)**
+    - Allow to enable edit features, set it to ‘`false`’ if you don’t have access yet
+  - `_NEXT_PUBLIC_EDIT_MODEL` **(new\!)**
+    - **Only mandatory if Edit is enabled**
+    - Service name for the edit model, when you get access to it
+  - `_NEXT_PUBLIC_SEG_MODEL` **(new\!)**
+    - **Only mandatory if Edit is enabled**
+    - Service name for the Vertex Segmentation model, when you get access to it
 - Service account: select the **default already existing Cloud Build service account** `PROJECT_NUMBER-compute@developer.gserviceaccount.com`
+  - You may want to **check in IAM it has the roles**: `Artifact Registry Writer` and `Logs Writer`
 - \> Save
 - **Manualy run your first build \!**
 
@@ -47,9 +67,9 @@
 
 - Go to **Security \> Identity Aware Proxy** and enable the API
 - \> **Configure consent screen** (oAuth)
-  - **User type**:
-    - `Internal`: if you want to limit IAP users to **your GCP org domain**
-    - `External`: if you have some users on a **different domain** than your GCP org’s
+  - **User type** can be either
+    - `Internal` if you want to limit IAP users to your **GCP org domain**
+    - `External` if you have some users on a **different domain** than your GCP org’s
   - \> Create
   - Fill in
     - App Name: `YOUR_COMPANY-imgstudio`
@@ -86,16 +106,16 @@
 - Container(s) **\> Container port:** `3000`
 - Security **\> Service account:** `YOUR_COMPANY-imgstudio-sa`
 - \> Create
-- _NB: if you try to access the published URL for the new service you should receive an error message stating “Error: Page Not Found”, this is due to the fact that we are only allowing ingress for external traffic from a Load Balancer_
+- NB: if you try to access the published URL for the new service you should receive an error message stating “Error: Page Not Found”, this is due to the fact that we are only allowing ingress for external traffic from a Load Balancer
 
 ## 6\\ Grant IAP **Permissions** on Cloud Run service
 
 - Create the **IAP service account address**
-- Go to the top right of the console \> Shell icon “Activate Cloud Shell”
-- Wait for machine to setup
-- In the terminal, use this command and **copy the output** service account address
-  - `gcloud beta services identity create --service=iap.googleapis.com --project=PROJECT_ID`
-  - The format of the output you can **copy** should be `service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com`
+  - Go to the top right of the console \> Shell icon “Activate Cloud Shell”
+  - Wait for machine to setup
+  - In the terminal, use this command and **copy the output** service account address
+    - `gcloud beta services identity create --service=iap.googleapis.com --project=PROJECT_ID`
+  - The format of the output you can copy should be `service-PROJECT_NUMBER@gcp-sa-iap.iam.gserviceaccount.com`
 - Go to Cloud Run, in the Services list, select the checkbox next to the name of your service
   - Click on **Permissions** \> **Add Principal**
   - Grant the `Cloud Run Invoker` role to the previously created/ fetched **IAP service account**
@@ -107,8 +127,8 @@
 - Complete the form
   - Zone Name: `imgstudio`
   - **DNS Name**: `imgstudio.YOUR_COMPANY_DOMAIN`
-  - DNSSEC: `off`
-  - Cloud Logging: `off`
+  - DNSSEC: `Off`
+  - Cloud Logging: `Off`
 - Once DNS propagation is completed, verify the name servers of the DNS managed zone using the command below (it could take several hours to complete)
   - `dig imgstudio.YOUR_COMPANY_DOMAIN NS +short`
 
@@ -187,16 +207,12 @@
     - `https://console.firebase.google.com/project/PROJECT_ID/firestore/databases/-default-/rules`
     - If necessary, follow the steps to **setup your Firebase project**
     - Once in Firestore Database \> Rules, go to the **security rules editor**
-    - Write the following content, don’t forget to replace `YOUR_COMPANY` & `PROJECT_ID` in the Cloud Run service account
-  ```
-  rules_version = '2';
-  service cloud.firestore {
-  match /databases/{database}/documents {
-      match /{document=**} {
-        allow read, get, list, create, update: if get(/databases/$(database)/documents/request.auth.uid).data.serviceAccount == 'YOUR_COMPANY-imgstudio-sa@PROJECT_ID.iam.gserviceaccount.com';
-        allow delete: if false;
-      }
-    }
-  }
-  ```
-  - \> **Publish**
+    - Write the following content, don’t forget to replace **`YOUR_COMPANY`** & **`PROJECT_ID`** in the Cloud Run service account
+      `rules_version = '2';`
+      `service cloud.firestore {`
+      `match /databases/{database}/documents {`
+      `match /{document=\*\*} {`
+      `allow read, get, list, create, update: if get(/databases/$(database)/documents/request.auth.uid).data.serviceAccount == 'YOUR_COMPANY-imgstudio-sa@PROJECT_ID.iam.gserviceaccount.com';`
+      `allow delete: if false;`
+      `}}}`
+    - \> Publish

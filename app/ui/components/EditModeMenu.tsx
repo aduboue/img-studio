@@ -151,18 +151,17 @@ export default function EditModeMenu({
             selected={option.value === selectedEditMode?.value}
             disabled={!option.enabled}
             onClick={(event) => handleMenuItemClick(event, option.value)}
+            sx={{ py: 1 }}
           >
-            <ListItem>
-              <ListItemIcon>
-                <Icon>{option.icon}</Icon>
-              </ListItemIcon>
-              <ListItemText
-                primary={option.label}
-                primaryTypographyProps={CustomizedPrimaryText}
-                secondary={option.description}
-                secondaryTypographyProps={CustomizedSecondaryText}
-              />
-            </ListItem>
+            <ListItemIcon>
+              <Icon>{option.icon}</Icon>
+            </ListItemIcon>
+            <ListItemText
+              primary={option.label}
+              primaryTypographyProps={CustomizedPrimaryText}
+              secondary={option.description}
+              secondaryTypographyProps={CustomizedSecondaryText}
+            />
           </MenuItem>
         ))}
       </Menu>

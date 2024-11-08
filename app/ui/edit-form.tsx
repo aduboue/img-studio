@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { useEffect, useRef } from 'react'
-import { useForm, SubmitHandler, set } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm, SubmitHandler } from 'react-hook-form'
 import { Typography, Button, Box, IconButton, Stack, Alert, Avatar, Icon } from '@mui/material'
 import { Send as SendIcon, WatchLater as WatchLaterIcon, Close as CloseIcon, Autorenew } from '@mui/icons-material'
 
@@ -14,10 +14,9 @@ import { ImageI } from '../api/generate-utils'
 import theme from '../theme'
 import { editImage } from '../api/imagen/action'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
-import { useState } from 'react'
 import CustomTooltip from './components/Tooltip'
 import { useAppContext } from '../context/app-context'
-import ImageDropzone from './components/ImageDropzone'
+import ImageDropzone, { getAspectRatio } from './components/ImageDropzone'
 import {
   EditImageFormFields,
   EditImageFormI,
@@ -110,6 +109,8 @@ export default function EditForm({
   const handleMaskDialogOpen = () => {
     if (imageWidth !== maskSize.width || imageHeight !== maskSize.width)
       setMaskSize({ width: imageWidth, height: imageHeight })
+    setMaskImage(null)
+    setMaskPreview(null)
     setOpenMaskDialog(true)
   }
   const handleMaskDialogClose = () => {
@@ -127,6 +128,7 @@ export default function EditForm({
 
     try {
       //TODO first check if mandatory value are here: mask, image, prompt
+
       const newEditedImage = await editImage(formData, appContext)
 
       if (newEditedImage !== undefined && typeof newEditedImage === 'object' && 'error' in newEditedImage) {
@@ -134,9 +136,7 @@ export default function EditForm({
         throw Error(errorMsg)
       } else {
         newEditedImage.map((image) => {
-          if ('warning' in image) {
-            onNewErrorMsg(image['warning'] as string)
-          }
+          if ('warning' in image) onNewErrorMsg(image['warning'] as string)
         })
 
         onImageGeneration(newEditedImage)
@@ -287,11 +287,13 @@ export default function EditForm({
           setMaskImage={setMaskImage}
           maskPreview={maskPreview}
           setMaskPreview={setMaskPreview}
+          setValue={setValue}
           imageToEdit={imageToEdit}
           imageSize={{ width: imageWidth, height: imageHeight, ratio: imageRatio }}
           maskSize={maskSize}
           setMaskSize={setMaskSize}
           setOutpaintedImage={setOutpaintedImage}
+          outpaintedImage={outpaintedImage ?? ''}
         />
       )}
     </>

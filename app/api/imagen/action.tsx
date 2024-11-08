@@ -271,13 +271,15 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
       error: 'Unable to authenticate your account to access images',
     }
   }
-  //TODO when not in preview, put europe location
+
+  // const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO true version
   const location = 'us-central1'
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const modelVersion = formData['modelVersion']
-  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
+  //const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict` //TODO true version
+  const imagenAPIurl = `https://${location}-preprod-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
-  // 2 - Building the prompt TODO
+  // 2 - Building the edit prompt //TODO
   let fullPrompt = formData.prompt
 
   if (appContext === undefined) throw Error('No provided app context')
