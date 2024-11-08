@@ -20,9 +20,9 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material'
-import { ImageI, UpscaleToPixel } from '../api/generate-utils'
+import { ImageI, UpscaleToPixel } from '../../api/generate-utils'
 import { TransitionProps } from '@mui/material/transitions'
-import { CustomizedSendButton } from './components/Button-SX'
+import { CustomizedSendButton } from '../ux-components/Button-SX'
 import {
   ArrowForwardIos,
   ArrowRight,
@@ -32,18 +32,18 @@ import {
   Send,
   WatchLater,
 } from '@mui/icons-material'
-import { CustomRadio } from './components/InputRadioButton'
+import { CustomRadio } from '../ux-components/InputRadioButton'
 
-import { ExportImageFormFieldsI, ExportImageFormI } from '../api/export-utils'
+import { ExportImageFormFieldsI, ExportImageFormI } from '../../api/export-utils'
 import { Controller, set, SubmitHandler, useForm } from 'react-hook-form'
-import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
-import { CloseWithoutSubmitWarning, ExportErrorWarning } from './components/ExportAlerts'
+import FormInputChipGroupMultiple from '../ux-components/InputChipGroupMultiple'
+import { CloseWithoutSubmitWarning, ExportErrorWarning } from '../transverse-components/ExportAlerts'
 
-import theme from '../theme'
-import { copyImageToTeamBucket, downloadImage } from '../api/cloud-storage/action'
-import { upscaleImage } from '../api/imagen/action'
-import { addNewFirestoreEntry } from '../api/firestore/action'
-import { useAppContext, appContextDataDefault } from '../context/app-context'
+import theme from '../../theme'
+import { copyImageToTeamBucket, downloadImage } from '../../api/cloud-storage/action'
+import { upscaleImage } from '../../api/imagen/action'
+import { addNewFirestoreEntry } from '../../api/firestore/action'
+import { useAppContext, appContextDataDefault } from '../../context/app-context'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(

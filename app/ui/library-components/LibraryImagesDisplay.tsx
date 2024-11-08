@@ -16,13 +16,13 @@ import {
   Typography,
 } from '@mui/material'
 
-import theme from '../theme'
+import theme from '../../theme'
 import { ImageMetadataI, ImageMetadataWithSignedUrl } from '@/app/api/export-utils'
-import { blurDataURL } from '@/app/ui/components/blurImage'
+import { blurDataURL } from '@/app/ui/ux-components/BlurImage'
 import { ArrowBackIos, ArrowForwardIos, Info } from '@mui/icons-material'
-import { CustomizedIconButton } from './components/Button-SX'
-import ExploreDialog from './explore-dialog'
-import { CustomWhiteTooltip } from './components/Tooltip'
+import { CustomizedIconButton } from '../ux-components/Button-SX'
+import ExploreDialog from './ExploreDialog'
+import { CustomWhiteTooltip } from '../ux-components/Tooltip'
 const { palette } = theme
 
 const CustomizedNavButtons = {

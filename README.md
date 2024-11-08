@@ -25,8 +25,10 @@
 - Name: `YOUR_COMPANY-imgstudio`
 - **Event:** `Manual invocation`
 - **Source:**
-  - Setup a [**GitHub fork**](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) from the public repository [https://github.com/aduboue/img-studio](https://github.com/aduboue/img-studio), which will **create a copy repository in your own GitHub account**, and notify you when you’re no longer up to date with the original
-  - In Cloud Build, **log into your GitHub account**, then select the newly created repository
+  - Go to the public repository [**https://github.com/aduboue/img-studio**](https://github.com/aduboue/img-studio)
+  - **Monitor new releases** to stay up-to-date: click on `Watch` \> `Custom` \> `Releases` \> Apply
+  - Use the top right button to setup a [**GitHub fork**](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) from the repository, which will **create a copy repository in your own GitHub account**
+  - Back in Cloud Build, **log into your GitHub account**, then select the newly created repository
 - **Configuration:** `Cloud Build configuration file (yaml or json)`
   - Cloud Build configuration file location: `/cloudbuild.yaml`
 - Put in 7 **substitution variables:**

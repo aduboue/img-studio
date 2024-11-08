@@ -18,11 +18,11 @@ import {
   Input,
   InputAdornment,
 } from '@mui/material'
-import theme from '../theme'
+import theme from '../../theme'
 import { useState } from 'react'
-import { RatioToPixel } from '../api/generate-utils'
-import { ChipGroup } from './components/InputChipGroup'
-import { OutpaintPreview } from './components/OutpaintPreview'
+import { RatioToPixel } from '../../api/generate-utils'
+import { ChipGroup } from '../ux-components/InputChipGroup'
+import { OutpaintPreview } from '../edit-components/OutpaintPreview'
 const { palette } = theme
 
 const customToggleButtonGroup = {

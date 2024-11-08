@@ -3,10 +3,10 @@
 import * as React from 'react'
 import Grid from '@mui/material/Grid2'
 import Box from '@mui/material/Box'
-import GenerateForm from '../../ui/generate-form'
+import GenerateForm from '../../ui/generate-components/GenerateForm'
 import { useState } from 'react'
 import { ImageI } from '../../api/generate-utils'
-import OutputImagesDisplay from '../../ui/imagen-output-images-display'
+import OutputImagesDisplay from '../../ui/transverse-components/ImagenOutputImagesDisplay'
 import { useAppContext } from '../../context/app-context'
 import { Typography } from '@mui/material'
 

@@ -20,14 +20,14 @@ import {
   Autorenew,
 } from '@mui/icons-material'
 
-import theme from '../theme'
-import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
+import theme from '../../theme'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
 import { useEffect, useRef } from 'react'
-import CustomTooltip from './components/Tooltip'
-import { CustomizedAccordion, CustomizedAccordionSummary } from './components/Accordion-SX'
-import { FilterImageFormI } from '../api/export-utils'
-import FormInputChipGroupMultiple from './components/InputChipGroupMultiple'
-import { useAppContext, appContextDataDefault } from '../context/app-context'
+import CustomTooltip from '../ux-components/Tooltip'
+import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-components/Accordion-SX'
+import { FilterImageFormI } from '../../api/export-utils'
+import FormInputChipGroupMultiple from '../ux-components/InputChipGroupMultiple'
+import { useAppContext, appContextDataDefault } from '../../context/app-context'
 
 const { palette } = theme
 

@@ -6,10 +6,10 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Drawer, List, ListItem, Typography, ListItemButton, Stack, IconButton, Box } from '@mui/material'
 
 import Image from 'next/image'
-import icon from '../../public/ImgStudioLogoReversedMini.svg'
-import { pages } from '../routes'
+import icon from '../../../public/ImgStudioLogoReversedMini.svg'
+import { pages } from '../../routes'
 
-import theme from '../theme'
+import theme from '../../theme'
 import { useState } from 'react'
 import { ChevronLeft, ChevronRight } from '@mui/icons-material'
 const { palette } = theme

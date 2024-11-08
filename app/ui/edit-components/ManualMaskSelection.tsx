@@ -1,7 +1,7 @@
 import { Clear, Draw, DriveFileRenameOutlineOutlined, Redo, Undo } from '@mui/icons-material'
 import { Stack, ToggleButtonGroup, ToggleButton, Typography, Divider, Box } from '@mui/material'
-import { CustomSlider } from './components/InputSlider'
-import theme from '../theme'
+import { CustomSlider } from '../ux-components/InputSlider'
+import theme from '../../theme'
 const { palette } = theme
 
 const customToggleButtonGroup = {

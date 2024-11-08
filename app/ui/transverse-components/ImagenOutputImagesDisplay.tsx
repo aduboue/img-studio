@@ -19,14 +19,14 @@ import {
   Stack,
 } from '@mui/material'
 
-import { ImageI } from '../api/generate-utils'
-import { CustomizedAvatarButton, CustomizedIconButton } from './components/Button-SX'
-import ExportStepper from './export-dialog'
+import { ImageI } from '../../api/generate-utils'
+import { CustomizedAvatarButton, CustomizedIconButton } from '../ux-components/Button-SX'
+import ExportStepper from './ExportDialog'
 
-import theme from '../theme'
-import { blurDataURL } from './components/blurImage'
-import { CustomWhiteTooltip } from './components/Tooltip'
-import { appContextDataDefault, useAppContext } from '../context/app-context'
+import theme from '../../theme'
+import { blurDataURL } from '../ux-components/BlurImage'
+import { CustomWhiteTooltip } from '../ux-components/Tooltip'
+import { appContextDataDefault, useAppContext } from '../../context/app-context'
 import { useRouter } from 'next/navigation'
 const { palette } = theme
 

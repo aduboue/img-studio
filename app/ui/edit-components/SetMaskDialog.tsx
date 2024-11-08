@@ -15,22 +15,20 @@ import {
   Alert,
   TextField,
   Avatar,
-  DialogProps,
 } from '@mui/material'
 import { TransitionProps } from '@mui/material/transitions'
 import { Autorenew, Close, Done, WatchLater } from '@mui/icons-material'
 
-import theme from '../theme'
-import MaskCanvas, { generateMaskFromManualCanvas } from './components/MaskCanvas'
-import { CustomRadio } from './components/InputRadioButton'
-import ManualMaskSelection from './manual-mask-selection'
+import theme from '../../theme'
+import MaskCanvas, { generateMaskFromManualCanvas } from './MaskCanvas'
+import { CustomRadio } from '../ux-components/InputRadioButton'
+import ManualMaskSelection from './ManualMaskSelection'
 import { ReactSketchCanvasRef } from 'react-sketch-canvas'
-import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
-import FormInputDropdownMultiple from './components/InputDropdownMultiple'
-import OutpaintingMaskSettings from './outpainting-mask-settings'
-import { segmentImage } from '../api/vertex-seg/action'
-import CustomTooltip from './components/Tooltip'
-import { getAspectRatio } from './components/ImageDropzone'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
+import FormInputDropdownMultiple from '../ux-components/InputDropdownMultiple'
+import OutpaintingMaskSettings from './OutpaintingMaskSettings'
+import { segmentImage } from '../../api/vertex-seg/action'
+import { getAspectRatio } from '../transverse-components/ImageDropzone'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(

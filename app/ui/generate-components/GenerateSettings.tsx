@@ -1,16 +1,16 @@
 import * as React from 'react'
 import { IconButton, Typography, Box, Menu, MenuItem, Avatar } from '@mui/material'
-import { CustomizedAvatarButton, CustomizedIconButton, CustomizedIconButtonOpen } from './components/Button-SX'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedIconButtonOpen } from '../ux-components/Button-SX'
 
-import theme from '../theme'
+import theme from '../../theme'
 const { palette } = theme
 
-import FormInputDropdown from './components/InputDropdown'
-import FormInputChipGroup from './components/InputChipGroup'
-import { FormInputGenerateSettingsI } from './components/InputInterface'
-import { FormInputTextSmall } from './components/InputTextSmall'
+import FormInputDropdown from '../ux-components/InputDropdown'
+import FormInputChipGroup from '../ux-components/InputChipGroup'
+import { FormInputGenerateSettingsI } from '../ux-components/InputInterface'
+import { FormInputTextSmall } from '../ux-components/InputTextSmall'
 import { Settings } from '@mui/icons-material'
-import CustomTooltip from './components/Tooltip'
+import CustomTooltip from '../ux-components/Tooltip'
 
 const CustomizedMenu = {
   '& .MuiPaper-root': {

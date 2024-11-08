@@ -6,12 +6,12 @@ import { useState } from 'react'
 import { Dialog, DialogContent, DialogTitle, IconButton, Slide, Box, Button, Typography, Stack } from '@mui/material'
 import { TransitionProps } from '@mui/material/transitions'
 import { ArrowRight, AutoAwesome, Close, Download, Edit } from '@mui/icons-material'
-import { useAppContext, appContextDataDefault } from '../context/app-context'
+import { useAppContext, appContextDataDefault } from '../../context/app-context'
 
-import theme from '../theme'
-import { ImageMetadataI } from '../api/export-utils'
-import { CustomizedSendButton } from './components/Button-SX'
-import { downloadImage } from '../api/cloud-storage/action'
+import theme from '../../theme'
+import { ImageMetadataI } from '../../api/export-utils'
+import { CustomizedSendButton } from '../ux-components/Button-SX'
+import { downloadImage } from '../../api/cloud-storage/action'
 import { useRouter } from 'next/navigation'
 const { palette } = theme
 

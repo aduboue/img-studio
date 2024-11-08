@@ -6,28 +6,28 @@ import { useForm, SubmitHandler } from 'react-hook-form'
 import { Typography, Button, Box, IconButton, Stack, Alert, Avatar, Icon } from '@mui/material'
 import { Send as SendIcon, WatchLater as WatchLaterIcon, Close as CloseIcon, Autorenew } from '@mui/icons-material'
 
-import { FormInputText } from './components/InputText'
-import FormInputDropdown from './components/InputDropdown'
+import { FormInputText } from '../ux-components/InputText'
+import FormInputDropdown from '../ux-components/InputDropdown'
 
-import { ImageI } from '../api/generate-utils'
+import { ImageI } from '../../api/generate-utils'
 
-import theme from '../theme'
-import { editImage } from '../api/imagen/action'
-import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
-import CustomTooltip from './components/Tooltip'
-import { useAppContext } from '../context/app-context'
-import ImageDropzone, { getAspectRatio } from './components/ImageDropzone'
+import theme from '../../theme'
+import { editImage } from '../../api/imagen/action'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
+import CustomTooltip from '../ux-components/Tooltip'
+import { useAppContext } from '../../context/app-context'
+import ImageDropzone from '../transverse-components/ImageDropzone'
 import {
   EditImageFormFields,
   EditImageFormI,
   editSettingsFields,
   formDataEditDefaults,
   maskTypes,
-} from '../api/edit-utils'
-import FormInputEditSettings from './edit-settings'
-import EditModeMenu from './components/EditModeMenu'
-import SetMaskDialog from './set-mask-dialog'
-import { downloadImage } from '../api/cloud-storage/action'
+} from '../../api/edit-utils'
+import FormInputEditSettings from './EditSettings'
+import EditModeMenu from './EditModeMenu'
+import SetMaskDialog from './SetMaskDialog'
+import { downloadImage } from '../../api/cloud-storage/action'
 const { palette } = theme
 
 const editModeField = EditImageFormFields.editMode

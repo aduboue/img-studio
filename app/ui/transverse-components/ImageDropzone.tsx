@@ -1,10 +1,9 @@
 import { Box, Typography } from '@mui/material'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 import theme from '../../theme'
-import { fileToBase64 } from '../edit-form'
-import { useAppContext } from '@/app/context/app-context'
+import { fileToBase64 } from '../edit-components/EditForm'
 const { palette } = theme
 
 export function getAspectRatio(width: number, height: number): string {

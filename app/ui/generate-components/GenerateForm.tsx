@@ -23,10 +23,10 @@ import {
   Lightbulb,
 } from '@mui/icons-material'
 
-import { FormInputText } from './components/InputText'
-import FormInputDropdown from './components/InputDropdown'
-import FormInputChipGroup from './components/InputChipGroup'
-import FormInputGenerateSettings from './generate-settings'
+import { FormInputText } from '../ux-components/InputText'
+import FormInputDropdown from '../ux-components/InputDropdown'
+import FormInputChipGroup from '../ux-components/InputChipGroup'
+import FormInputGenerateSettings from './GenerateSettings'
 
 import {
   modelField,
@@ -40,16 +40,16 @@ import {
   formDataResetableFields,
   ImageI,
   RandomPrompts,
-} from '../api/generate-utils'
+} from '../../api/generate-utils'
 
-import theme from '../theme'
-import { generateImage } from '../api/imagen/action'
-import { GeminiSwitch } from './components/GeminiSwitch'
-import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from './components/Button-SX'
+import theme from '../../theme'
+import { generateImage } from '../../api/imagen/action'
+import { GeminiSwitch } from '../ux-components/GeminiSwitch'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
 import { useEffect, useState } from 'react'
-import CustomTooltip from './components/Tooltip'
-import { CustomizedAccordion, CustomizedAccordionSummary } from './components/Accordion-SX'
-import { useAppContext } from '../context/app-context'
+import CustomTooltip from '../ux-components/Tooltip'
+import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-components/Accordion-SX'
+import { useAppContext } from '../../context/app-context'
 const { palette } = theme
 
 export default function GenerateForm({

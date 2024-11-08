@@ -8,12 +8,11 @@ import { Typography } from '@mui/material'
 
 import theme from '../../theme'
 import { getSignedURL } from '@/app/api/cloud-storage/action'
-import { ExportErrorWarning } from '@/app/ui/components/ExportAlerts'
+import { ExportErrorWarning } from '@/app/ui/transverse-components/ExportAlerts'
 import { fetchDocumentsInBatches } from '@/app/api/firestore/action'
 import { ImageMetadataWithSignedUrl } from '@/app/api/export-utils'
-import LibraryImagesDisplay from '@/app/ui/library-images-display'
-import LibraryFiltering from '@/app/ui/library-filtering'
-import { set } from 'react-hook-form'
+import LibraryImagesDisplay from '@/app/ui/library-components/LibraryImagesDisplay'
+import LibraryFiltering from '../../ui/library-components/LibraryFiltering'
 const { palette } = theme
 
 export default function Page() {
