@@ -22,7 +22,7 @@ const calculateImageScaleFactor = (
 }
 
 export default function MaskCanvas({
-  userUploadedImage,
+  imageToEdit,
   maskSize,
   maskImage,
   maskPreview,
@@ -32,7 +32,7 @@ export default function MaskCanvas({
   setIsEmptyCanvas,
   isMaskPreview,
 }: {
-  userUploadedImage: string | null
+  imageToEdit: string | null
   maskSize: { width: number; height: number }
   maskImage: string | null
   maskPreview: string | null
@@ -59,12 +59,12 @@ export default function MaskCanvas({
   }
 
   useEffect(() => {
-    if (!userUploadedImage && !maskImage) {
+    if (!imageToEdit && !maskImage) {
       resetImagePreview()
       setCanvasSize({ width: 0, height: 0 })
       checkIfCanvasIsEmpty()
     }
-  }, [userUploadedImage, maskImage, maskPreview])
+  }, [imageToEdit, maskImage, maskPreview])
 
   useEffect(() => {
     checkIfCanvasIsEmpty()
@@ -72,25 +72,25 @@ export default function MaskCanvas({
 
   useEffect(() => {
     const loadImage = () => {
-      if (userUploadedImage) {
-        setImagePreview(userUploadedImage)
+      if (imageToEdit) {
+        setImagePreview(imageToEdit)
 
         const img = new Image()
         img.onload = () => {
           const { width: newWidth, height: newHeight } = calculateImageScaleFactor(img.width, img.height)
           setCanvasSize({ width: newWidth, height: newHeight })
         }
-        img.src = userUploadedImage
+        img.src = imageToEdit
       }
     }
 
     loadImage()
 
-    if (!userUploadedImage) {
+    if (!imageToEdit) {
       setCanvasSize({ width: 0, height: 0 })
       setImagePreview(null)
     }
-  }, [userUploadedImage, calculateImageScaleFactor])
+  }, [imageToEdit, calculateImageScaleFactor])
 
   const resetCanvas = () => {
     if (canvasRef.current) {

@@ -4,6 +4,7 @@ import { useDropzone } from 'react-dropzone'
 
 import theme from '../../theme'
 import { fileToBase64 } from '../edit-form'
+import { useAppContext } from '@/app/context/app-context'
 const { palette } = theme
 
 function getAspectRatio(width: number, height: number): string {
@@ -52,8 +53,8 @@ export function getParentBoxDimensions(selector: string): { maxWidth: number; ma
 }
 
 export default function ImageDropzone({
-  setUserUploadedImage,
-  userUploadedImage,
+  setImageToEdit,
+  imageToEdit,
   maskImage,
   maskPreview,
   setValue,
@@ -64,8 +65,8 @@ export default function ImageDropzone({
   maskSize,
   setErrorMsg,
 }: {
-  setUserUploadedImage: React.Dispatch<React.SetStateAction<string | null>>
-  userUploadedImage: string | null
+  setImageToEdit: React.Dispatch<React.SetStateAction<string | null>>
+  imageToEdit: string | null
   maskImage: string | null
   maskPreview: string | null
   setValue: any
@@ -76,8 +77,19 @@ export default function ImageDropzone({
   maskSize: { width: number; height: number }
   setErrorMsg: (newErrorMsg: string) => void
 }) {
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [canvasSize, setCanvas] = useState({ width: 0, height: 0 })
+
+  const initiateDimensions = (image: string) => {
+    const img = new Image()
+    img.onload = () => {
+      initializeCanvas(img.width, img.height)
+      setValue('width', img.width)
+      setValue('height', img.height)
+      setValue('ratio', getAspectRatio(img.width, img.height))
+      setMaskSize({ width: img.width, height: img.height })
+    }
+    img.src = image
+  }
 
   const calculateImageScaleFactor = useMemo(
     () =>
@@ -96,8 +108,7 @@ export default function ImageDropzone({
   }
 
   const resetImagePreview = () => {
-    setImagePreview(null)
-    setUserUploadedImage(null)
+    setImageToEdit(null)
     setMaskImage(null)
     setCanvas({ width: 0, height: 0 })
   }
@@ -105,13 +116,14 @@ export default function ImageDropzone({
   useEffect(() => {
     if (isOutpaintingMode && outpaintedImage) {
       initializeCanvas(maskSize.width, maskSize.height)
-    } else if (userUploadedImage) {
+    } else if (imageToEdit) {
       const img = new Image()
       img.onload = () => {
         initializeCanvas(img.width, img.height)
       }
-      img.src = userUploadedImage
-    } else if (!userUploadedImage && !maskImage) {
+      img.src = imageToEdit
+      initiateDimensions(imageToEdit)
+    } else if (!imageToEdit && !maskImage) {
       resetImagePreview()
       setCanvas({ width: 0, height: 0 })
       setMaskSize({ width: 0, height: 0 })
@@ -119,37 +131,24 @@ export default function ImageDropzone({
       setValue('height', 0)
       setValue('ratio', '1:1')
     }
-  }, [userUploadedImage, maskImage, isOutpaintingMode, outpaintedImage])
+  }, [imageToEdit, maskImage, isOutpaintingMode, outpaintedImage])
 
-  const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      setErrorMsg('')
+  const onDrop = async (acceptedFiles: File[]) => {
+    setErrorMsg('')
 
-      const file = acceptedFiles[0]
-      const allowedTypes = ['image/png', 'image/webp', 'image/jpeg']
+    const file = acceptedFiles[0]
+    const allowedTypes = ['image/png', 'image/webp', 'image/jpeg']
 
-      if (!allowedTypes.includes(file.type)) {
-        setErrorMsg('Wrong input image format - Only png, jpeg and webp are allowed')
-        return
-      }
+    if (!allowedTypes.includes(file.type)) {
+      setErrorMsg('Wrong input image format - Only png, jpeg and webp are allowed')
+      return
+    }
 
-      const base64 = await fileToBase64(file)
-      const newImage = `data:${file.type};base64,${base64}`
-      setUserUploadedImage(newImage)
-      setImagePreview(newImage)
-
-      const img = new Image()
-      img.onload = () => {
-        initializeCanvas(img.width, img.height)
-        setValue('width', img.width)
-        setValue('height', img.height)
-        setValue('ratio', getAspectRatio(img.width, img.height))
-        setMaskSize({ width: img.width, height: img.height })
-      }
-      img.src = newImage
-    },
-    [setUserUploadedImage]
-  )
+    const base64 = await fileToBase64(file)
+    const newImage = `data:${file.type};base64,${base64}`
+    setImageToEdit(newImage)
+    initiateDimensions(newImage)
+  }
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
 
@@ -168,7 +167,7 @@ export default function ImageDropzone({
           overflow: 'hidden', // Add this line
         }}
       >
-        {!imagePreview && (
+        {!imageToEdit && (
           <Box
             sx={{
               position: 'absolute',
@@ -197,7 +196,7 @@ export default function ImageDropzone({
             <Typography variant="body1">{'Drop or browse your image'}</Typography>
           </Box>
         )}
-        {imagePreview && (
+        {imageToEdit && (
           <Box
             sx={{
               position: 'relative',
@@ -207,7 +206,7 @@ export default function ImageDropzone({
             }}
           >
             <img
-              src={imagePreview}
+              src={imageToEdit}
               alt="preview image"
               style={{ position: 'absolute', width: '100%', height: '100%', zIndex: 0 }}
             />

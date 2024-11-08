@@ -81,6 +81,10 @@ export default function GenerateForm({
     return RandomPrompts[Math.floor(Math.random() * RandomPrompts.length)]
   }
 
+  useEffect(() => {
+    if (appContext && appContext.promptToGenerate) setValue('prompt', appContext.promptToGenerate)
+  }, [appContext?.promptToGenerate])
+
   const onSubmit: SubmitHandler<GenerateImageFormI> = async (formData: GenerateImageFormI) => {
     onRequestSent(true)
 

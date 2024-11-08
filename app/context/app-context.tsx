@@ -9,6 +9,8 @@ export interface appContextDataI {
   userID?: string
   exportFields?: ExportImageFormFieldsI
   isLoading: boolean
+  imageToEdit?: string
+  promptToGenerate?: string
 }
 
 interface AppContextType {
@@ -23,6 +25,8 @@ export const appContextDataDefault = {
   userID: '',
   exportFields: undefined,
   isLoading: true,
+  imageToEdit: '',
+  promptToGenerate: '',
 }
 
 const AppContext = createContext<AppContextType>({
@@ -52,6 +56,13 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           !process.env.NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI
         ) {
           throw Error('Missing required environment variables')
+        }
+
+        if (
+          process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' &&
+          (!process.env.NEXT_PUBLIC_EDIT_MODEL || !process.env.NEXT_PUBLIC_SEG_MODEL)
+        ) {
+          throw Error('Missing required environment variables for editing')
         }
 
         // 1. Fetch User ID from client-side

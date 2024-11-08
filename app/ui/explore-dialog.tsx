@@ -1,15 +1,18 @@
+'use client'
+
 import * as React from 'react'
 import { useState } from 'react'
 
-import { Dialog, DialogContent, DialogTitle, IconButton, Slide, Box, Button, Typography } from '@mui/material'
+import { Dialog, DialogContent, DialogTitle, IconButton, Slide, Box, Button, Typography, Stack } from '@mui/material'
 import { TransitionProps } from '@mui/material/transitions'
-import { ArrowRight, Close, Download } from '@mui/icons-material'
+import { ArrowRight, AutoAwesome, Close, Download, Edit } from '@mui/icons-material'
 import { useAppContext, appContextDataDefault } from '../context/app-context'
 
 import theme from '../theme'
 import { ImageMetadataI } from '../api/export-utils'
 import { CustomizedSendButton } from './components/Button-SX'
 import { downloadImage } from '../api/cloud-storage/action'
+import { useRouter } from 'next/navigation'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
@@ -31,6 +34,25 @@ export default function ExploreDialog({
   handleImageExploreClose: () => void
 }) {
   const [downloadStatus, setDownloadStatus] = useState('Download')
+
+  const { setAppContext } = useAppContext()
+  const router = useRouter()
+
+  const handleEditClick = (imageGcsURI: string) => {
+    setAppContext((prevContext) => {
+      if (prevContext) return { ...prevContext, imageToEdit: imageGcsURI }
+      else return { ...appContextDataDefault, imageToEdit: imageGcsURI }
+    })
+    router.push('/edit')
+  }
+
+  const handleRegenerateClick = (prompt: string) => {
+    setAppContext((prevContext) => {
+      if (prevContext) return { ...prevContext, promptToGenerate: prompt }
+      else return { ...appContextDataDefault, promptToGenerate: prompt }
+    })
+    router.push('/generate')
+  }
 
   const handleDownload = async (documentToExplore: ImageMetadataI) => {
     try {
@@ -148,19 +170,43 @@ export default function ExploreDialog({
                 }
               })}
           </Box>
-          {documentToExplore && (
-            <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
-              <Button
-                variant="contained"
-                onClick={() => handleDownload(documentToExplore)}
-                endIcon={<Download />}
-                disabled={downloadStatus === 'Preparing download...'}
-                sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
-              >
-                {downloadStatus}
-              </Button>
-            </Box>
-          )}
+          <Stack direction="row" gap={0} pb={3}>
+            {documentToExplore && (
+              <>
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleDownload(documentToExplore)}
+                    endIcon={<Download sx={{ mr: 0.2 }} />}
+                    disabled={downloadStatus === 'Preparing download...'}
+                    sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+                  >
+                    {downloadStatus}
+                  </Button>
+                </Box>
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleRegenerateClick(documentToExplore ? documentToExplore.imagePrompt : '')}
+                    endIcon={<AutoAwesome sx={{ mr: 0.4 }} />}
+                    sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+                  >
+                    {'Replay prompt'}
+                  </Button>
+                </Box>
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => handleEditClick(documentToExplore ? documentToExplore.imageGcsURI : '')}
+                    endIcon={<Edit />}
+                    sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+                  >
+                    {'Edit'}
+                  </Button>
+                </Box>
+              </>
+            )}
+          </Stack>
         </DialogContent>
       </Dialog>
     )

@@ -28,6 +28,7 @@ import {
 import FormInputEditSettings from './edit-settings'
 import EditModeMenu from './components/EditModeMenu'
 import SetMaskDialog from './set-mask-dialog'
+import { downloadImage } from '../api/cloud-storage/action'
 const { palette } = theme
 
 const editModeField = EditImageFormFields.editMode
@@ -64,7 +65,7 @@ export default function EditForm({
   const { appContext } = useAppContext()
 
   //TODO add as part of form?
-  const [userUploadedImage, setUserUploadedImage] = useState<string | null>(null)
+  const [imageToEdit, setImageToEdit] = useState<string | null>(null)
   const [maskImage, setMaskImage] = useState<string | null>(null)
   const [maskPreview, setMaskPreview] = useState<string | null>(null)
   const [outpaintedImage, setOutpaintedImage] = useState<string | null>(null)
@@ -72,9 +73,8 @@ export default function EditForm({
   const [imageWidth, imageHeight, imageRatio] = watch(['width', 'height', 'ratio'])
   const [maskSize, setMaskSize] = useState({ width: 0, height: 0 })
 
-  const [selectedEditMode, setSelectedEditMode] = useState(
-    editModeOptions.find((option) => option.value === editModeField.default)
-  )
+  const defaultEditMode = editModeOptions.find((option) => option.value === editModeField.default)
+  const [selectedEditMode, setSelectedEditMode] = useState(defaultEditMode)
   const [openMaskDialog, setOpenMaskDialog] = useState(false)
 
   const handleNewEditMode = (value: string) => {
@@ -89,6 +89,24 @@ export default function EditForm({
     }
   }, [imageWidth, imageHeight])
 
+  useEffect(() => {
+    const fetchAndSetImage = async () => {
+      handleNewEditMode(defaultEditMode?.value ?? '')
+      if (appContext && appContext.imageToEdit) {
+        try {
+          const { image } = await downloadImage(appContext.imageToEdit)
+          const newImage = `data:image/png;base64,${image}`
+          image && setImageToEdit(newImage)
+          setMaskImage(null)
+        } catch (error) {
+          console.error('Error fetching image:', error)
+        }
+      }
+    }
+
+    fetchAndSetImage()
+  }, [appContext?.imageToEdit])
+
   const handleMaskDialogOpen = () => {
     if (imageWidth !== maskSize.width || imageHeight !== maskSize.width)
       setMaskSize({ width: imageWidth, height: imageHeight })
@@ -99,10 +117,10 @@ export default function EditForm({
   }
 
   useEffect(() => {
-    if (userUploadedImage) setValue('inputImage', userUploadedImage)
+    if (imageToEdit) setValue('inputImage', imageToEdit)
     if (outpaintedImage) setValue('inputImage', outpaintedImage)
     if (maskImage) setValue('inputMask', maskImage)
-  }, [userUploadedImage, maskImage, outpaintedImage])
+  }, [imageToEdit, maskImage, outpaintedImage])
 
   const onSubmit: SubmitHandler<EditImageFormI> = async (formData: EditImageFormI) => {
     onRequestSent(true)
@@ -131,12 +149,13 @@ export default function EditForm({
   }
 
   const onReset = () => {
-    setUserUploadedImage(null)
+    setImageToEdit(null)
     resetStates()
     reset()
   }
 
   const resetStates = () => {
+    setValue('prompt', '')
     setMaskImage(null)
     setMaskPreview(null)
     setOutpaintedImage(null)
@@ -191,8 +210,8 @@ export default function EditForm({
 
         <Box sx={{ pb: 4 }}>
           <ImageDropzone
-            setUserUploadedImage={setUserUploadedImage}
-            userUploadedImage={userUploadedImage}
+            setImageToEdit={setImageToEdit}
+            imageToEdit={imageToEdit}
             setValue={setValue}
             setMaskSize={setMaskSize}
             maskSize={maskSize}
@@ -239,7 +258,7 @@ export default function EditForm({
             <Button
               variant="contained"
               onClick={handleMaskDialogOpen}
-              disabled={userUploadedImage === null || isLoading}
+              disabled={imageToEdit === null || isLoading}
               endIcon={isLoading ? <WatchLaterIcon /> : <Icon>{selectedEditMode?.maskButtonIcon}</Icon>}
               sx={CustomizedSendButton}
             >
@@ -249,9 +268,7 @@ export default function EditForm({
           <Button
             type="submit"
             variant="contained"
-            disabled={
-              (maskImage === null && selectedEditMode?.mandatoryMask) || userUploadedImage === null || isLoading
-            }
+            disabled={(maskImage === null && selectedEditMode?.mandatoryMask) || imageToEdit === null || isLoading}
             endIcon={isLoading ? <WatchLaterIcon /> : <SendIcon />}
             sx={CustomizedSendButton}
           >
@@ -270,7 +287,7 @@ export default function EditForm({
           setMaskImage={setMaskImage}
           maskPreview={maskPreview}
           setMaskPreview={setMaskPreview}
-          userUploadedImage={userUploadedImage}
+          imageToEdit={imageToEdit}
           imageSize={{ width: imageWidth, height: imageHeight, ratio: imageRatio }}
           maskSize={maskSize}
           setMaskSize={setMaskSize}

@@ -39,10 +39,10 @@ export const EditImageFormFields = {
   modelVersion: {
     type: 'select',
     label: 'Model version',
-    default: 'imagen-3.0-capability-preview-0930',
+    default: process.env.NEXT_PUBLIC_EDIT_MODEL ?? '',
     options: [
       {
-        value: 'imagen-3.0-capability-preview-0930',
+        value: process.env.NEXT_PUBLIC_EDIT_MODEL ?? '',
         label: 'Imagen 3',
         indication: 'Edit your images with Imagen 3',
       },

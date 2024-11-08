@@ -14,6 +14,7 @@ steps:
         '--build-arg',
         '_NEXT_PUBLIC_GEMINI_MODEL=${_NEXT_PUBLIC_GEMINI_MODEL}',
         '--build-arg',
+        '_NEXT_PUBLIC_EDIT_MODEL=${_NEXT_PUBLIC_EDIT_MODEL}',
         '--build-arg',
         '_NEXT_PUBLIC_SEG_MODEL=${_NEXT_PUBLIC_SEG_MODEL}',
         '--build-arg',

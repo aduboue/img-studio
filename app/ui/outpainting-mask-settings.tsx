@@ -67,7 +67,7 @@ export default function OutpaintingMaskSettings({
   outpaintPosition,
   outpaintCanvasRef,
   setMaskImage,
-  userUploadedImage,
+  imageToEdit,
   setOutpaintedImage,
 }: {
   alignHorizontal: string
@@ -80,7 +80,7 @@ export default function OutpaintingMaskSettings({
   outpaintPosition: { horizontal: string; vertical: string }
   outpaintCanvasRef: React.RefObject<HTMLCanvasElement>
   setMaskImage: (value: string | null) => void
-  userUploadedImage: string | null
+  imageToEdit: string | null
   setOutpaintedImage: (value: string | null) => void
 }) {
   const [outpaintRatio, setOutpaintRatio] = useState('')
@@ -294,7 +294,7 @@ export default function OutpaintingMaskSettings({
           maskSize={maskSize}
           outpaintCanvasRef={outpaintCanvasRef}
           setMaskImage={setMaskImage}
-          userUploadedImage={userUploadedImage}
+          imageToEdit={imageToEdit}
           setOutpaintedImage={setOutpaintedImage}
         />
         {maskSize.width === imageSize.width && maskSize.height === imageSize.height && (

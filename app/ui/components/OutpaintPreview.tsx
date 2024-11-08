@@ -16,7 +16,7 @@ export function OutpaintPreview({
   outpaintPosition,
   outpaintCanvasRef,
   setMaskImage,
-  userUploadedImage,
+  imageToEdit,
   setOutpaintedImage,
 }: {
   maskSize: { width: number; height: number }
@@ -24,7 +24,7 @@ export function OutpaintPreview({
   outpaintPosition: { horizontal: string; vertical: string }
   outpaintCanvasRef: React.RefObject<HTMLCanvasElement>
   setMaskImage: (value: string | null) => void
-  userUploadedImage: string | null
+  imageToEdit: string | null
   setOutpaintedImage: (value: string | null) => void
 }) {
   const fabricCanvasRef = useRef<Canvas | null>(null)
@@ -125,7 +125,7 @@ export function OutpaintPreview({
           generateMaskFromCanvas(maskSize, imageSize, outpaintPosition).then((newMask) => {
             newMask && setMaskImage(newMask)
           })
-          generateOutpaintedImageFromCanvas(maskSize, userUploadedImage, outpaintPosition).then((newImage) => {
+          generateOutpaintedImageFromCanvas(maskSize, imageToEdit, outpaintPosition).then((newImage) => {
             newImage && setOutpaintedImage(newImage)
           })
         }
@@ -224,10 +224,10 @@ async function generateMaskFromCanvas(
 
 async function generateOutpaintedImageFromCanvas(
   maskSize: { width: number; height: number },
-  userUploadedImage: string | null,
+  imageToEdit: string | null,
   outpaintPosition: { horizontal: string; vertical: string }
 ) {
-  if (!userUploadedImage) return
+  if (!imageToEdit) return
 
   // Create a new canvas with the desired mask size
   const outpaintCanvas = document.createElement('canvas')
@@ -242,7 +242,7 @@ async function generateOutpaintedImageFromCanvas(
 
   // Load the user uploaded image
   const img = new Image()
-  img.src = userUploadedImage
+  img.src = imageToEdit
 
   // Ensure the image is loaded before drawing
   await new Promise((resolve) => (img.onload = resolve))

@@ -51,7 +51,7 @@ export default function SetMaskDialog({
   maskPreview,
   setMaskImage,
   setMaskPreview,
-  userUploadedImage,
+  imageToEdit,
   imageSize,
   maskSize,
   setMaskSize,
@@ -65,7 +65,7 @@ export default function SetMaskDialog({
   maskPreview: string | null
   setMaskPreview: React.Dispatch<React.SetStateAction<string | null>>
   setMaskImage: React.Dispatch<React.SetStateAction<string | null>>
-  userUploadedImage: any
+  imageToEdit: any
   imageSize: { width: number; height: number; ratio: string }
   maskSize: { width: number; height: number }
   setMaskSize: any
@@ -156,7 +156,7 @@ export default function SetMaskDialog({
         throw Error('No interactive scribble provided')
       }
 
-      const res = await segmentImage(userUploadedImage, maskType, semanticSelection, promptSelection, manualMask ?? '')
+      const res = await segmentImage(imageToEdit, maskType, semanticSelection, promptSelection, manualMask ?? '')
 
       if (res !== undefined && typeof res === 'object' && 'error' in res) {
         const msg = res['error'] as string
@@ -362,7 +362,7 @@ export default function SetMaskDialog({
                       <Button
                         variant="contained"
                         onClick={onSegmentation}
-                        disabled={userUploadedImage === null || segIsLoading}
+                        disabled={imageToEdit === null || segIsLoading}
                         endIcon={segIsLoading ? <WatchLater /> : <Icon>{selectedEditMode?.maskButtonIcon}</Icon>}
                         sx={{ ...CustomizedSendButton, fontSize: '0.85rem' }}
                       >
@@ -418,7 +418,7 @@ export default function SetMaskDialog({
                         outpaintPosition={outpaintPosition}
                         outpaintCanvasRef={outpaintCanvasRef}
                         setMaskImage={setMaskImage}
-                        userUploadedImage={userUploadedImage}
+                        imageToEdit={imageToEdit}
                         setOutpaintedImage={setOutpaintedImage}
                       />
                     </>
@@ -430,7 +430,7 @@ export default function SetMaskDialog({
               variant="contained"
               onClick={onValidate}
               disabled={
-                userUploadedImage === null ||
+                imageToEdit === null ||
                 segIsLoading ||
                 (maskType === 'manual' && isEmptyCanvas) ||
                 (maskType === 'outpaint' && maskSize.width === imageSize.width && maskSize.height === imageSize.height)
@@ -442,7 +442,7 @@ export default function SetMaskDialog({
             </Button>
           </Box>
           <MaskCanvas
-            userUploadedImage={userUploadedImage}
+            imageToEdit={imageToEdit}
             maskSize={maskSize}
             maskImage={maskImage}
             maskPreview={maskPreview}
@@ -486,9 +486,6 @@ export async function createMaskPreview(
     // 4. Use onload to ensure the image is loaded before drawing
     imgElement.onload = () => {
       ctx.drawImage(imgElement, 0, 0)
-
-      console.log('maskSize:', maskSize) // TODO remove
-      console.log('base64Image size:', { width: imgElement.width, height: imgElement.height }) // TODO remove
 
       // 5. Get the image data
       const imgData = ctx.getImageData(0, 0, maskSize.width, maskSize.height)

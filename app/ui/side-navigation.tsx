@@ -133,7 +133,7 @@ export default function SideNav() {
             color: palette.secondary.light,
           }}
         >
-          / Made with <span style={{ margin: 2, color: palette.primary.main }}>❤</span> by
+          / Made with <span style={{ margin: 1, color: palette.primary.main }}>❤</span> by
           <a
             href="https://www.linkedin.com/in/aduboue/"
             style={{

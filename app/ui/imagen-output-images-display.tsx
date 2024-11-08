@@ -1,7 +1,9 @@
+'use client'
+
 import * as React from 'react'
 import { useState } from 'react'
 
-import { FileUpload } from '@mui/icons-material'
+import { Edit, FileUpload } from '@mui/icons-material'
 
 import Image from 'next/image'
 import {
@@ -14,6 +16,7 @@ import {
   ImageList,
   ImageListItemBar,
   Typography,
+  Stack,
 } from '@mui/material'
 
 import { ImageI } from '../api/generate-utils'
@@ -23,6 +26,8 @@ import ExportStepper from './export-dialog'
 import theme from '../theme'
 import { blurDataURL } from './components/blurImage'
 import { CustomWhiteTooltip } from './components/Tooltip'
+import { appContextDataDefault, useAppContext } from '../context/app-context'
+import { useRouter } from 'next/navigation'
 const { palette } = theme
 
 export default function OutputImagesDisplay({
@@ -37,7 +42,7 @@ export default function OutputImagesDisplay({
   const handleOpenImageFullScreen = (image: ImageI) => setImageFullScreen(image)
   const handleCloseImageFullScreen = () => setImageFullScreen(undefined)
   const handleContextMenu = (event: React.MouseEvent<HTMLImageElement>) => {
-    event.preventDefault() // Prevent the default context menu
+    event.preventDefault()
   }
 
   // Export form and handlers
@@ -53,10 +58,24 @@ export default function OutputImagesDisplay({
     setImageExportOpen(false)
   }
 
+  const { setAppContext } = useAppContext()
+  const router = useRouter()
+
+  const handleEditClick = (imageGcsURI: string) => {
+    setAppContext((prevContext) => {
+      if (prevContext) {
+        return { ...prevContext, imageToEdit: imageGcsURI }
+      } else {
+        return { ...appContextDataDefault, imageToEdit: imageGcsURI }
+      }
+    })
+    router.push('/edit')
+  }
+
   return (
     <>
       <Box sx={{ height: '79vh', maxHeight: 650, width: '90%' }}>
-        {isLoading ? ( // Conditional rendering based on loading state
+        {isLoading ? (
           <Skeleton variant="rounded" width={450} height={450} sx={{ mt: 2, bgcolor: palette.primary.light }} />
         ) : (
           <ImageList cols={2} gap={8} sx={{ cursor: 'pointer', '&.MuiImageList-root': { pb: 5, px: 1 } }}>
@@ -115,17 +134,30 @@ export default function OutputImagesDisplay({
                     }}
                     position="top"
                     actionIcon={
-                      <CustomWhiteTooltip title="Export & Download" size="small">
-                        <IconButton
-                          onClick={() => handleImageExportOpen(image)}
-                          aria-label="Export image"
-                          sx={{ px: 0.5 }}
-                        >
-                          <Avatar sx={CustomizedAvatarButton}>
-                            <FileUpload sx={CustomizedIconButton} />
-                          </Avatar>
-                        </IconButton>
-                      </CustomWhiteTooltip>
+                      <Stack direction="row" gap={0} pb={3}>
+                        <CustomWhiteTooltip title="Export & Download" size="small">
+                          <IconButton
+                            onClick={() => handleEditClick(image.gcsUri)}
+                            aria-label="Export image"
+                            sx={{ px: 0.5 }}
+                          >
+                            <Avatar sx={CustomizedAvatarButton}>
+                              <Edit sx={CustomizedIconButton} />
+                            </Avatar>
+                          </IconButton>
+                        </CustomWhiteTooltip>
+                        <CustomWhiteTooltip title="Export & Download" size="small">
+                          <IconButton
+                            onClick={() => handleImageExportOpen(image)}
+                            aria-label="Export image"
+                            sx={{ px: 0.5 }}
+                          >
+                            <Avatar sx={CustomizedAvatarButton}>
+                              <FileUpload sx={CustomizedIconButton} />
+                            </Avatar>
+                          </IconButton>
+                        </CustomWhiteTooltip>
+                      </Stack>
                     }
                   />
                 </ImageListItem>

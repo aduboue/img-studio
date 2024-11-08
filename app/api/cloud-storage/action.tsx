@@ -80,7 +80,7 @@ export async function downloadImage(gcsUri: string) {
   const { bucketName, fileName } = await decomposeUri(gcsUri)
 
   try {
-    const [res] = await storage.bucket(bucketName).file(fileName).download() // Assuming download returns an array with the data at index 0
+    const [res] = await storage.bucket(bucketName).file(fileName).download()
 
     const base64Image = Buffer.from(res).toString('base64')
 
