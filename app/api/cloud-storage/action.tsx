@@ -44,9 +44,10 @@ export async function getSignedURL(gcsURI: string) {
 
 export async function copyImageToTeamBucket(actualGcsUri: string, imageID: string) {
   const storage = new Storage({ projectId })
-  const { bucketName, fileName } = await decomposeUri(actualGcsUri)
 
   try {
+    const { bucketName, fileName } = await decomposeUri(actualGcsUri)
+
     const destinationBucketName = process.env.NEXT_PUBLIC_TEAM_BUCKET
 
     if (!bucketName || !fileName || !destinationBucketName) {

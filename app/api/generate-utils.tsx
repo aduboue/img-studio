@@ -53,7 +53,8 @@ export interface GenerateImageFormFieldsI {
   light_coming_from: GenerateImagFieldI1
   shot_from: GenerateImagFieldI1
   perspective: GenerateImagFieldI1
-  background_color: GenerateImagFieldI1
+  colors: GenerateImagFieldI1
+  //use_Case: GenerateImagFieldI1
 }
 
 export const GenerateImageFormFields = {
@@ -137,22 +138,27 @@ export const GenerateImageFormFields = {
   },
   style: {
     type: 'select',
-    default: 'highly realistic DSLR photography in high resolution',
+    default: 'photo',
     defaultSub: 'photographySub',
     options: [
       {
-        value: 'highly realistic DSLR photography in high resolution',
+        value: 'photo',
         label: 'Photography',
         subID: 'photographySub',
       },
       {
-        value: 'manual art creation',
-        label: 'Art',
-        subID: 'artSub',
+        value: 'drawing',
+        label: 'Drawing',
+        subID: 'drawingSub',
+      },
+      {
+        value: 'painting',
+        label: 'Painting',
+        subID: 'paintingSub',
       },
       {
         value: 'computer digital creation',
-        label: 'Digital creation',
+        label: 'Digital art',
         subID: 'digitalSub',
       },
     ],
@@ -169,33 +175,53 @@ export const GenerateImageFormFields = {
         options: [
           'Landscape',
           'Studio',
-          'Person portrait',
-          'Black & White',
-          'Vintage',
-          'Cinematic grain',
+          'Portrait',
           'Candid',
-          'Minimalist',
-          'Long Exposure',
+          'Street',
+          'Architectural',
+          'Wildlife',
+          'Photojournalism',
+          'Fashion',
+          'Food',
+          'Travel',
+          'Fine Art',
+          'Polaroid',
+          'Astronomy',
         ],
         default: '',
       },
       {
-        label: 'Art style',
-        subID: 'artSub',
+        label: 'Drawing style',
+        subID: 'drawingSub',
         type: 'select',
         options: [
-          'Sketch',
-          'Oil Painting',
-          'Watercolor',
+          'Technical pencil',
+          'Color pencil',
+          'Cartoon',
+          'Graphic Novel',
+          'Charcoal',
           'Pastel',
           'Ink',
-          'Pop Art',
-          'Cyberpunk',
-          'Minimalism',
+          'Sketch',
+          'Doodle',
+        ],
+        default: '',
+      },
+      {
+        label: 'Painting style',
+        subID: 'paintingSub',
+        type: 'select',
+        options: [
+          'Gouache',
+          'Oil',
+          'Watercolor',
+          'Pastel',
           'Street Art',
-          'Cartoon',
-          'Anime/Manga',
-          'Graphic Novel',
+          'Impressionism',
+          'Expressionism',
+          'Surrealism',
+          'Abstract',
+          'Minimalism',
         ],
         default: '',
       },
@@ -203,45 +229,57 @@ export const GenerateImageFormFields = {
         label: 'Digital creation style',
         subID: 'digitalSub',
         type: 'select',
-        options: ['Illustration', 'Pixel Art', 'Vector Art', '3D Rendering'],
+        options: [
+          'Typography',
+          'Digital illustration',
+          'Pop Art',
+          'Cyberpunk poster',
+          'Pixel Art',
+          'Vector Art',
+          '3D Rendering',
+          'Video game',
+          'Animation',
+          'Visual Effects',
+          'Motion Graphics',
+        ],
         default: '',
       },
     ],
     isDataResetable: true,
-    isFullPromptAdditionalField: true,
+    isFullPromptAdditionalField: false,
   },
   light: {
     label: 'Lightning',
     type: 'chip-group',
-    options: ['Bright Sun', 'Golden Hour', 'Soft', 'Night time', 'Candle lit'],
+    options: ['Natural', 'Bright Sun', 'Golden Hour', 'Night time', 'Dramatic', 'Warm', 'Cold'],
     isDataResetable: true,
     isFullPromptAdditionalField: true,
   },
   light_coming_from: {
     label: 'Light origin',
     type: 'chip-group',
-    options: ['Front', 'Back', 'Above', 'Below', 'Left', 'Right'],
+    options: ['Front', 'Back', 'Above', 'Below', 'Side'],
     isDataResetable: true,
     isFullPromptAdditionalField: true,
   },
   shot_from: {
     label: 'View angle',
     type: 'chip-group',
-    options: ['Front', 'Back', 'Above', 'Below', 'Left', 'Right'],
+    options: ['Front', 'Back', 'Above', 'Below', 'Side'],
     isDataResetable: true,
     isFullPromptAdditionalField: true,
   },
   perspective: {
     label: 'Perspective',
     type: 'chip-group',
-    options: ['Medium wide', 'Wide', 'Extra wide', 'Close-up'],
+    options: ['Macro', 'Close-up', 'Standard', 'Wide angle', 'Extra wide', 'Aerial'],
     isDataResetable: true,
     isFullPromptAdditionalField: true,
   },
-  background_color: {
-    label: 'Background',
+  colors: {
+    label: 'Colors',
     type: 'chip-group',
-    options: ['Colorful', 'Light', 'Dark'],
+    options: ['Colorful', 'Light', 'Dark', 'Black & White', 'Vintage', 'Cinematic grain'],
     isDataResetable: true,
     isFullPromptAdditionalField: true,
   },
@@ -290,7 +328,8 @@ export const compositionFields = {
   light_coming_from: GenerateImageFormFields.light_coming_from,
   shot_from: GenerateImageFormFields.shot_from,
   perspective: GenerateImageFormFields.perspective,
-  background_color: GenerateImageFormFields.background_color,
+  colors: GenerateImageFormFields.colors,
+  //use_case: GenerateImageFormFields.use_Case,
 }
 
 // Interface of Generate form fields
@@ -308,7 +347,8 @@ export interface GenerateImageFormI {
   light_coming_from: string
   shot_from: string
   perspective: string
-  background_color: string
+  colors: string
+  use_Case: string
 }
 
 // Set default values for Generate Form
@@ -374,23 +414,38 @@ export const UpscaleToPixel = [
 
 // Random prompt list the user can use if they lack prompt ideas
 export const RandomPrompts = [
-  'Shot in the style of DSLR camera with the polarizing filter. A photo of two hot air balloons floating over the unique rock formations in Cappadocia, Turkey. The colors and patterns on these balloons contrast beautifully against the earthy tones of the landscape. below. This shot captures the sense of adventure that comes with enjoying such an experience',
-  'Close-up photo of an origami bird soaring through a cityscape, in a flock with others of different colors and patterns, casting intricate shadows on the buildings below',
+  'A woman hiking, close of her boots reflected in a puddle, large mountains in the background, in the style of an advertisement, dramatic angles',
   'Three women stand together laughing, with one woman slightly out of focus in the foreground. The sun is setting behind the women, creating a lens flare and a warm glow that highlights their hair and creates a bokeh effect in the background. The photography style is candid and captures a genuine moment of connection and happiness between friends. The warm light of golden hour lends a nostalgic and intimate feel to the image',
   'A weathered, wooden mech robot covered in flowering vines stands peacefully in a field of tall wildflowers, with a small bluebird resting on its outstretched hand. Digital cartoon, with warm colors and soft lines. A large cliff with a waterfall looms behind',
-  'Photographic portrait of a real life dragon resting peacefully in a zoo, curled up next to its pet sheep. Cinematic movie still, high quality DSLR photo',
-  "A view of a person's hand holding a eucalyptus sprig a macro DSLR image highlighting the balance of human and nature",
+  'A real life dragon resting peacefully in a zoo, curled up next to its pet sheep. Cinematic movie still, high quality DSLR photo',
   'A large, colorful bouquet of flowers in an old blue glass vase on the table. In front is one beautiful peony flower surrounded by various other blossoms like roses, lilies, daisies, orchids, fruits, berries, green leaves. The background is dark gray. Oil painting in the style of the Dutch Golden Age',
-  'Detailed illustration of majestic lion roaring proudly in a dream-like jungle, purple white line art background, clipart on light violet paper texture',
   'Claymation scene. A medium wide shot of an elderly woman. She is wearing flowing clothing. She is standing in a lush garden watering the plants with an orange watering can',
-  'Elephant amigurumi walking in savanna, a professional photograph, blurry background',
   "A view of a person's hand as they hold a little clay figurine of a bird in their hand and sculpt it with a modeling tool in their other hand. You can see the sculptor's scarf. Their hands are covered in clay dust. a macro DSLR image highlighting the texture and craftsmanship",
   "White fluffy bear toy is sleeping in a children's room, on the floor of a baby bedroom with toy boxes and toys around, in the style of photorealistic 3D rendering",
-  "Word 'light' made from various colorful feathers, black background",
+  'A professional studio photo of french fries for a high end restaurant, in the style of a food magazine',
   "A single comic book panel of an old dog and an adult man on a grassy hill, staring at the sunset. A speech bubble points from the man's mouth and says: 'The sun will rise again'. Muted, late 1990s coloring style",
   "A photograph of a stately library entrance with the words 'Central Library' carved into the stone",
   'A close up of a  warm and fuzzy colorful Peruvian poncho laying on a top of a chair in a bright day',
-  'An old woman but super modern and cool, her is smiling and wearing yellow modern and nice clothes, using her high-tech cell phone to take selfie in her beautiful garden, happy atmosphere, high resolution, hyper-realistic',
-  'A bright style- magazine  shot of a woman putting on mascara',
+  "Close up of a musician's fingers playing the piano, black and white film, vintage",
   'Close up shot, In a dimly lit jazz club, a soulful saxophone player, their face contorted in concentration, pours their heart out through their music. A small group of people listen intently, feeling every emotion',
+  'Aerial shot of a river flowing up a mystical valley',
+  'A sketch of a modern apartment building (subject) surrounded by skyscrapers',
+  'Close up photo of a woman in her 20s, street photography, canon, movie still, muted orange warm tones',
+  'A photo of a modern building with water in the background',
+  'A photo of a chocolate bar on a kitchen counter',
+  'An charcoal drawing of an angular sporty electric sedan with skyscrapers in the background',
+  'A photo of a forest canopy with blue skies from below',
+  'A studio photo of a modern arm chair, dramatic lighting',
+  'Soft focus photograph of a bridge in an urban city at night',
+  'Photo of a city with skyscrapers from the inside of a car with motion blur',
+  'Photo of a leaf, macro lens',
+  'A wind farm in the style of a renaissance painting',
+  'A man wearing all white clothing sitting on the beach, close up, golden hour lighting',
+  'A digital render of a massive skyscraper, modern, grand, epic with a beautiful sunset in the background',
+  '4K video game concept art, urban jungle, cyberpunk city, detailed rendering',
+  'A woman, 35mm portrait, blue and grey duotones',
+  'A plate of pasta, 100mm Macro lens',
+  'A winning touchdown, fast shutter speed, movement tracking',
+  'A deer running in the forest, fast shutter speed, movement tracking',
+  'A photo of the moon, astro photography, wide angle 10mm',
 ]

@@ -2,7 +2,6 @@ import theme from '../../theme'
 const { palette } = theme
 
 export const CustomizedAccordion = {
-  maxHeight: '430px',
   bgcolor: 'transparent',
   boxShadow: 0,
   '&:before': {

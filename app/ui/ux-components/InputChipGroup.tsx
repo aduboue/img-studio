@@ -8,7 +8,7 @@ const { palette } = theme
 import { FormChipGroupInputI } from './InputInterface'
 
 const CustomizedChip = {
-  fontSize: '1rem',
+  fontSize: '0.85rem',
   mb: 0.2,
   border: 1,
   borderColor: palette.secondary.light,

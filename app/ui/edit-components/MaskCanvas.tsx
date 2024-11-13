@@ -104,7 +104,6 @@ export default function MaskCanvas({
     resetCanvas()
   }
 
-  // TODO seg mask doesn't get transformed on the go
   return (
     <Box
       id="CanvasContainer"
@@ -119,7 +118,6 @@ export default function MaskCanvas({
         p: 0,
         display: 'flex',
         justifyContent: 'flex-start',
-        overflow: 'scroll',
       }}
     >
       {imagePreview && (

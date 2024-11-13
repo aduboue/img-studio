@@ -18,20 +18,29 @@ function cleanResult(inputString: string) {
   return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
 }
 
-async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boolean) {
-  let fullPrompt = `Capture ${formData['prompt']}.`
-  let parameters = ''
+function normalizeSentence(sentence: string) {
+  // Convert to lowercase
+  let normalizedSentence = sentence.toLowerCase()
 
-  fullPromptAdditionalFields.forEach((additionalField) => {
-    if (formData[additionalField] !== '') {
-      parameters += ` With ${additionalField.replaceAll('_', ' ')} being ${formData[additionalField]}.`
-    }
-  })
+  // Capitalize the first letter
+  normalizedSentence = normalizedSentence.charAt(0).toUpperCase() + normalizedSentence.slice(1)
 
-  if (parameters !== '') {
-    fullPrompt = `${fullPrompt} Make sure you use following parameters: ${parameters}`
+  // Replace double spaces with single spaces
+  normalizedSentence = normalizedSentence.replace(/  +/g, ' ')
+
+  // Remove trailing comma if present (with optional spaces)
+  normalizedSentence = normalizedSentence.trimEnd()
+  if (normalizedSentence.endsWith(',') || normalizedSentence.endsWith('.')) {
+    normalizedSentence = normalizedSentence.slice(0, -1)
   }
 
+  return normalizedSentence
+}
+
+async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boolean) {
+  let fullPrompt = formData['prompt']
+
+  // Rewrite the content of the prompt
   if (isGeminiRewrite) {
     try {
       const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt)
@@ -39,18 +48,32 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
       if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
         const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
         throw Error(errorMsg)
-      } else {
-        fullPrompt = geminiReturnedPrompt as string
-      }
+      } else fullPrompt = geminiReturnedPrompt as string
     } catch (error) {
       console.error(error)
       return { error: 'Error while rewriting prompt with Gemini .' }
     }
   }
 
-  fullPrompt = `With output image style being ${formData['style']}.` + fullPrompt
+  // Add the photo/ art/ digital style to the prompt
+  fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of a ` + normalizeSentence(fullPrompt)
 
-  return fullPrompt
+  // Add additional parameters to the prompt
+  let parameters = ''
+  fullPromptAdditionalFields.forEach((additionalField) => {
+    if (formData[additionalField] !== '')
+      parameters += ` ${formData[additionalField]} ${additionalField.replaceAll('_', ' ')}, `
+  })
+  if (parameters !== '') fullPrompt = `${fullPrompt}, ${parameters}`
+
+  // Add quality modifiers to the prompt
+  let quality_modifiers = 'high-quality, beautiful, stylized'
+  if (formData['style'] === 'photo') {
+    quality_modifiers = quality_modifiers + ', 4K, HDR'
+  } else quality_modifiers = quality_modifiers + ', by a professional, detailed'
+  fullPrompt = fullPrompt + quality_modifiers
+
+  return normalizeSentence(fullPrompt)
 }
 
 export async function buildImageList({
@@ -276,8 +299,7 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
   const location = 'us-central1'
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const modelVersion = formData['modelVersion']
-  //const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict` //TODO true version
-  const imagenAPIurl = `https://${location}-preprod-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
+  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict` //TODO true version
 
   // 2 - Building the edit prompt //TODO
   let fullPrompt = formData.prompt
@@ -469,7 +491,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
       upscaleConfig: {
         upscaleFactor: upscaleFactor,
       },
-      //storageUri: targetGCSuri,
+      storageUri: targetGCSuri,
     },
   }
   const opts = {

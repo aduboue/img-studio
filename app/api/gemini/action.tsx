@@ -18,7 +18,8 @@ export async function rewriteWithGemini(userPrompt: string) {
 
   const rewritePrompt =
     `Give me only one option, give me only your answer for the new prompt, no introductionnary text. ` +
-    `Make this prompt more performant and specific while staying true to exactly what was asked, ` +
+    `The prompt should use short sentences and keywords separated by commas as opposed to longer natural language descriptive prompts. ` +
+    `Make this prompt a bit more specific while staying true to exactly what was asked, ` +
     `the prompt is: "${userPrompt}".`
 
   try {
