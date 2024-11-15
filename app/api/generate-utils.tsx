@@ -53,8 +53,8 @@ export interface GenerateImageFormFieldsI {
   light_coming_from: GenerateImagFieldI1
   shot_from: GenerateImagFieldI1
   perspective: GenerateImagFieldI1
-  colors: GenerateImagFieldI1
-  //use_Case: GenerateImagFieldI1
+  image_colors: GenerateImagFieldI1
+  use_case: GenerateImagFieldI1
 }
 
 export const GenerateImageFormFields = {
@@ -276,12 +276,23 @@ export const GenerateImageFormFields = {
     isDataResetable: true,
     isFullPromptAdditionalField: true,
   },
-  colors: {
+  image_colors: {
     label: 'Colors',
     type: 'chip-group',
     options: ['Colorful', 'Light', 'Dark', 'Black & White', 'Vintage', 'Cinematic grain'],
     isDataResetable: true,
     isFullPromptAdditionalField: true,
+  },
+  use_case: {
+    label: 'Specific use case',
+    type: 'chip-group',
+    options: [
+      'Food, insects, plants (still life)',
+      'Sports, wildlife (motion)',
+      'Astronomical, landscape (wide-angle)',
+    ],
+    isDataResetable: true,
+    isFullPromptAdditionalField: false,
   },
 }
 
@@ -325,11 +336,11 @@ export const imgStyleField = GenerateImageFormFields.style
 export const subImgStyleFields = GenerateImageFormFields.secondary_style
 export const compositionFields = {
   light: GenerateImageFormFields.light,
+  perspective: GenerateImageFormFields.perspective,
+  image_colors: GenerateImageFormFields.image_colors,
+  use_case: GenerateImageFormFields.use_case,
   light_coming_from: GenerateImageFormFields.light_coming_from,
   shot_from: GenerateImageFormFields.shot_from,
-  perspective: GenerateImageFormFields.perspective,
-  colors: GenerateImageFormFields.colors,
-  //use_case: GenerateImageFormFields.use_Case,
 }
 
 // Interface of Generate form fields
@@ -347,8 +358,8 @@ export interface GenerateImageFormI {
   light_coming_from: string
   shot_from: string
   perspective: string
-  colors: string
-  use_Case: string
+  image_colors: string
+  use_case: string
 }
 
 // Set default values for Generate Form

@@ -56,7 +56,7 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
   }
 
   // Add the photo/ art/ digital style to the prompt
-  fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of a ` + normalizeSentence(fullPrompt)
+  fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of ` + normalizeSentence(fullPrompt)
 
   // Add additional parameters to the prompt
   let parameters = ''
@@ -67,10 +67,20 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
   if (parameters !== '') fullPrompt = `${fullPrompt}, ${parameters}`
 
   // Add quality modifiers to the prompt
-  let quality_modifiers = 'high-quality, beautiful, stylized'
+  let quality_modifiers = ', high-quality, beautiful, stylized'
   if (formData['style'] === 'photo') {
-    quality_modifiers = quality_modifiers + ', 4K, HDR'
+    quality_modifiers = quality_modifiers + ', 4K'
   } else quality_modifiers = quality_modifiers + ', by a professional, detailed'
+
+  if (formData['use_case'] === 'Food, insects, plants (still life)')
+    quality_modifiers = quality_modifiers + ', High detail, precise focusing, controlled lighting'
+
+  if (formData['use_case'] === 'Sports, wildlife (motion)')
+    quality_modifiers = quality_modifiers + ', Fast shutter speed, movement tracking'
+
+  if (formData['use_case'] === 'Astronomical, landscape (wide-angle)')
+    quality_modifiers = quality_modifiers + ', Long exposure times, sharp focus, long exposure, smooth water or clouds'
+
   fullPrompt = fullPrompt + quality_modifiers
 
   return normalizeSentence(fullPrompt)

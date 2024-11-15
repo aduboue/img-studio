@@ -130,15 +130,10 @@ export default function ExportStepper({
       MetadataReviewFields.forEach((field: any) => {
         const prop = ExportImageFormFields[field].prop ? ExportImageFormFields[field].prop : ''
         if (prop !== '')
-          console.log(
-            `Trying to display label ${ExportImageFormFields[field].label} and value ${
-              imageToExport[prop as keyof ImageI]
-            }`
-          )
-        infoToReview.push({
-          label: ExportImageFormFields[field].label,
-          value: imageToExport[prop as keyof ImageI].toString(),
-        })
+          infoToReview.push({
+            label: ExportImageFormFields[field].label,
+            value: imageToExport[prop as keyof ImageI].toString(),
+          })
       })
 
     Object.entries(ExportImageFormFields).forEach(([name, field]) => {

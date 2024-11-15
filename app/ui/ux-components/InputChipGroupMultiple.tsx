@@ -98,9 +98,9 @@ export default function FormInputChipGroupMultiple({
                   label={chip.label}
                   size="small"
                   component={'button'}
-                  onClick={() => handleChipClick(chip.value, value)} // Simplified onClick
-                  onChange={onChange} // Keep this for react-hook-form integration
-                  variant={value.includes(chip.value) ? 'filled' : 'outlined'} // Check if in selected values
+                  onClick={() => handleChipClick(chip.value, value)}
+                  onChange={onChange}
+                  variant={value.includes(chip.value) ? 'filled' : 'outlined'}
                   color={value.includes(chip.value) ? 'primary' : 'secondary'}
                   sx={CustomizedChip}
                 />
