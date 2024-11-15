@@ -216,6 +216,11 @@ async function generateMaskFromCanvas(
   // Draw the modified image data back onto the canvas
   maskCtx.putImageData(imageData, 0, 0)
 
+  // Add a black border added to indicate mask shape
+  maskCtx.strokeStyle = 'black'
+  maskCtx.lineWidth = 1
+  maskCtx.strokeRect(1, 1, maskSize.width - 2, maskSize.height - 2)
+
   // Convert the canvas content to a data URL
   const base64data = maskCanvas.toDataURL('image/png')
 

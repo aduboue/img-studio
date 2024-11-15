@@ -40,6 +40,39 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />
 })
 
+async function addBorderToBase64Image(base64Image: string): Promise<string> {
+  return new Promise((resolve) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    img.src = base64Image
+
+    if (!ctx) {
+      console.error('Could not get 2D context for canvas.')
+      resolve('') // Or handle the error as needed
+      return
+    }
+
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx.drawImage(img, 0, 0)
+      ctx.strokeStyle = 'black'
+      ctx.lineWidth = 1
+      ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2)
+
+      const modifiedBase64Image = canvas.toDataURL()
+      resolve(modifiedBase64Image)
+    }
+
+    // Handle potential error in image loading
+    img.onerror = () => {
+      console.error('Error loading image.')
+      resolve('') // Or handle the error as needed
+    }
+  })
+}
+
 //TODO change any
 export default function SetMaskDialog({
   open,
@@ -153,10 +186,10 @@ export default function SetMaskDialog({
     requestSent(true)
 
     try {
-      const manualMask = await generateManualMask()
-
-      if (!manualMask && maskType === 'interactive') {
-        throw Error('No interactive scribble provided')
+      let manualMask = null
+      if (maskType === 'interactive') {
+        manualMask = await generateManualMask()
+        if (!manualMask) throw Error('No scribble provided')
       }
 
       const res = await segmentImage(imageToEdit, maskType, semanticSelection, promptSelection, manualMask ?? '')
@@ -166,7 +199,10 @@ export default function SetMaskDialog({
         const errorMsg = msg.replaceAll('Error: ', '')
         throw Error(errorMsg)
       }
-      setMaskImage(res)
+
+      // Add a black border added to indicate mask shape
+      const maskWithBorder = await addBorderToBase64Image(res)
+      setMaskImage(maskWithBorder)
 
       const newMaskPreview = await createMaskPreview(res, maskSize)
       setMaskPreview(newMaskPreview)
@@ -199,6 +235,11 @@ export default function SetMaskDialog({
       canvas.width = newWidth
       canvas.height = newHeight
       ctx.drawImage(img, 0, 0, newWidth, newHeight)
+
+      // Add a black border added to indicate mask shape
+      ctx.strokeStyle = 'black'
+      ctx.lineWidth = 1
+      ctx.strokeRect(1, 1, newWidth - 2, newHeight - 2)
 
       return new Promise<string | null>((resolve) => {
         canvas.toBlob(async (blob) => {

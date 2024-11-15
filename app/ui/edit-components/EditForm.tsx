@@ -126,6 +126,38 @@ export default function EditForm({
   const onSubmit: SubmitHandler<EditImageFormI> = async (formData: EditImageFormI) => {
     onRequestSent(true)
 
+    // TODO remove
+    try {
+      // --- Download the input image ---
+      const inputImageData = imageToEdit ?? outpaintedImage ?? '' // This already contains the Base64 string
+
+      // Create a link element for downloading
+      const inputImageLink = document.createElement('a')
+      inputImageLink.href = inputImageData // Directly use the Base64 data as the href
+      inputImageLink.download = 'input_image.png'
+
+      // Trigger a click event to start the download
+      document.body.appendChild(inputImageLink)
+      inputImageLink.click()
+      document.body.removeChild(inputImageLink)
+
+      // --- Download the input mask ---
+      const inputMaskData = maskImage ?? '' // This already contains the Base64 string
+
+      // Create a link element for downloading
+      const inputMaskLink = document.createElement('a')
+      inputMaskLink.href = inputMaskData // Directly use the Base64 data as the href
+      inputMaskLink.download = 'input_mask.png'
+
+      // Trigger a click event to start the download
+      document.body.appendChild(inputMaskLink)
+      inputMaskLink.click()
+      document.body.removeChild(inputMaskLink)
+    } catch (error) {
+      console.error('Error downloading images:', error)
+      // Handle the error appropriately (e.g., show an error message to the user)
+    }
+
     try {
       //TODO first check if mandatory value are here: mask, image, prompt
 
@@ -145,6 +177,9 @@ export default function EditForm({
       onNewErrorMsg(error.toString())
     } finally {
       onRequestSent(false)
+      //TODO remove
+      console.log(formData['inputMask'])
+      console.log(formData['inputImage'])
     }
   }
 
