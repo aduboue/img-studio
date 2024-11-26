@@ -124,19 +124,22 @@ export const ReferenceBox = ({
             />
           </Box>
           <Box>
-            <FormInputTextLine
-              key={objectKey + refPosition + '_description'}
-              control={control}
-              label={'Description'}
-              name={`referenceObjects.${refPosition}.description`}
-              value={currentReferenceObject.description}
-              required={false}
-              disabled={noReferenceTypeSet || isGettingDescription}
-            />
-            {isGettingDescription ? (
-              <CircularProgress size={20} thickness={6} color="primary" />
-            ) : (
-              <GeminiButton onClick={getDescription} />
+            {!noReferenceTypeSet && (
+              <>
+                <FormInputTextLine
+                  key={objectKey + refPosition + '_description'}
+                  control={control}
+                  label={'Description'}
+                  name={`referenceObjects.${refPosition}.description`}
+                  value={currentReferenceObject.description}
+                  required={false}
+                />
+                {isGettingDescription ? (
+                  <CircularProgress size={20} thickness={6} color="primary" />
+                ) : (
+                  <GeminiButton onClick={getDescription} />
+                )}
+              </>
             )}
           </Box>
         </>

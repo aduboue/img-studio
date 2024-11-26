@@ -96,10 +96,10 @@ export const GeminiButton = ({ onClick }: { onClick: () => void }) => {
         m: 0,
         width: 22,
         height: 22,
+        backgroundImage: 'linear-gradient(90deg, rgba(33,123,254,0.9) 30%,  rgba(172,135,235,0.9) 90%)',
         '&:hover': {
-          backgroundImage: 'linear-gradient(90deg, rgba(33,123,254,0.9) 30%,  rgba(172,135,235,0.9) 90%)',
           boxShadow:
-            '0px 2px 1px -1px rgba(0, 0, 0, 0.5), 0px 1px 1px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 0px rgba(0, 0, 0, 0.2)',
+            '0px 3px 2px -2px rgba(0, 0, 0, 0.5), 0px 1px 1px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 0px rgba(0, 0, 0, 0.2)',
         },
       }}
     >

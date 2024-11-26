@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Controller } from 'react-hook-form'
 import { Box, IconButton, TextField } from '@mui/material'
 import theme from '../../theme'
@@ -21,6 +21,7 @@ export const FormInputTextLine = ({
   label,
   required,
   disabled,
+  key,
 }: {
   name: string
   value: string
@@ -28,6 +29,7 @@ export const FormInputTextLine = ({
   label: string
   required: boolean
   disabled?: boolean
+  key: string
 }) => {
   return (
     <Controller
@@ -38,6 +40,7 @@ export const FormInputTextLine = ({
       render={({ field: { onChange } }) => (
         <TextField
           onChange={onChange}
+          key={key}
           value={value}
           disabled={disabled}
           variant="standard"
@@ -54,7 +57,6 @@ export const FormInputTextLine = ({
             },
           }}
           sx={customTextField}
-          inputRef={(input) => input && input.focus()}
         />
       )}
     />
