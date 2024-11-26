@@ -120,6 +120,7 @@ export const ReferenceBox = ({
               width="100%"
               field={referenceTypeField}
               required={false}
+              disabled={noImageSet}
             />
           </Box>
           <Box>
@@ -130,7 +131,7 @@ export const ReferenceBox = ({
               name={`referenceObjects.${refPosition}.description`}
               value={currentReferenceObject.description}
               required={false}
-              disabled={currentReferenceObject.isAdditionalImage || isGettingDescription}
+              disabled={noReferenceTypeSet || isGettingDescription}
             />
             {isGettingDescription ? (
               <CircularProgress size={20} thickness={6} color="primary" />

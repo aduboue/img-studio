@@ -99,7 +99,8 @@ export async function getDescriptionFromGemini(base64Image: string, type: string
 
   descriptionPrompt =
     descriptionPrompt +
-    'Format the description in a subject format of 80 characters or less, with no period at the end. '
+    'Format the description in a subject format of 80 characters or less, with no period at the end. ' +
+    "If you can't generate the output, for instance because the image content is not matching the type, just send back 'Error'"
 
   const imagePart = {
     inline_data: {
@@ -126,7 +127,8 @@ export async function getDescriptionFromGemini(base64Image: string, type: string
 
     const newDescription = await cleanResult(contentResponse.candidates[0].content.parts[0].text)
 
-    return newDescription
+    if (newDescription.includes('Error')) return '(provided type is not matching image)'
+    else return newDescription
   } catch (error) {
     console.error(JSON.stringify(truncateLog(error), undefined, 4))
     return {

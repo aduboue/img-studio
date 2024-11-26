@@ -51,10 +51,10 @@ export const FormInputTextLine = ({
               color: palette.text.primary,
               fontWeight: 500,
               fontSize: '1rem',
-              '& .MuiInputLabel-root.Mui-disabled': { color: 'red' },
             },
           }}
           sx={customTextField}
+          inputRef={(input) => input && input.focus()}
         />
       )}
     />
