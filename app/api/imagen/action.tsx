@@ -21,19 +21,32 @@ function cleanResult(inputString: string) {
 }
 
 function normalizeSentence(sentence: string) {
-  // Convert to lowercase
-  let normalizedSentence = sentence.toLowerCase()
+  // Split the sentence into individual words
+  const words = sentence.toLowerCase().split(' ')
 
-  // Capitalize the first letter
-  normalizedSentence = normalizedSentence.charAt(0).toUpperCase() + normalizedSentence.slice(1)
+  // Capitalize the first letter of each sentence
+  let normalizedSentence = ''
+  let newSentence = true
+  for (let i = 0; i < words.length; i++) {
+    let word = words[i]
+    if (newSentence) {
+      word = word.charAt(0).toUpperCase() + word.slice(1)
+      newSentence = false
+    }
+    if (word.endsWith('.') || word.endsWith('!') || word.endsWith('?')) {
+      newSentence = true
+    }
+    normalizedSentence += word + ' '
+  }
 
-  // Replace double spaces with single spaces
+  // Replace multiple spaces with single spaces
   normalizedSentence = normalizedSentence.replace(/  +/g, ' ')
 
-  // Remove trailing comma if present (with optional spaces)
-  normalizedSentence = normalizedSentence.trimEnd()
-  if (normalizedSentence.endsWith(',') || normalizedSentence.endsWith('.'))
-    normalizedSentence = normalizedSentence.slice(0, -1)
+  // Remove any trailing punctuation and spaces
+  normalizedSentence = normalizedSentence.trim()
+
+  // Remove double commas
+  normalizedSentence = normalizedSentence.replace(/, ,/g, ',')
 
   return normalizedSentence
 }
@@ -58,7 +71,6 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
 
   // Add the photo/ art/ digital style to the prompt
   fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of ` + fullPrompt
-  fullPrompt = normalizeSentence(fullPrompt)
 
   // Add additional parameters to the prompt
   let parameters = ''
@@ -88,17 +100,25 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
   // Add references to the prompt
   if (references.length > 0) {
     let reference = 'Generate an image '
-    let subjects = []
-    let styles = []
+    let subjects: string[] = []
+    let subjectsID: number[] = []
+    let styles: string[] = []
+    let stylesID: number[] = []
 
     for (const [index, reference] of references.entries()) {
       const params = referenceTypeMatching[reference.referenceType as keyof typeof referenceTypeMatching]
 
       if (params.referenceType === 'REFERENCE_TYPE_SUBJECT')
-        subjects.push(`a ${reference.description.toLowerCase()} [${reference.refId}]`)
+        if (!subjectsID.includes(reference.refId)) {
+          subjects.push(`a ${reference.description.toLowerCase()} [${reference.refId}]`)
+          subjectsID.push(reference.refId)
+        }
 
       if (params.referenceType === 'REFERENCE_TYPE_STYLE')
-        styles.push(`in a ${reference.description.toLowerCase()} style [${reference.refId}]`)
+        if (!stylesID.includes(reference.refId)) {
+          styles.push(`in a ${reference.description.toLowerCase()} style [${reference.refId}]`)
+          stylesID.push(reference.refId)
+        }
     }
 
     if (subjects.length > 0) reference = reference + 'about ' + subjects.join(', ')
@@ -108,9 +128,9 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
     fullPrompt = reference + fullPrompt
   }
 
-  console.log(fullPrompt) //TODO remove
+  fullPrompt = normalizeSentence(fullPrompt)
 
-  return normalizeSentence(fullPrompt)
+  return fullPrompt
 }
 
 export async function buildImageList({

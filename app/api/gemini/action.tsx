@@ -4,7 +4,7 @@ import { processImageBase64 } from '../vertex-seg/action'
 
 const { VertexAI } = require('@google-cloud/vertexai')
 
-//TODO remove
+// Truncate logs to be readable
 function truncate(obj: any, maxLength = 300) {
   const truncatedObj = JSON.parse(JSON.stringify(obj))
 
