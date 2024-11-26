@@ -10,7 +10,7 @@ import {
   ReferenceObjectI,
 } from '../generate-utils'
 import { decomposeUri, downloadImage, getSignedURL } from '../cloud-storage/action'
-import { rewriteWithGemini } from '../gemini/action'
+import { rewriteWithGemini, truncateLog } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
 import { processImageBase64 } from '../vertex-seg/action'
@@ -337,6 +337,7 @@ export async function generateImage(
     method: 'POST',
     data: reqData,
   }
+  console.log(truncateLog(opts)) //TODO remove
 
   // 4 - Generating images
   try {

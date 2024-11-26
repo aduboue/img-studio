@@ -5,14 +5,14 @@ import { processImageBase64 } from '../vertex-seg/action'
 const { VertexAI } = require('@google-cloud/vertexai')
 
 // Truncate logs to be readable
-function truncate(obj: any, maxLength = 300) {
+export async function truncateLog(obj: any, maxLength = 300) {
   const truncatedObj = JSON.parse(JSON.stringify(obj))
 
   for (const key in truncatedObj) {
     if (typeof truncatedObj[key] === 'string' && truncatedObj[key].length > maxLength) {
       truncatedObj[key] = truncatedObj[key].slice(0, maxLength) + '...'
     } else if (typeof truncatedObj[key] === 'object') {
-      truncatedObj[key] = truncate(truncatedObj[key], maxLength)
+      truncatedObj[key] = truncateLog(truncatedObj[key], maxLength)
     }
   }
 
@@ -128,7 +128,7 @@ export async function getDescriptionFromGemini(base64Image: string, type: string
 
     return newDescription
   } catch (error) {
-    console.error(JSON.stringify(truncate(error), undefined, 4))
+    console.error(JSON.stringify(truncateLog(error), undefined, 4))
     return {
       error: 'Error while getting description from Gemini.',
     }

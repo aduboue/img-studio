@@ -44,6 +44,7 @@ export const ReferenceBox = ({
     currentReferenceObject.referenceType === null ||
     currentReferenceObject.referenceType === undefined
   const isNewRef = noImageSet && noReferenceTypeSet && noDescriptionSet
+  const isRefIncomplete = noImageSet || noReferenceTypeSet || noDescriptionSet
 
   let IDoptions = []
   for (let i = 1; i <= maxReferences; i++) IDoptions.push({ value: i.toString(), label: i.toString() })
@@ -104,7 +105,7 @@ export const ReferenceBox = ({
         onNewErrorMsg={onNewErrorMsg}
         setValue={setValue}
         addAdditionalRefObject={() => addAdditionalRefObject(objectKey)}
-        isNewImagePossible={!currentReferenceObject.isAdditionalImage && refCount < maxReferences}
+        isNewImagePossible={!isRefIncomplete && !currentReferenceObject.isAdditionalImage && refCount < maxReferences}
         refPosition={refPosition}
       />
       {!currentReferenceObject.isAdditionalImage && (
