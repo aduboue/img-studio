@@ -228,13 +228,13 @@ export const maskTypes = [
     description: 'Primary object, person, or subject only',
     readOnlyCanvas: true,
   },
-  {
+  /*{ //TODO add back when fixed
     value: 'semantic',
     label: 'Semantic',
     description: 'One or more element(s) by their semantic class(es)',
     readOnlyCanvas: true,
     requires: 'semanticDropdown',
-  },
+  },*/
   {
     value: 'interactive',
     label: 'Interactive',

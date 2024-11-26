@@ -21,6 +21,8 @@ import {
   Close as CloseIcon,
   Autorenew,
   Lightbulb,
+  LibraryAdd,
+  Add,
 } from '@mui/icons-material'
 
 import { FormInputText } from '../ux-components/InputText'
@@ -40,16 +42,22 @@ import {
   formDataResetableFields,
   ImageI,
   RandomPrompts,
+  ReferenceObjectI,
+  ReferenceObjectInit,
+  ReferenceObjectDefaults,
+  maxReferences,
 } from '../../api/generate-utils'
 
 import theme from '../../theme'
 import { generateImage } from '../../api/imagen/action'
-import { GeminiSwitch } from '../ux-components/GeminiSwitch'
+import { GeminiSwitch } from '../ux-components/GeminiButton'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import CustomTooltip from '../ux-components/Tooltip'
 import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-components/Accordion-SX'
 import { useAppContext } from '../../context/app-context'
+import ReferencePicker from './ReferencePicker'
+import { ReferenceBox } from './ReferenceBox'
 const { palette } = theme
 
 export default function GenerateForm({
@@ -65,7 +73,7 @@ export default function GenerateForm({
   errorMsg: string
   onNewErrorMsg: (newErrorMsg: string) => void
 }) {
-  const { handleSubmit, resetField, control, setValue, getValues } = useForm<GenerateImageFormI>({
+  const { handleSubmit, resetField, control, setValue, getValues, watch } = useForm<GenerateImageFormI>({
     defaultValues: formDataDefaults,
   })
   const { appContext } = useAppContext()
@@ -76,37 +84,76 @@ export default function GenerateForm({
     setIsGeminiRewrite(event.target.checked)
   }
 
-  //TODO get from Gemini ideas
+  const [expandedAccordion, setExpandedAccordion] = useState(1)
+
+  // Reference management logic
+  const referenceObjects = watch('referenceObjects')
+
+  const removeReferenceObject = (objectKey: string) => {
+    // Find the reference object to be removed
+    const targetObject = referenceObjects.find((obj) => obj.objectKey === objectKey)
+    if (!targetObject) return
+
+    let updatedReferenceObjects = [...referenceObjects]
+
+    // If reference is an AdditionalImage, remove only it, otherwise remove all references with the same ID
+    if (targetObject.isAdditionalImage)
+      updatedReferenceObjects = referenceObjects.filter((obj) => obj.objectKey !== objectKey)
+    else updatedReferenceObjects = referenceObjects.filter((obj) => obj.refId !== targetObject.refId)
+
+    if (updatedReferenceObjects.length === 0) setValue('referenceObjects', ReferenceObjectInit)
+    else setValue('referenceObjects', updatedReferenceObjects)
+  }
+  const addNewRefObject = () => {
+    if (referenceObjects.length >= maxReferences) return
+
+    let highestId = referenceObjects[0].refId
+    for (let i = 1; i < referenceObjects.length; i++)
+      if (referenceObjects[i].refId > highestId) highestId = referenceObjects[i].refId
+
+    const updatedReferenceObjects = [
+      ...referenceObjects,
+      {
+        ...ReferenceObjectDefaults,
+        isAdditionalImage: false,
+        objectKey: Math.random().toString(36).substring(2, 15),
+        refId: highestId + 1,
+      },
+    ]
+
+    setValue('referenceObjects', updatedReferenceObjects)
+  }
+  const addAdditionalRefObject = (objectKey: string) => {
+    if (referenceObjects.length >= maxReferences) return
+
+    const associatedObjectIndex = referenceObjects.findIndex((obj) => obj.objectKey === objectKey)
+    const associatedObject = referenceObjects.find((obj) => obj.objectKey === objectKey)
+    if (!associatedObject) return
+
+    // Use slice to place the Additional Ref object after its parent ref
+    const updatedReferenceObjects = [
+      ...referenceObjects.slice(0, associatedObjectIndex + 1),
+      {
+        ...associatedObject,
+        isAdditionalImage: true,
+        base64Image: '',
+        objectKey: Math.random().toString(36).substring(2, 15),
+      },
+      ...referenceObjects.slice(associatedObjectIndex + 1),
+    ]
+
+    setValue('referenceObjects', updatedReferenceObjects)
+  }
+
+  // Provide random prompt //TODO get from Gemini ideas ?
   const getRandomPrompt = () => {
     return RandomPrompts[Math.floor(Math.random() * RandomPrompts.length)]
   }
 
+  // Handle 'Replay prompt' from Library
   useEffect(() => {
     if (appContext && appContext.promptToGenerate) setValue('prompt', appContext.promptToGenerate)
   }, [appContext?.promptToGenerate])
-
-  const onSubmit: SubmitHandler<GenerateImageFormI> = async (formData: GenerateImageFormI) => {
-    onRequestSent(true)
-
-    try {
-      const newGeneratedImages = await generateImage(formData, isGeminiRewrite, appContext)
-
-      if (newGeneratedImages !== undefined && typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
-        const errorMsg = newGeneratedImages['error'].replaceAll('Error: ', '')
-        throw Error(errorMsg)
-      } else {
-        newGeneratedImages.map((image) => {
-          if ('warning' in image) {
-            onNewErrorMsg(image['warning'] as string)
-          }
-        })
-
-        onImageGeneration(newGeneratedImages)
-      }
-    } catch (error: any) {
-      onNewErrorMsg(error.toString())
-    }
-  }
 
   // Update Secondary style dropdown depending on picked primary style
   const subImgStyleField = (control: Control<GenerateImageFormI, any>) => {
@@ -133,6 +180,27 @@ export default function GenerateForm({
   const onReset = () => {
     formDataResetableFields.forEach((field) => resetField(field as keyof GenerateImageFormI))
     onNewErrorMsg('')
+  }
+
+  const onSubmit: SubmitHandler<GenerateImageFormI> = async (formData: GenerateImageFormI) => {
+    onRequestSent(true)
+
+    try {
+      const newGeneratedImages = await generateImage(formData, isGeminiRewrite, appContext)
+
+      if (newGeneratedImages !== undefined && typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
+        const errorMsg = newGeneratedImages['error'].replaceAll('Error: ', '')
+        throw Error(errorMsg)
+      } else {
+        newGeneratedImages.map((image) => {
+          if ('warning' in image) onNewErrorMsg(image['warning'] as string)
+        })
+
+        onImageGeneration(newGeneratedImages)
+      }
+    } catch (error: any) {
+      onNewErrorMsg(error.toString())
+    }
   }
 
   return (
@@ -231,7 +299,70 @@ export default function GenerateForm({
             {'Generate'}
           </Button>
         </Stack>
-        <Accordion disableGutters sx={CustomizedAccordion} defaultExpanded>
+        {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && (
+          <Accordion
+            disableGutters
+            expanded={expandedAccordion === 2}
+            onChange={() => setExpandedAccordion(expandedAccordion === 2 ? 0 : 2)}
+            sx={CustomizedAccordion}
+          >
+            <AccordionSummary
+              expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
+              aria-controls="panel1-content"
+              id="panel1-header"
+              sx={CustomizedAccordionSummary}
+            >
+              <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
+                {'Subject & Style reference(s)'}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
+              <Stack
+                direction="column"
+                flexWrap="wrap"
+                justifyContent="flex-start"
+                alignItems="flex-start"
+                spacing={1}
+                sx={{ pt: 0, pb: 1 }}
+              >
+                {referenceObjects.map((referenceObject, index) => {
+                  return (
+                    <ReferenceBox
+                      key={referenceObject.objectKey + index + '_box'}
+                      objectKey={referenceObject.objectKey}
+                      currentReferenceObject={referenceObject}
+                      onNewErrorMsg={onNewErrorMsg}
+                      control={control}
+                      setValue={setValue}
+                      removeReferenceObject={removeReferenceObject}
+                      addAdditionalRefObject={addAdditionalRefObject}
+                      refPosition={index}
+                      refCount={referenceObjects.length}
+                    />
+                  )
+                })}
+              </Stack>
+              {referenceObjects.length < maxReferences && (
+                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+                  <Button
+                    variant="contained"
+                    onClick={() => addNewRefObject()}
+                    disabled={referenceObjects.length >= maxReferences}
+                    sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem', px: 0 } }}
+                  >
+                    {'Add'}
+                  </Button>
+                </Box>
+              )}
+            </AccordionDetails>
+          </Accordion>
+        )}
+        <Accordion
+          disableGutters
+          expanded={expandedAccordion === 1}
+          onChange={() => setExpandedAccordion(expandedAccordion === 1 ? 0 : 1)}
+          sx={CustomizedAccordion}
+        >
           <AccordionSummary
             expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
             aria-controls="panel1-content"
@@ -239,10 +370,10 @@ export default function GenerateForm({
             sx={CustomizedAccordionSummary}
           >
             <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
-              {'Customize Style & Composition'}
+              {'Image attributes'}
             </Typography>
           </AccordionSummary>
-          <AccordionDetails>
+          <AccordionDetails sx={{ py: 0 }}>
             <Stack
               direction="row"
               spacing={3}
@@ -266,7 +397,6 @@ export default function GenerateForm({
                 control={control}
                 setValue={setValue}
                 width="400px"
-                mandatory={false}
                 field={subImgStyleField(control)}
                 required={false}
               />
@@ -282,7 +412,6 @@ export default function GenerateForm({
                       control={control}
                       setValue={setValue}
                       width="250px"
-                      mandatory={false}
                       field={field}
                       required={false}
                     />

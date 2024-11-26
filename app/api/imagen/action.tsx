@@ -6,6 +6,8 @@ import {
   VisionGenerativeModelResultI,
   ImageI,
   RatioToPixel,
+  referenceTypeMatching,
+  ReferenceObjectI,
 } from '../generate-utils'
 import { decomposeUri, downloadImage, getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
@@ -30,14 +32,13 @@ function normalizeSentence(sentence: string) {
 
   // Remove trailing comma if present (with optional spaces)
   normalizedSentence = normalizedSentence.trimEnd()
-  if (normalizedSentence.endsWith(',') || normalizedSentence.endsWith('.')) {
+  if (normalizedSentence.endsWith(',') || normalizedSentence.endsWith('.'))
     normalizedSentence = normalizedSentence.slice(0, -1)
-  }
 
   return normalizedSentence
 }
 
-async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boolean) {
+async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boolean, references: ReferenceObjectI[]) {
   let fullPrompt = formData['prompt']
 
   // Rewrite the content of the prompt
@@ -56,7 +57,8 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
   }
 
   // Add the photo/ art/ digital style to the prompt
-  fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of ` + normalizeSentence(fullPrompt)
+  fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of ` + fullPrompt
+  fullPrompt = normalizeSentence(fullPrompt)
 
   // Add additional parameters to the prompt
   let parameters = ''
@@ -82,6 +84,31 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
     quality_modifiers = quality_modifiers + ', Long exposure times, sharp focus, long exposure, smooth water or clouds'
 
   fullPrompt = fullPrompt + quality_modifiers
+
+  // Add references to the prompt
+  if (references.length > 0) {
+    let reference = 'Generate an image '
+    let subjects = []
+    let styles = []
+
+    for (const [index, reference] of references.entries()) {
+      const params = referenceTypeMatching[reference.referenceType as keyof typeof referenceTypeMatching]
+
+      if (params.referenceType === 'REFERENCE_TYPE_SUBJECT')
+        subjects.push(`a ${reference.description.toLowerCase()} [${reference.refId}]`)
+
+      if (params.referenceType === 'REFERENCE_TYPE_STYLE')
+        styles.push(`in a ${reference.description.toLowerCase()} style [${reference.refId}]`)
+    }
+
+    if (subjects.length > 0) reference = reference + 'about ' + subjects.join(', ')
+    if (styles.length > 0) reference = reference.trim() + ', ' + styles.join(', ')
+    reference = reference + ' to match the description: '
+
+    fullPrompt = reference + fullPrompt
+  }
+
+  console.log(fullPrompt) //TODO remove
 
   return normalizeSentence(fullPrompt)
 }
@@ -183,15 +210,29 @@ export async function generateImage(
       error: 'Unable to authenticate your account to access images',
     }
   }
-  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
+
+  let references = formData['referenceObjects']
+  const hasValidReference = references.some(
+    (reference) =>
+      reference.base64Image !== '' &&
+      reference.description !== '' &&
+      reference.refId !== null &&
+      reference.referenceType !== ''
+  )
+  if (!hasValidReference) references = []
+  // const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO true version
+  const location = 'us-central1'
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
-  const modelVersion = formData['modelVersion']
+  //TODO when GA, unique model name?
+  const modelVersion = hasValidReference
+    ? process.env.NEXT_PUBLIC_EDIT_MODEL ?? formData['modelVersion']
+    : formData['modelVersion']
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
   // 2 - Building the prompt and rewrite it if needed with Gemini
   let fullPrompt
   try {
-    fullPrompt = await generatePrompt(formData, isGeminiRewrite)
+    fullPrompt = await generatePrompt(formData, isGeminiRewrite, references)
 
     if (typeof fullPrompt === 'object' && 'error' in fullPrompt) {
       throw Error(fullPrompt.error)
@@ -217,7 +258,7 @@ export async function generateImage(
   else {
     generationGcsURI = `${appContext.gcsURI}/${appContext.userID}/generated-images`
   }
-  const reqData = {
+  let reqData: any = {
     instances: [
       {
         prompt: fullPrompt as string,
@@ -235,6 +276,42 @@ export async function generateImage(
       storageUri: generationGcsURI,
     },
   }
+
+  // Adding references if necessary
+  if (hasValidReference) {
+    reqData.instances[0].referenceImages = []
+
+    for (const [index, reference] of references.entries()) {
+      const params = referenceTypeMatching[reference.referenceType as keyof typeof referenceTypeMatching]
+
+      let newReference: any = {
+        referenceType: params.referenceType,
+        referenceId: reference.refId,
+        referenceImage: {
+          bytesBase64Encoded: await processImageBase64(reference.base64Image),
+        },
+      }
+
+      if (params.referenceType === 'REFERENCE_TYPE_SUBJECT')
+        newReference = {
+          ...newReference,
+          subjectImageConfig: {
+            subjectDescription: reference.description,
+            subjectType: params.subjectType,
+          },
+        }
+
+      if (params.referenceType === 'REFERENCE_TYPE_STYLE')
+        newReference = {
+          ...newReference,
+          styleImageConfig: {
+            styleDescription: reference.description,
+          },
+        }
+
+      reqData.instances[0].referenceImages[index] = newReference
+    }
+  }
   const opts = {
     url: imagenAPIurl,
     method: 'POST',
@@ -245,26 +322,22 @@ export async function generateImage(
   try {
     const res = await client.request(opts)
 
-    if (res.data.predictions === undefined) {
-      throw Error('There were an issue, no images were generated')
-    }
+    if (res.data.predictions === undefined) throw Error('There were an issue, no images were generated')
+
     // NO images at all were generated out of all samples
-    if ('raiFilteredReason' in res.data.predictions[0]) {
+    if ('raiFilteredReason' in res.data.predictions[0])
       throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
-    }
 
     console.log('Image generated with success')
 
     const usedRatio = RatioToPixel.find((item) => item.ratio === opts.data.parameters.aspectRatio)
-    const usedWidth = usedRatio?.width
-    const useHeight = usedRatio?.height
 
     const imagesInGCS: VisionGenerativeModelResultI[] = res.data.predictions
     const enhancedImageList = await buildImageList({
       imagesInGCS: imagesInGCS,
       aspectRatio: opts.data.parameters.aspectRatio,
-      width: usedWidth ?? 0,
-      height: useHeight ?? 0,
+      width: usedRatio?.width ?? 0,
+      height: usedRatio?.height ?? 0,
       usedPrompt: opts.data.instances[0].prompt,
       userID: appContext?.userID ? appContext?.userID : '',
       modelVersion: modelVersion,

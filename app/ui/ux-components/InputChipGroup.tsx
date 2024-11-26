@@ -45,6 +45,7 @@ export const ChipGroup = ({
   value,
   onChange,
   handleChipClick,
+  disabled,
 }: {
   width: string
   label: string
@@ -53,6 +54,7 @@ export const ChipGroup = ({
   value: string
   onChange: any
   handleChipClick: any
+  disabled?: boolean
 }) => {
   return (
     <Box
@@ -90,6 +92,7 @@ export const ChipGroup = ({
             label={chipValue}
             size="small"
             component={'button'}
+            disabled={disabled}
             onClick={() => handleChipClick({ clickedValue: chipValue, currentValue: value })}
             onChange={onChange}
             variant={value === chipValue ? 'filled' : 'outlined'}
@@ -110,6 +113,7 @@ export default function FormInputChipGroup({
   setValue,
   field,
   required,
+  disabled,
 }: FormChipGroupInputI) {
   const handleChipClick = ({ clickedValue, currentValue }: { clickedValue: string; currentValue: string }) => {
     required
@@ -135,6 +139,7 @@ export default function FormInputChipGroup({
             value={value}
             onChange={onChange}
             handleChipClick={handleChipClick}
+            disabled={disabled}
           />
         )}
       />

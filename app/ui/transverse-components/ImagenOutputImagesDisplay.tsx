@@ -134,7 +134,7 @@ export default function OutputImagesDisplay({
                     actionIcon={
                       <Stack direction="row" gap={0} pb={3}>
                         {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && (
-                          <CustomWhiteTooltip title="Export & Download" size="small">
+                          <CustomWhiteTooltip title="Edit this image" size="small">
                             <IconButton
                               onClick={() => handleEditClick(image.gcsUri)}
                               aria-label="Export image"

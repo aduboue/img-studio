@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 import theme from '../../theme'
-import { fileToBase64 } from '../edit-components/EditForm'
+import { fileToBase64 } from './EditForm'
 const { palette } = theme
 
 export function getAspectRatio(width: number, height: number): string {
@@ -51,7 +51,7 @@ export function getParentBoxDimensions(selector: string): { maxWidth: number; ma
   return { maxWidth, maxHeight }
 }
 
-export default function ImageDropzone({
+export default function EditImageDropzone({
   setImageToEdit,
   imageToEdit,
   maskImage,

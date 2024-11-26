@@ -84,7 +84,6 @@ export default function FormInputEditSettings({
             control={control}
             setValue={setValue}
             width="260px"
-            mandatory={true}
             field={editSettingsFields.sampleCount as any}
             required={true}
           />

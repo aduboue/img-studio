@@ -1,19 +1,19 @@
 export const pages = {
   Generate: {
     name: 'Generate',
-    description: 'Generate new content from scratch',
+    description: 'Create new content from scratch or with references',
     href: '/generate',
     status: 'true',
   },
   Edit: {
     name: 'Edit',
-    description: 'Import and edit existing content',
+    description: 'Import, edit and transform existing content',
     href: '/edit',
     status: process.env.NEXT_PUBLIC_EDIT_ENABLED,
   },
   Library: {
-    name: 'Library',
-    description: "Browse your team's shared content",
+    name: 'Browse',
+    description: "Explore shared creations from your team's Library",
     href: '/library',
     status: 'true',
   },

@@ -24,10 +24,10 @@ export interface FormChipGroupInputI {
   label: string
   control: any
   width: string
-  mandatory: boolean
   setValue?: any
   field?: chipGroupFieldsI
   required: boolean
+  disabled?: boolean
 }
 
 export interface FormChipGroupMultipleInputI {

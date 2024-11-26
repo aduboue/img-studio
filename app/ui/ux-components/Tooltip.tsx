@@ -39,7 +39,7 @@ const CustomizedSmallWhiteTooltip = {
   modifiers: [
     {
       name: 'offset',
-      options: { offset: [1, -20] },
+      options: { offset: [1, -17] },
     },
   ],
 }

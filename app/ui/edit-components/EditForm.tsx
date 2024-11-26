@@ -16,7 +16,7 @@ import { editImage } from '../../api/imagen/action'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
 import CustomTooltip from '../ux-components/Tooltip'
 import { useAppContext } from '../../context/app-context'
-import ImageDropzone from '../transverse-components/ImageDropzone'
+import EditImageDropzone from './EditImageDropzone'
 import {
   EditImageFormFields,
   EditImageFormI,
@@ -209,7 +209,7 @@ export default function EditForm({
         <EditModeMenu handleNewEditMode={handleNewEditMode} selectedEditMode={selectedEditMode} />
 
         <Box sx={{ pb: 4 }}>
-          <ImageDropzone
+          <EditImageDropzone
             setImageToEdit={setImageToEdit}
             imageToEdit={imageToEdit}
             setValue={setValue}

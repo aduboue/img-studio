@@ -302,7 +302,7 @@ export interface chipGroupFieldsI {
   default?: string | number
   options: string[]
 }
-;[]
+
 export interface selectFieldsI {
   label?: string
   default: string
@@ -312,7 +312,7 @@ export interface selectFieldsI {
     indication?: string
   }[]
 }
-;[]
+
 export interface generalSettingsI {
   aspectRatio: chipGroupFieldsI
   sampleCount: chipGroupFieldsI
@@ -343,6 +343,65 @@ export const compositionFields = {
   shot_from: GenerateImageFormFields.shot_from,
 }
 
+// Reference utils for Few Shots Customization in Image Generation
+
+export const referenceTypeField = {
+  label: 'Reference type',
+  options: ['Person', 'Animal', 'Product', 'Style', 'Default'],
+}
+export const referenceTypeMatching = {
+  Person: {
+    referenceType: 'REFERENCE_TYPE_SUBJECT',
+    subjectType: 'SUBJECT_TYPE_PERSON',
+  },
+  Animal: {
+    referenceType: 'REFERENCE_TYPE_SUBJECT',
+    subjectType: 'SUBJECT_TYPE_ANIMAL',
+  },
+  Product: {
+    referenceType: 'REFERENCE_TYPE_SUBJECT',
+    subjectType: 'SUBJECT_TYPE_PRODUCT',
+  },
+  Style: {
+    referenceType: 'REFERENCE_TYPE_STYLE',
+    subjectType: '',
+  },
+  Default: {
+    referenceType: 'REFERENCE_TYPE_SUBJECT',
+    subjectType: 'SUBJECT_TYPE_DEFAULT',
+  },
+}
+
+export interface ReferenceObjectI {
+  referenceType: string
+  base64Image: string
+  description: string
+  ratio: string
+  width: number
+  height: number
+  refId: number
+  objectKey: string
+  isAdditionalImage: boolean
+}
+
+export const ReferenceObjectDefaults = {
+  referenceType: '',
+  base64Image: '',
+  description: '',
+  ratio: '',
+  width: 0,
+  height: 0,
+  isAdditionalImage: false,
+  refId: 0,
+  objectKey: '',
+}
+
+export const ReferenceObjectInit: ReferenceObjectI[] = [
+  { ...ReferenceObjectDefaults, objectKey: Math.random().toString(36).substring(2, 15), refId: 1 },
+]
+
+export const maxReferences = 4
+
 // Interface of Generate form fields
 export interface GenerateImageFormI {
   prompt: string
@@ -360,6 +419,7 @@ export interface GenerateImageFormI {
   perspective: string
   image_colors: string
   use_case: string
+  referenceObjects: ReferenceObjectI[]
 }
 
 // Set default values for Generate Form
@@ -373,6 +433,7 @@ generateFieldList.forEach((field) => {
   const defaultValue = 'default' in fieldParams ? fieldParams.default : ''
   formDataDefaults = { ...formDataDefaults, [field]: defaultValue }
 })
+formDataDefaults.referenceObjects = ReferenceObjectInit
 
 // Set fields that can be reseted by the user
 export const formDataResetableFields = generateFieldList.filter(
@@ -414,13 +475,6 @@ export const RatioToPixel = [
   { ratio: '16:9', width: 1408, height: 768 },
   { ratio: '3:4', width: 896, height: 1280 },
   { ratio: '4:3', width: 1280, height: 896 },
-]
-
-// List of Imagen upscaling options
-export const UpscaleToPixel = [
-  { upscale: 'no', width: 1024, height: 1024 },
-  { upscale: 'x2', width: 2048, height: 2048 },
-  { upscale: 'x4', width: 4096, height: 4096 },
 ]
 
 // Random prompt list the user can use if they lack prompt ideas

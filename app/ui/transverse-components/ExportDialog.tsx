@@ -20,7 +20,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material'
-import { ImageI, UpscaleToPixel } from '../../api/generate-utils'
+import { ImageI } from '../../api/generate-utils'
 import { TransitionProps } from '@mui/material/transitions'
 import { CustomizedSendButton } from '../ux-components/Button-SX'
 import {
@@ -164,9 +164,10 @@ export default function ExportStepper({
             }
             formData['imageToExport']['gcsUri'] = upscaledGcsUri
 
-            const upscaleToPixel = UpscaleToPixel.find((item) => item.upscale === upscaleFactor)
-            formData['imageToExport']['width'] = upscaleToPixel ? upscaleToPixel.width : 1024
-            formData['imageToExport']['height'] = upscaleToPixel ? upscaleToPixel.height : 1024
+            formData['imageToExport']['width'] =
+              formData['imageToExport']['width'] * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
+            formData['imageToExport']['height'] =
+              formData['imageToExport']['height'] * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
           } catch (error: any) {
             throw Error(error)
           }
@@ -389,14 +390,22 @@ export default function ExportStepper({
               />
               <CustomRadio
                 label="Scale x2"
-                subLabel={isSquareRatio ? `2048 x 2048 px` : '/ only available for 1:1 ratio'}
+                subLabel={
+                  isSquareRatio
+                    ? `${imageToExport && imageToExport.width * 2} x ${imageToExport && imageToExport.height * 2} px`
+                    : '/ only available for 1:1 ratio'
+                }
                 value="x2"
                 currentSelectedValue={field.value}
                 enabled={isSquareRatio}
               />
               <CustomRadio
                 label="Scale x4"
-                subLabel={isSquareRatio ? `4096 x 4096 px` : '/ only available for 1:1 ratio'}
+                subLabel={
+                  isSquareRatio
+                    ? `${imageToExport && imageToExport.width * 4} x ${imageToExport && imageToExport.height * 4} px`
+                    : '/ only available for 1:1 ratio'
+                }
                 value="x4"
                 currentSelectedValue={field.value}
                 enabled={isSquareRatio}

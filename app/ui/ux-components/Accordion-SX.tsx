@@ -1,9 +1,12 @@
+import { Height } from '@mui/icons-material'
 import theme from '../../theme'
 const { palette } = theme
 
 export const CustomizedAccordion = {
+  py: 0.5,
   bgcolor: 'transparent',
   boxShadow: 0,
+  flexWrap: 'wrap',
   '&:before': {
     display: 'none',
   },

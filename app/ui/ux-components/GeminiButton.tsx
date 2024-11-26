@@ -1,11 +1,11 @@
 import * as React from 'react'
 import { styled } from '@mui/material/styles'
-import Switch from '@mui/material/Switch'
-
+import IconButton from '@mui/material/IconButton'
+import { Box, Icon, Switch } from '@mui/material'
 import theme from '../../theme'
 const { palette } = theme
 
-const sparkIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark/default/20px.svg'
+export const sparkIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark/default/20px.svg'
 const sparkOffIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark_off/default/20px.svg'
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
@@ -81,4 +81,40 @@ export const GeminiSwitch = ({
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
 }) => {
   return <MaterialUISwitch sx={{ mt: 2 }} checked={checked} onChange={onChange} />
+}
+
+export const GeminiButton = ({ onClick }: { onClick: () => void }) => {
+  return (
+    <IconButton
+      aria-label="close"
+      color="inherit"
+      size="small"
+      disableRipple={true}
+      onClick={onClick}
+      sx={{
+        p: 0,
+        m: 0,
+        width: 22,
+        height: 22,
+        '&:hover': {
+          backgroundImage: 'linear-gradient(90deg, rgba(33,123,254,0.9) 30%,  rgba(172,135,235,0.9) 90%)',
+          boxShadow:
+            '0px 2px 1px -1px rgba(0, 0, 0, 0.5), 0px 1px 1px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 0px rgba(0, 0, 0, 0.2)',
+        },
+      }}
+    >
+      <Icon
+        color="primary"
+        sx={{
+          p: 0,
+          m: 0,
+          mb: 0.3,
+          alignContent: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <img src={sparkIcon} />
+      </Icon>
+    </IconButton>
+  )
 }

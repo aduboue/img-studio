@@ -101,14 +101,14 @@ export default function FormInputDropdown({
           render={({ field: { onChange, value } }) => (
             <TextField
               onChange={onChange}
-              value={value}
+              value={value == null ? field.default : value}
               select
               variant="standard"
               size="small"
               defaultValue={field.default}
               label={label == null ? '' : label}
               InputLabelProps={{
-                sx: { color: palette.text.primary, fontWeight: 500 },
+                sx: { color: palette.text.primary, fontWeight: 500, fontSize: '1rem' },
               }}
               InputProps={{ sx: CustomizedInput(styleSize) }}
               SelectProps={{ MenuProps: CustomizedMenu, displayEmpty: true }}

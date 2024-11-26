@@ -28,7 +28,7 @@ import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } fr
 import FormInputDropdownMultiple from '../ux-components/InputDropdownMultiple'
 import OutpaintingMaskSettings from './OutpaintingMaskSettings'
 import { segmentImage } from '../../api/vertex-seg/action'
-import { getAspectRatio } from '../transverse-components/ImageDropzone'
+import { getAspectRatio } from './EditImageDropzone'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
