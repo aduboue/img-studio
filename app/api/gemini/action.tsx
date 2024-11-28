@@ -39,10 +39,10 @@ export async function rewriteWithGemini(userPrompt: string) {
   })
 
   const rewritePrompt =
-    `Give me only one option, give me only your answer for the new prompt, no introductionnary text. ` +
-    `The prompt should use short sentences and keywords separated by commas as opposed to longer natural language descriptive prompts. ` +
-    `Make this prompt a bit more specific while staying true to exactly what was asked, ` +
-    `the prompt is: "${userPrompt}".`
+    'Give me only one option, give me only your answer for the new prompt, no introductionnary text. ' +
+    'The prompt should use short sentences and keywords separated by commas as opposed to longer natural language descriptive prompts. ' +
+    'Make this prompt a bit more specific while staying true to exactly what was asked, ' +
+    'the prompt is: "${userPrompt}".'
 
   try {
     const resp = await generativeModel.generateContent(rewritePrompt)
@@ -77,29 +77,23 @@ export async function getDescriptionFromGemini(base64Image: string, type: string
   let descriptionPrompt = ''
   if (type === 'Person')
     descriptionPrompt =
-      'List the physical attributes of the person in this image.' +
-      'Include details such as apparent age, hair color, gender, any prominent clothing or accessories. '
-  if (type === 'Animal')
-    descriptionPrompt =
-      'List the physical attributes of the animal in this image.' +
-      'Include details such as species, color, and prominent features like eye color or markings. '
+      "State the primary subject in this image. Only use terms that describe a person's age and gender (e.g., boy, girl, man, woman). " +
+      'Do not state what the person is doing, or other object present in the image. '
+  if (type === 'Animal') descriptionPrompt = 'State the primary animal in this image. Only use its race. '
   if (type === 'Product')
     descriptionPrompt =
-      `List the physical attributes of the primary product in this image.` +
-      `Include details such as type, color, or any other prominent features.` +
-      `If you recognize the brand or the model add them in. `
+      'State the primary product in this image using the most common and simple term (e.g., chair, table, phone). ' +
+      'If you recognize the brand or the model, use them. '
   if (type === 'Style')
     descriptionPrompt =
-      `Describe the style of this image only, not what's in it.` +
-      `Include details such as lighting, colors, if it's a photograph a drawing or something else, the technique used.`
+      "Describe the overall style of this image, not what is happening in it. Use terms like 'minimalist', 'vintage', 'surreal', 'abstract', 'modern', etc. "
   if (type === 'Default')
     descriptionPrompt =
-      `Describe this image in 80 characters or less in total, mentioning the primary object only, not its surroundings.` +
-      `The description should contain if possible its type, color, any prominent features, etc.`
+      "State the primary subject in this image using the most common and simple term. Don't state what it is doing or where it is. "
 
   descriptionPrompt =
     descriptionPrompt +
-    'Format the description in a subject format of 80 characters or less, with no period at the end. ' +
+    'Use a subject format of 40 characters or less, with no period at the end. ' +
     "If you can't generate the output, for instance because the image content is not matching the type, just send back 'Error'"
 
   const imagePart = {

@@ -94,8 +94,8 @@ export const GeminiButton = ({ onClick }: { onClick: () => void }) => {
       sx={{
         p: 0,
         m: 0,
-        width: 22,
-        height: 22,
+        width: 19,
+        height: 19,
         backgroundImage: 'linear-gradient(90deg, rgba(33,123,254,0.9) 30%,  rgba(172,135,235,0.9) 90%)',
         '&:hover': {
           boxShadow:
@@ -108,7 +108,7 @@ export const GeminiButton = ({ onClick }: { onClick: () => void }) => {
         sx={{
           p: 0,
           m: 0,
-          mb: 0.3,
+          mb: 0.5,
           alignContent: 'center',
           justifyContent: 'center',
         }}

@@ -91,19 +91,28 @@ export default function GenerateForm({
 
   const removeReferenceObject = (objectKey: string) => {
     // Find the reference object to be removed
-    const targetObject = referenceObjects.find((obj) => obj.objectKey === objectKey)
-    if (!targetObject) return
+    const removeReference = referenceObjects.find((obj) => obj.objectKey === objectKey)
+    if (!removeReference) return
 
     let updatedReferenceObjects = [...referenceObjects]
 
-    // If reference is an AdditionalImage, remove only it, otherwise remove all references with the same ID
-    if (targetObject.isAdditionalImage)
+    // If reference is an AdditionalImage, remove only it,
+    // otherwise remove all references with the same ID and update the refId of the remaining ones
+    if (removeReference.isAdditionalImage) {
       updatedReferenceObjects = referenceObjects.filter((obj) => obj.objectKey !== objectKey)
-    else updatedReferenceObjects = referenceObjects.filter((obj) => obj.refId !== targetObject.refId)
+    } else {
+      updatedReferenceObjects = referenceObjects.filter((obj) => obj.refId !== removeReference.refId)
+      // Update refId of remaining objects
+      updatedReferenceObjects = updatedReferenceObjects.map((obj) => {
+        if (obj.refId > removeReference.refId) return { ...obj, refId: obj.refId - 1 }
+        return obj
+      })
+    }
 
     if (updatedReferenceObjects.length === 0) setValue('referenceObjects', ReferenceObjectInit)
     else setValue('referenceObjects', updatedReferenceObjects)
   }
+
   const addNewRefObject = () => {
     if (referenceObjects.length >= maxReferences) return
 

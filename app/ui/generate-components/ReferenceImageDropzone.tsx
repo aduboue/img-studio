@@ -57,8 +57,10 @@ export default function ReferenceImageDropzone({
       <Box
         id="DropzoneContainer"
         sx={{
-          width: '9vh',
-          height: '9vh',
+          width: '5vw',
+          maxWidth: 70,
+          height: '5vw',
+          maxHeight: 70,
           position: 'relative',
           m: 0,
           p: 0,
