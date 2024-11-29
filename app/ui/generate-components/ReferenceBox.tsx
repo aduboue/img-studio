@@ -110,7 +110,7 @@ export const ReferenceBox = ({
       />
       {!currentReferenceObject.isAdditionalImage && (
         <>
-          <Box sx={{ width: '21vh' }}>
+          <Box sx={{ width: '30%' }}>
             <FormInputChipGroup
               name={`referenceObjects.${refPosition}.referenceType`}
               label={referenceTypeField.label}
@@ -125,11 +125,11 @@ export const ReferenceBox = ({
           </Box>
           <Box>
             {!noReferenceTypeSet && (
-              <>
+              <Box sx={{ width: '100%' }}>
                 <FormInputTextLine
                   key={objectKey + refPosition + '_description'}
                   control={control}
-                  label={'Description'}
+                  label={'Short description'}
                   name={`referenceObjects.${refPosition}.description`}
                   value={currentReferenceObject.description}
                   required={false}
@@ -139,7 +139,7 @@ export const ReferenceBox = ({
                 ) : (
                   <GeminiButton onClick={getDescription} />
                 )}
-              </>
+              </Box>
             )}
           </Box>
         </>

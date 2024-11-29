@@ -6,7 +6,6 @@ import { Close, Height } from '@mui/icons-material'
 const { palette } = theme
 
 const customTextField = {
-  width: '25vh',
   '& .MuiInputBase-root': {
     fontSize: '1rem',
     color: palette.primary.main,
@@ -50,7 +49,6 @@ export const FormInputTextLine = ({
           size="small"
           InputLabelProps={{
             sx: {
-              width: '100%',
               color: palette.text.primary,
               fontWeight: 500,
               fontSize: '1rem',
