@@ -63,8 +63,8 @@ export default function OutputImagesDisplay({
 
   const handleEditClick = (imageGcsURI: string) => {
     setAppContext((prevContext) => {
-      if (prevContext) return { ...prevContext, imageToEdit: '' }
-      else return { ...appContextDataDefault, imageToEdit: '' }
+      if (prevContext) return { ...prevContext, imageToEdit: imageGcsURI }
+      else return { ...appContextDataDefault, imageToEdit: imageGcsURI }
     })
     router.push('/edit')
   }
