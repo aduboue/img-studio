@@ -15,7 +15,7 @@ import theme from '../../theme'
 import { editImage } from '../../api/imagen/action'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
 import CustomTooltip from '../ux-components/Tooltip'
-import { useAppContext } from '../../context/app-context'
+import { appContextDataDefault, useAppContext } from '../../context/app-context'
 import EditImageDropzone from './EditImageDropzone'
 import {
   EditImageFormFields,
@@ -62,6 +62,7 @@ export default function EditForm({
     defaultValues: formDataEditDefaults,
   })
   const { appContext } = useAppContext()
+  const { setAppContext } = useAppContext()
 
   //TODO add as part of form?
   const [imageToEdit, setImageToEdit] = useState<string | null>(null)
@@ -79,6 +80,13 @@ export default function EditForm({
   const handleNewEditMode = (value: string) => {
     resetStates()
     setValue('editMode', value)
+
+    if (value === 'EDIT_MODE_OUTPAINT') setValue('maskDilation', '0.03')
+    if (value === 'EDIT_MODE_INPAINT_REMOVAL') setValue('baseSteps', '12')
+    if (value === 'EDIT_MODE_BGSWAP') {
+      setValue('maskDilation', '0.0')
+      setValue('baseSteps', '75')
+    }
     setSelectedEditMode(editModeOptions.find((option) => option.value === value))
   }
 
@@ -97,6 +105,12 @@ export default function EditForm({
           const newImage = `data:image/png;base64,${image}`
           image && setImageToEdit(newImage)
           setMaskImage(null)
+
+          // Re-initialize parameter in context
+          setAppContext((prevContext) => {
+            if (prevContext) return { ...prevContext, imageToEdit: '' }
+            else return { ...appContextDataDefault, imageToEdit: '' }
+          })
         } catch (error) {
           console.error('Error fetching image:', error)
         }
@@ -288,7 +302,7 @@ export default function EditForm({
           maskPreview={maskPreview}
           setMaskPreview={setMaskPreview}
           setValue={setValue}
-          imageToEdit={imageToEdit}
+          imageToEdit={imageToEdit ?? ''}
           imageSize={{ width: imageWidth, height: imageHeight, ratio: imageRatio }}
           maskSize={maskSize}
           setMaskSize={setMaskSize}

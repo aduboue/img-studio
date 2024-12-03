@@ -84,7 +84,10 @@ export default function GenerateForm({
     setIsGeminiRewrite(event.target.checked)
   }
 
-  const [expandedAccordion, setExpandedAccordion] = useState(1)
+  const [expanded, setExpanded] = React.useState<string | false>(false)
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false)
+  }
 
   // Reference management logic
   const referenceObjects = watch('referenceObjects')
@@ -154,7 +157,7 @@ export default function GenerateForm({
     setValue('referenceObjects', updatedReferenceObjects)
   }
 
-  // Provide random prompt //TODO get from Gemini ideas ?
+  // Provide random prompt
   const getRandomPrompt = () => {
     return RandomPrompts[Math.floor(Math.random() * RandomPrompts.length)]
   }
@@ -311,8 +314,8 @@ export default function GenerateForm({
         {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && (
           <Accordion
             disableGutters
-            expanded={expandedAccordion === 2}
-            onChange={() => setExpandedAccordion(expandedAccordion === 2 ? 0 : 2)}
+            expanded={expanded === 'references'}
+            onChange={handleChange('references')}
             sx={CustomizedAccordion}
           >
             <AccordionSummary
@@ -368,9 +371,10 @@ export default function GenerateForm({
         )}
         <Accordion
           disableGutters
-          expanded={expandedAccordion === 1}
-          onChange={() => setExpandedAccordion(expandedAccordion === 1 ? 0 : 1)}
-          sx={CustomizedAccordion}
+          defaultExpanded
+          expanded={expanded === 'attributes'}
+          onChange={handleChange('attributes')}
+          sx={{ ...CustomizedAccordion }}
         >
           <AccordionSummary
             expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}

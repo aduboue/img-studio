@@ -1,7 +1,5 @@
 'use server'
 
-import { processImageBase64 } from '../vertex-seg/action'
-
 const { VertexAI } = require('@google-cloud/vertexai')
 
 // Truncate logs to be readable
@@ -98,8 +96,8 @@ export async function getDescriptionFromGemini(base64Image: string, type: string
 
   const imagePart = {
     inline_data: {
-      data: await processImageBase64(base64Image),
-      mimeType: await getFormatFromBase64(base64Image),
+      data: base64Image.startsWith('data:') ? base64Image.split(',')[1] : base64Image,
+      mimeType: getFormatFromBase64(base64Image),
     },
   }
   const textPart = {

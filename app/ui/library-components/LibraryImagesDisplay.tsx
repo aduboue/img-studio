@@ -191,7 +191,15 @@ export default function LibraryImagesDisplay({
         <Modal
           open={imageFullScreen !== undefined}
           onClose={handleCloseImageFullScreen}
-          sx={{ display: 'flex', alignContent: 'center', justifyContent: 'center', m: 5, cursor: 'pointer' }}
+          sx={{
+            display: 'flex',
+            alignContent: 'center',
+            justifyContent: 'center',
+            m: 5,
+            cursor: 'pointer',
+            maxHeight: '90vh',
+            maxWidth: '90vw',
+          }}
         >
           <Image
             key={'displayed-image'}
@@ -199,7 +207,7 @@ export default function LibraryImagesDisplay({
             alt={'displayed-image'}
             width={imageFullScreen.imageWidth}
             height={imageFullScreen.imageHeight}
-            style={{ width: 'auto', height: '100%', objectFit: 'contain' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             quality={100}
             onClick={() => handleCloseImageFullScreen()}
             onContextMenu={handleContextMenu}

@@ -63,11 +63,8 @@ export default function OutputImagesDisplay({
 
   const handleEditClick = (imageGcsURI: string) => {
     setAppContext((prevContext) => {
-      if (prevContext) {
-        return { ...prevContext, imageToEdit: imageGcsURI }
-      } else {
-        return { ...appContextDataDefault, imageToEdit: imageGcsURI }
-      }
+      if (prevContext) return { ...prevContext, imageToEdit: '' }
+      else return { ...appContextDataDefault, imageToEdit: '' }
     })
     router.push('/edit')
   }
@@ -127,8 +124,10 @@ export default function OutputImagesDisplay({
                   </Box>
                   <ImageListItemBar
                     sx={{
-                      background:
-                        'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+                      height: 10,
+                      display: 'flex',
+                      backgroundColor: 'transparent',
+                      flexWrap: 'wrap',
                     }}
                     position="top"
                     actionIcon={
@@ -138,7 +137,7 @@ export default function OutputImagesDisplay({
                             <IconButton
                               onClick={() => handleEditClick(image.gcsUri)}
                               aria-label="Export image"
-                              sx={{ px: 0.5 }}
+                              sx={{ px: 0, zIndex: 10 }}
                             >
                               <Avatar sx={CustomizedAvatarButton}>
                                 <Edit sx={CustomizedIconButton} />
@@ -150,7 +149,7 @@ export default function OutputImagesDisplay({
                           <IconButton
                             onClick={() => handleImageExportOpen(image)}
                             aria-label="Export image"
-                            sx={{ px: 0.5 }}
+                            sx={{ pr: 1, pl: 0.5 }}
                           >
                             <Avatar sx={CustomizedAvatarButton}>
                               <FileUpload sx={CustomizedIconButton} />
@@ -170,7 +169,15 @@ export default function OutputImagesDisplay({
         <Modal
           open={imageFullScreen !== undefined}
           onClose={handleCloseImageFullScreen}
-          sx={{ display: 'flex', alignContent: 'center', justifyContent: 'center', m: 5, cursor: 'pointer' }}
+          sx={{
+            display: 'flex',
+            alignContent: 'center',
+            justifyContent: 'center',
+            m: 5,
+            cursor: 'pointer',
+            maxHeight: '90vh',
+            maxWidth: '90vw',
+          }}
         >
           <Image
             key={'displayed-image'}
@@ -178,7 +185,7 @@ export default function OutputImagesDisplay({
             alt={'displayed-image'}
             width={imageFullScreen.width}
             height={imageFullScreen.height}
-            style={{ width: 'auto', height: '100%', objectFit: 'contain' }}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             quality={100}
             onClick={() => handleCloseImageFullScreen()}
             onContextMenu={handleContextMenu}

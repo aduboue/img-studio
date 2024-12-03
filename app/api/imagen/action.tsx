@@ -13,7 +13,6 @@ import { decomposeUri, downloadImage, getSignedURL } from '../cloud-storage/acti
 import { rewriteWithGemini, truncateLog } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
-import { processImageBase64 } from '../vertex-seg/action'
 const { GoogleAuth } = require('google-auth-library')
 
 function cleanResult(inputString: string) {
@@ -299,6 +298,8 @@ export async function generateImage(
 
   // Adding references if necessary
   if (hasValidReference) {
+    reqData.parameters.editMode = 'EDIT_MODE_DEFAULT'
+
     reqData.instances[0].referenceImages = []
 
     for (const [index, reference] of references.entries()) {
@@ -308,7 +309,9 @@ export async function generateImage(
         referenceType: params.referenceType,
         referenceId: reference.refId,
         referenceImage: {
-          bytesBase64Encoded: await processImageBase64(reference.base64Image),
+          bytesBase64Encoded: reference.base64Image.startsWith('data:')
+            ? reference.base64Image.split(',')[1]
+            : reference.base64Image,
         },
       }
 
@@ -337,7 +340,6 @@ export async function generateImage(
     method: 'POST',
     data: reqData,
   }
-  console.log(truncateLog(opts)) //TODO remove
 
   // 4 - Generating images
   try {
@@ -423,11 +425,14 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
     editGcsURI = `${appContext.gcsURI}/${appContext.userID}/edited-images`
   }
 
+  const refInputImage = formData['inputImage'].startsWith('data:')
+    ? formData['inputImage'].split(',')[1]
+    : formData['inputImage']
+  const refInputMask = formData['inputMask'].startsWith('data:')
+    ? formData['inputMask'].split(',')[1]
+    : formData['inputMask']
+
   const editMode = formData['editMode']
-  let customDilation = 0.01
-  if (editMode === 'EDIT_MODE_OUTPAINT') customDilation = 0.03
-  let customSteps = 35
-  if (editMode === 'EDIT_MODE_INPAINT_REMOVAL') customSteps = 12
 
   const reqData = {
     instances: [
@@ -438,18 +443,18 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
             referenceType: 'REFERENCE_TYPE_RAW',
             referenceId: 1,
             referenceImage: {
-              bytesBase64Encoded: await processImageBase64(formData['inputImage']),
+              bytesBase64Encoded: refInputImage,
             },
           },
           {
             referenceType: 'REFERENCE_TYPE_MASK',
             referenceId: 2,
             referenceImage: {
-              bytesBase64Encoded: await processImageBase64(formData['inputMask']),
+              bytesBase64Encoded: refInputMask,
             },
             maskImageConfig: {
               maskMode: 'MASK_MODE_USER_PROVIDED',
-              dilation: customDilation,
+              dilation: parseFloat(formData['maskDilation']),
             },
           },
         ],
@@ -460,7 +465,7 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
       promptLanguage: 'en',
       seed: 1,
       editConfig: {
-        baseSteps: customSteps,
+        baseSteps: parseInt(formData['baseSteps']),
       },
       editMode: editMode,
       sampleCount: parseInt(formData['sampleCount']),
@@ -471,6 +476,14 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
       personGeneration: formData['personGeneration'],
       storageUri: editGcsURI,
     },
+  }
+
+  if (editMode === 'EDIT_MODE_BGSWAP') {
+    const referenceImage = reqData.instances[0].referenceImages[1] as any
+
+    delete referenceImage.referenceImage
+    referenceImage.maskImageConfig.maskMode = 'MASK_MODE_BACKGROUND'
+    delete referenceImage.maskImageConfig.dilation
   }
 
   const opts = {

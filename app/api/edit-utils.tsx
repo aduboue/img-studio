@@ -30,7 +30,7 @@ export interface EditImageFormFieldsI {
   negativePrompt: EditImageFieldStyleI
   editMode: EditImageFieldStyleI
   maskDilation: EditImageFieldStyleI
-  guidanceScale: EditImageFieldStyleI
+  baseSteps: EditImageFieldStyleI
   outputOptions: EditImageFieldStyleI
   personGeneration: EditImageFieldStyleI
 }
@@ -132,12 +132,13 @@ export const EditImageFormFields = {
         icon: 'store',
         mandatoryPrompt: true,
         promptIndication: 'Prompt - Describe in what situation you want to put the product',
-        mandatoryMask: true,
+        /*mandatoryMask: true,
         maskDialogTitle: "Isolate your product's background",
         maskDialogIndication: 'No pixels of the product should be altered',
         maskButtonLabel: 'Isolate product',
         maskButtonIcon: 'crop_free',
-        maskType: ['background'],
+        maskType: ['background'],*/
+        mandatoryMask: false,
         enabled: true,
       },
       {
@@ -157,20 +158,19 @@ export const EditImageFormFields = {
     type: 'float',
     label: 'Mask dilation',
     description: 'Determines the dilation percentage of the mask provided',
-    default: 0.03,
-    min: 0,
-    max: 1,
+    default: 0.01,
+    min: 0.0,
+    max: 1.0,
     step: 0.01,
     isDataResetable: true,
   },
-  guidanceScale: {
+  baseSteps: {
     type: 'integer',
-    label: 'Guidance scale',
-    description:
-      'Controls how much the model adheres to the text prompt. Large values increase output and prompt alignment, but may compromise image quality',
-    default: 60,
-    min: 0,
-    max: 500,
+    label: 'Base steps',
+    description: 'Controls how many steps should be used to generate output',
+    default: 35,
+    min: 1,
+    max: 100,
     step: 1,
     isDataResetable: true,
   },
@@ -291,7 +291,7 @@ export interface EditImageFormI {
   editMode: string
   maskMode?: string
   maskDilation: string
-  guidanceScale: string
+  baseSteps: string
   outputOptions: string
   personGeneration: string
 }
@@ -300,7 +300,7 @@ export interface EditImageFormI {
 export interface EditSettingsFieldsI {
   sampleCount: EditImageFieldStyleI
   maskDilation: EditImageFieldStyleI
-  guidanceScale: EditImageFieldStyleI
+  baseSteps: EditImageFieldStyleI
   outputOptions: EditImageFieldStyleI
   personGeneration: EditImageFieldStyleI
   negativePrompt: EditImageFieldStyleI
@@ -308,7 +308,7 @@ export interface EditSettingsFieldsI {
 export const editSettingsFields: EditSettingsFieldsI = {
   sampleCount: EditImageFormFields.sampleCount,
   maskDilation: EditImageFormFields.maskDilation,
-  guidanceScale: EditImageFormFields.guidanceScale,
+  baseSteps: EditImageFormFields.baseSteps,
   outputOptions: EditImageFormFields.outputOptions,
   personGeneration: EditImageFormFields.personGeneration,
   negativePrompt: EditImageFormFields.negativePrompt,

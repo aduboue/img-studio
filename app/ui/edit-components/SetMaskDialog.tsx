@@ -100,7 +100,7 @@ export default function SetMaskDialog({
   setMaskPreview: React.Dispatch<React.SetStateAction<string | null>>
   setMaskImage: React.Dispatch<React.SetStateAction<string | null>>
   setValue: any
-  imageToEdit: any
+  imageToEdit: string | null
   imageSize: { width: number; height: number; ratio: string }
   maskSize: { width: number; height: number }
   setMaskSize: any
@@ -192,7 +192,7 @@ export default function SetMaskDialog({
         if (!manualMask) throw Error('No scribble provided')
       }
 
-      const res = await segmentImage(imageToEdit, maskType, semanticSelection, promptSelection, manualMask ?? '')
+      const res = await segmentImage(imageToEdit ?? '', maskType, semanticSelection, promptSelection, manualMask ?? '')
 
       if (res !== undefined && typeof res === 'object' && 'error' in res) {
         const msg = res['error'] as string
