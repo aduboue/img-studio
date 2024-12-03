@@ -64,7 +64,6 @@ export default function EditForm({
   const { appContext } = useAppContext()
   const { setAppContext } = useAppContext()
 
-  //TODO add as part of form?
   const [imageToEdit, setImageToEdit] = useState<string | null>(null)
   const [maskImage, setMaskImage] = useState<string | null>(null)
   const [maskPreview, setMaskPreview] = useState<string | null>(null)
@@ -73,7 +72,6 @@ export default function EditForm({
   const [imageWidth, imageHeight, imageRatio] = watch(['width', 'height', 'ratio'])
   const [maskSize, setMaskSize] = useState({ width: 0, height: 0 })
 
-  // TODO ???
   const [originalImage, setOriginalImage] = useState<string | null>(null)
   const [originalWidth, setOriginalWidth] = useState<number | null>(null)
   const [originalHeight, setOriginalHeight] = useState<number | null>(null)
@@ -126,11 +124,6 @@ export default function EditForm({
 
   const handleMaskDialogOpen = () => {
     if (selectedEditMode?.value === 'EDIT_MODE_OUTPAINT') {
-      /*if (originalImage && originalWidth && originalHeight) {
-        setValue('width', originalWidth)
-        setValue('height', originalHeight)
-        setValue('inputImage', originalImage)
-      }*/ //TODO
       if (!outpaintedImage) {
         setOriginalImage(getValues('inputImage'))
         setOriginalWidth(getValues('width'))
@@ -143,12 +136,6 @@ export default function EditForm({
         }
       }
     }
-
-    console.log('imageWidth ' + imageWidth) //TODO remove
-    console.log('imageHeight' + imageHeight) //TODO remove
-    console.log('originalWidth ' + originalWidth) //TODO remove
-    console.log('originalHeight ' + originalHeight) //TODO remove
-    console.log('maskSize ' + JSON.stringify(maskSize)) //TODO remove
 
     setMaskSize({ width: imageWidth, height: imageHeight })
 
@@ -163,10 +150,6 @@ export default function EditForm({
   useEffect(() => {
     if (imageToEdit) {
       setValue('inputImage', imageToEdit)
-      //TODO remove
-      //setOriginalImage(getValues('inputImage'))
-      //setOriginalWidth(getValues('width'))
-      //setOriginalHeight(getValues('height'))
     }
     if (outpaintedImage) setValue('inputImage', outpaintedImage)
     if (maskImage) setValue('inputMask', maskImage)
