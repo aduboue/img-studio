@@ -164,7 +164,7 @@ export const EditImageFormFields = {
     description: 'Determines the dilation percentage of the mask provided',
     default: 0.01,
     min: 0.0,
-    max: 1.0,
+    max: 0.3,
     step: 0.01,
     isDataResetable: true,
   },

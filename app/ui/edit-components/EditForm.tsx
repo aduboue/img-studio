@@ -16,7 +16,7 @@ import { editImage } from '../../api/imagen/action'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
 import CustomTooltip from '../ux-components/Tooltip'
 import { appContextDataDefault, useAppContext } from '../../context/app-context'
-import EditImageDropzone from './EditImageDropzone'
+import EditImageDropzone, { getAspectRatio } from './EditImageDropzone'
 import {
   EditImageFormFields,
   EditImageFormI,
@@ -73,6 +73,11 @@ export default function EditForm({
   const [imageWidth, imageHeight, imageRatio] = watch(['width', 'height', 'ratio'])
   const [maskSize, setMaskSize] = useState({ width: 0, height: 0 })
 
+  // TODO ???
+  const [originalImage, setOriginalImage] = useState<string | null>(null)
+  const [originalWidth, setOriginalWidth] = useState<number | null>(null)
+  const [originalHeight, setOriginalHeight] = useState<number | null>(null)
+
   const defaultEditMode = editModeOptions.find((option) => option.value === editModeField.default)
   const [selectedEditMode, setSelectedEditMode] = useState(defaultEditMode)
   const [openMaskDialog, setOpenMaskDialog] = useState(false)
@@ -120,8 +125,33 @@ export default function EditForm({
   }, [appContext?.imageToEdit])
 
   const handleMaskDialogOpen = () => {
-    if (imageWidth !== maskSize.width || imageHeight !== maskSize.width)
-      setMaskSize({ width: imageWidth, height: imageHeight })
+    if (selectedEditMode?.value === 'EDIT_MODE_OUTPAINT') {
+      /*if (originalImage && originalWidth && originalHeight) {
+        setValue('width', originalWidth)
+        setValue('height', originalHeight)
+        setValue('inputImage', originalImage)
+      }*/ //TODO
+      if (!outpaintedImage) {
+        setOriginalImage(getValues('inputImage'))
+        setOriginalWidth(getValues('width'))
+        setOriginalHeight(getValues('height'))
+      } else {
+        if (originalImage && originalWidth && originalHeight) {
+          setValue('width', originalWidth)
+          setValue('height', originalHeight)
+          setValue('inputImage', originalImage)
+        }
+      }
+    }
+
+    console.log('imageWidth ' + imageWidth) //TODO remove
+    console.log('imageHeight' + imageHeight) //TODO remove
+    console.log('originalWidth ' + originalWidth) //TODO remove
+    console.log('originalHeight ' + originalHeight) //TODO remove
+    console.log('maskSize ' + JSON.stringify(maskSize)) //TODO remove
+
+    setMaskSize({ width: imageWidth, height: imageHeight })
+
     setMaskImage(null)
     setMaskPreview(null)
     setOpenMaskDialog(true)
@@ -131,7 +161,13 @@ export default function EditForm({
   }
 
   useEffect(() => {
-    if (imageToEdit) setValue('inputImage', imageToEdit)
+    if (imageToEdit) {
+      setValue('inputImage', imageToEdit)
+      //TODO remove
+      //setOriginalImage(getValues('inputImage'))
+      //setOriginalWidth(getValues('width'))
+      //setOriginalHeight(getValues('height'))
+    }
     if (outpaintedImage) setValue('inputImage', outpaintedImage)
     if (maskImage) setValue('inputMask', maskImage)
   }, [imageToEdit, maskImage, outpaintedImage])
@@ -302,7 +338,7 @@ export default function EditForm({
           setMaskPreview={setMaskPreview}
           setValue={setValue}
           imageToEdit={imageToEdit ?? ''}
-          imageSize={{ width: imageWidth, height: imageHeight, ratio: imageRatio }}
+          imageSize={{ width: originalWidth ?? imageWidth, height: originalHeight ?? imageHeight, ratio: imageRatio }}
           maskSize={maskSize}
           setMaskSize={setMaskSize}
           setOutpaintedImage={setOutpaintedImage}

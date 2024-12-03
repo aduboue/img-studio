@@ -294,6 +294,10 @@ export const GenerateImageFormFields = {
     isDataResetable: true,
     isFullPromptAdditionalField: false,
   },
+  referenceObjects: {
+    type: 'array',
+    isDataResetable: true,
+  },
 }
 
 export interface chipGroupFieldsI {

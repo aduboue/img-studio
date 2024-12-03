@@ -5,6 +5,8 @@ import {
   AlignVerticalBottom,
   AlignVerticalCenter,
   AlignVerticalTop,
+  Autorenew,
+  Done,
 } from '@mui/icons-material'
 import {
   Stack,
@@ -17,12 +19,17 @@ import {
   FormHelperText,
   Input,
   InputAdornment,
+  Button,
+  Avatar,
+  IconButton,
 } from '@mui/material'
 import theme from '../../theme'
 import { useState } from 'react'
 import { RatioToPixel } from '../../api/generate-utils'
 import { ChipGroup } from '../ux-components/InputChipGroup'
 import { OutpaintPreview } from '../edit-components/OutpaintPreview'
+import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
+import CustomTooltip from '../ux-components/Tooltip'
 const { palette } = theme
 
 const customToggleButtonGroup = {
@@ -93,7 +100,31 @@ export default function OutpaintingMaskSettings({
       const newWidth = Math.max(imageSize.width, Math.round(imageSize.height * (newRatio[0] / newRatio[1])))
       const newHeight = Math.max(imageSize.height, Math.round(imageSize.width * (newRatio[1] / newRatio[0])))
       setMaskSize({ width: newWidth, height: newHeight })
+      setLocalMaskSize({ width: newWidth, height: newHeight })
     }
+  }
+
+  const [localMaskSize, setLocalMaskSize] = useState(maskSize)
+  const isNewValue = localMaskSize.width !== maskSize.width || localMaskSize.height !== maskSize.height
+
+  const handleWidthChange = (event: { target: { value: string } }) => {
+    setLocalMaskSize({
+      // Update local state
+      ...localMaskSize,
+      width: parseInt(event.target.value, 10),
+    })
+  }
+
+  const handleHeightChange = (event: { target: { value: string } }) => {
+    setLocalMaskSize({
+      // Update local state
+      ...localMaskSize,
+      height: parseInt(event.target.value, 10),
+    })
+  }
+
+  const handleApplyDimensions = () => {
+    setMaskSize(localMaskSize) // Update the actual maskSize state
   }
 
   return (
@@ -114,13 +145,8 @@ export default function OutpaintingMaskSettings({
       <Stack direction="row" spacing={2} sx={{ pl: 1, alignItems: 'center' }}>
         <FormControl variant="standard" sx={{ m: 1, mt: 3, width: 75 }}>
           <Input
-            value={maskSize.width}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setMaskSize({
-                ...maskSize,
-                width: parseInt(event.target.value, 10),
-              })
-            }}
+            value={localMaskSize.width}
+            onChange={handleWidthChange}
             size="small"
             endAdornment={
               <InputAdornment
@@ -136,20 +162,23 @@ export default function OutpaintingMaskSettings({
             inputProps={{
               type: 'number',
             }}
-            sx={{ '& .MuiInput-input': { padding: 0, width: '80%', color: palette.primary.main } }}
+            sx={{
+              '& .MuiInput-input': {
+                padding: 0,
+                width: '80%',
+                color: palette.primary.main,
+                fontWeight: isNewValue ? 500 : 400,
+                fontStyle: isNewValue ? 'italic' : 'none',
+              },
+            }}
           />
           <FormHelperText sx={{ color: palette.secondary.main }}>{'Width'}</FormHelperText>
         </FormControl>
         <Typography sx={{ fontWeight: 500, color: palette.secondary.main }}>{'/'}</Typography>
         <FormControl variant="standard" sx={{ m: 1, mt: 3, width: 75 }}>
           <Input
-            value={maskSize.height}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-              setMaskSize({
-                ...maskSize,
-                height: parseInt(event.target.value, 10),
-              })
-            }}
+            value={localMaskSize.height}
+            onChange={handleHeightChange}
             size="small"
             endAdornment={
               <InputAdornment
@@ -165,10 +194,26 @@ export default function OutpaintingMaskSettings({
             inputProps={{
               type: 'number',
             }}
-            sx={{ '& .MuiInput-input': { padding: 0, width: '80%', color: palette.primary.main } }}
+            sx={{
+              '& .MuiInput-input': {
+                padding: 0,
+                width: '80%',
+                color: palette.primary.main,
+                fontWeight: isNewValue ? 500 : 400,
+                fontStyle: isNewValue ? 'italic' : 'none',
+              },
+            }}
           />
           <FormHelperText sx={{ color: palette.secondary.main }}>{'Height'}</FormHelperText>
         </FormControl>
+
+        {isNewValue && (
+          <IconButton onClick={handleApplyDimensions} aria-label="Reset form" disableRipple sx={{ px: 0.5 }}>
+            <Avatar sx={CustomizedAvatarButton}>
+              <Done sx={CustomizedIconButton} />
+            </Avatar>
+          </IconButton>
+        )}
       </Stack>
       <Box sx={{ pb: 1.5, pt: 2.5, pl: 0.7 }}>
         <ChipGroup
