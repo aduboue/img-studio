@@ -81,19 +81,18 @@ export default function EditForm({
     resetStates()
     setValue('editMode', value)
 
-    if (value === 'EDIT_MODE_OUTPAINT') setValue('maskDilation', '0.03')
-    if (value === 'EDIT_MODE_INPAINT_REMOVAL') setValue('baseSteps', '12')
-    if (value === 'EDIT_MODE_BGSWAP') {
-      setValue('maskDilation', '0.0')
-      setValue('baseSteps', '75')
-    }
-    setSelectedEditMode(editModeOptions.find((option) => option.value === value))
+    const newEditMode = editModeOptions.find((option) => option.value === value)
+    setSelectedEditMode(newEditMode)
+
+    const defaultMaskDilation = newEditMode?.defaultMaskDilation.toString()
+    const defaultBaseSteps = newEditMode?.defaultBaseSteps.toString()
+    defaultMaskDilation && setValue('maskDilation', defaultMaskDilation)
+    defaultBaseSteps && setValue('baseSteps', defaultBaseSteps)
   }
 
   useEffect(() => {
-    if (imageWidth !== maskSize.width || imageHeight !== maskSize.height) {
+    if (imageWidth !== maskSize.width || imageHeight !== maskSize.height)
       setMaskSize({ width: imageWidth, height: imageHeight })
-    }
   }, [imageWidth, imageHeight])
 
   useEffect(() => {

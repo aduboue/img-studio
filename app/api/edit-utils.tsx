@@ -95,6 +95,8 @@ export const EditImageFormFields = {
         maskDialogIndication: 'Only pixels within the zone can and will be edited',
         maskType: ['manual', 'background', 'foreground', 'semantic', 'interactive', 'prompt'],
         enabled: true,
+        defaultMaskDilation: 0.01,
+        defaultBaseSteps: 35,
       },
       {
         value: 'EDIT_MODE_INPAINT_REMOVAL',
@@ -109,6 +111,8 @@ export const EditImageFormFields = {
         maskDialogIndication: 'Only selected pixels within can and will be edited',
         maskType: ['manual', 'background', 'foreground', 'semantic', 'interactive', 'prompt'],
         enabled: true,
+        defaultMaskDilation: 0.01,
+        defaultBaseSteps: 12,
       },
       {
         value: 'EDIT_MODE_OUTPAINT',
@@ -124,6 +128,8 @@ export const EditImageFormFields = {
         maskDialogIndication: 'Only pixels in outpaint zone will be edited',
         maskType: ['outpaint'], // Vertical/ Horizontal zones generated from new ratio and image position within it
         enabled: true,
+        defaultMaskDilation: 0.03,
+        defaultBaseSteps: 35,
       },
       {
         value: 'EDIT_MODE_BGSWAP',
@@ -132,14 +138,10 @@ export const EditImageFormFields = {
         icon: 'store',
         mandatoryPrompt: true,
         promptIndication: 'Prompt - Describe in what situation you want to put the product',
-        /*mandatoryMask: true,
-        maskDialogTitle: "Isolate your product's background",
-        maskDialogIndication: 'No pixels of the product should be altered',
-        maskButtonLabel: 'Isolate product',
-        maskButtonIcon: 'crop_free',
-        maskType: ['background'],*/
         mandatoryMask: false,
         enabled: true,
+        defaultMaskDilation: 0.0,
+        defaultBaseSteps: 75,
       },
       {
         value: 'EDIT_MODE_DEFAULT',
@@ -150,6 +152,8 @@ export const EditImageFormFields = {
         promptIndication: 'Prompt - Describe what you want to see change in the image',
         mandatoryMask: false,
         enabled: false,
+        defaultMaskDilation: 0.01,
+        defaultBaseSteps: 35,
       },
     ],
     isDataResetable: false,
