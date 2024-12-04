@@ -2,28 +2,6 @@
 
 const { GoogleAuth } = require('google-auth-library')
 
-export async function processImageBase64(imageBase64: string): Promise<string> {
-  return new Promise<string>((resolve) => {
-    // 1. Handle data URI scheme (if present)
-    if (imageBase64.startsWith('data:')) imageBase64 = imageBase64.split(',')[1]
-
-    // 2. (Optional) Add padding if necessary
-    while (imageBase64.length % 4 !== 0) imageBase64 += '='
-
-    resolve(imageBase64)
-  })
-}
-
-export async function buildImageSrcFromBase64(base64Data: string, mimeType = 'image/png'): Promise<string> {
-  return new Promise<string>((resolve) => {
-    // 1. (Optional) Prepend data URI scheme if needed
-    let imageSrc = base64Data
-    if (!imageSrc.startsWith('data:')) imageSrc = `data:${mimeType};base64,${base64Data}`
-
-    resolve(imageSrc)
-  })
-}
-
 export async function segmentImage(
   imageBase64: string,
   segMode: string,
@@ -54,7 +32,7 @@ export async function segmentImage(
     instances: [
       {
         image: {
-          bytesBase64Encoded: await processImageBase64(imageBase64),
+          bytesBase64Encoded: imageBase64.startsWith('data:') ? imageBase64.split(',')[1] : imageBase64,
         },
       },
     ],
@@ -72,7 +50,7 @@ export async function segmentImage(
   if (segMode === 'interactive') {
     ;(reqData.instances[0] as any).scribble = {}
     ;(reqData.instances[0] as any).scribble.image = {
-      bytesBase64Encoded: await processImageBase64(maskImage),
+      bytesBase64Encoded: maskImage.startsWith('data:') ? maskImage.split(',')[1] : maskImage,
     }
   }
 
@@ -91,9 +69,11 @@ export async function segmentImage(
     }
 
     console.log('Image segmented with success')
-    const segmentation = res.data.predictions[0].bytesBase64Encoded
+    let segmentation = res.data.predictions[0].bytesBase64Encoded
 
-    return buildImageSrcFromBase64(segmentation)
+    if (!segmentation.startsWith('data:')) segmentation = `data:image/png;base64,${segmentation}`
+
+    return segmentation
   } catch (error) {
     console.error(error)
     return {

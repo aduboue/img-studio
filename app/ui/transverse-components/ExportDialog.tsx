@@ -386,29 +386,25 @@ export default function ExportStepper({
                 subLabel={imageToExport ? `${imageToExport.width} x ${imageToExport.height} px` : ''}
                 value="no"
                 currentSelectedValue={field.value}
-                enabled={isSquareRatio}
+                enabled={true}
               />
               <CustomRadio
                 label="Scale x2"
-                subLabel={
-                  isSquareRatio
-                    ? `${imageToExport && imageToExport.width * 2} x ${imageToExport && imageToExport.height * 2} px`
-                    : '/ only available for 1:1 ratio'
-                }
+                subLabel={`${imageToExport && imageToExport.width * 2} x ${
+                  imageToExport && imageToExport.height * 2
+                } px`}
                 value="x2"
                 currentSelectedValue={field.value}
-                enabled={isSquareRatio}
+                enabled={true}
               />
               <CustomRadio
                 label="Scale x4"
-                subLabel={
-                  isSquareRatio
-                    ? `${imageToExport && imageToExport.width * 4} x ${imageToExport && imageToExport.height * 4} px`
-                    : '/ only available for 1:1 ratio'
-                }
+                subLabel={`${imageToExport && imageToExport.width * 4} x ${
+                  imageToExport && imageToExport.height * 4
+                } px`}
                 value="x4"
                 currentSelectedValue={field.value}
-                enabled={isSquareRatio}
+                enabled={true}
               />
             </RadioGroup>
           )}

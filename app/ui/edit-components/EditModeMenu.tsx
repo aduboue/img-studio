@@ -64,7 +64,6 @@ const CustomizedSecondaryText = {
 const editModeField = EditImageFormFields.editMode
 const editModeOptions = editModeField.options
 
-//TODO update interface editMode
 export default function EditModeMenu({
   handleNewEditMode,
   selectedEditMode,

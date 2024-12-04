@@ -1,7 +1,5 @@
 'use server'
 
-import { processImageBase64 } from '../vertex-seg/action'
-
 const { VertexAI } = require('@google-cloud/vertexai')
 
 // Truncate logs to be readable
@@ -42,7 +40,7 @@ export async function rewriteWithGemini(userPrompt: string) {
     'Give me only one option, give me only your answer for the new prompt, no introductionnary text. ' +
     'The prompt should use short sentences and keywords separated by commas as opposed to longer natural language descriptive prompts. ' +
     'Make this prompt a bit more specific while staying true to exactly what was asked, ' +
-    'the prompt is: "${userPrompt}".'
+    `the prompt is: "${userPrompt}".`
 
   try {
     const resp = await generativeModel.generateContent(rewritePrompt)
@@ -98,8 +96,8 @@ export async function getDescriptionFromGemini(base64Image: string, type: string
 
   const imagePart = {
     inline_data: {
-      data: await processImageBase64(base64Image),
-      mimeType: await getFormatFromBase64(base64Image),
+      data: base64Image.startsWith('data:') ? base64Image.split(',')[1] : base64Image,
+      mimeType: getFormatFromBase64(base64Image),
     },
   }
   const textPart = {
