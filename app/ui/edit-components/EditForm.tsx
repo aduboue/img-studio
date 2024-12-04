@@ -25,7 +25,7 @@ import {
   maskTypes,
 } from '../../api/edit-utils'
 import FormInputEditSettings from './EditSettings'
-import EditModeMenu from './EditModeMenu'
+import EditModeSelection from './EditModeSelection'
 import SetMaskDialog from './SetMaskDialog'
 import { downloadImage } from '../../api/cloud-storage/action'
 const { palette } = theme
@@ -206,7 +206,7 @@ export default function EditForm({
           )}
         </>
 
-        <EditModeMenu handleNewEditMode={handleNewEditMode} selectedEditMode={selectedEditMode} />
+        <EditModeSelection handleNewEditMode={handleNewEditMode} selectedEditMode={selectedEditMode} />
 
         <Box sx={{ pb: 4 }}>
           <EditImageDropzone

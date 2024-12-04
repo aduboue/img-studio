@@ -67,7 +67,6 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
 
         // 1. Fetch User ID from client-side
         let fetchedUserID = ''
-
         if (process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_TEST_DEV_USER_ID) {
           // Locally IAP is not enabled
           fetchedUserID = process.env.NEXT_PUBLIC_TEST_DEV_USER_ID
@@ -75,6 +74,7 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           // Fetching ID via IAP
           const response = await fetch('/api/google-auth')
           const authParams = await response.json()
+          console.log('authParams', authParams)
           if (typeof authParams === 'object' && 'error' in authParams) {
             throw Error(authParams.error)
           }

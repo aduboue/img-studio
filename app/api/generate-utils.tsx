@@ -84,7 +84,7 @@ export const GenerateImageFormFields = {
   sampleCount: {
     label: 'Quantity of outputs',
     type: 'chip-group',
-    default: '4',
+    default: '2',
     options: ['1', '2', '3', '4'],
     isDataResetable: false,
     isFullPromptAdditionalField: false,
@@ -249,7 +249,7 @@ export const GenerateImageFormFields = {
     isFullPromptAdditionalField: false,
   },
   light: {
-    label: 'Lightning',
+    label: 'Lighting',
     type: 'chip-group',
     options: ['Natural', 'Bright Sun', 'Golden Hour', 'Night time', 'Dramatic', 'Warm', 'Cold'],
     isDataResetable: true,

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { Drawer, List, ListItem, Typography, ListItemButton, Stack, IconButton, Box } from '@mui/material'
 
 import Image from 'next/image'
-import icon from '../../../public/ImgStudioLogoReversedMini.svg'
+import icon from '../../../public/ad4s_logo.png'
 import { pages } from '../../routes'
 
 import theme from '../../theme'
