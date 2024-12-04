@@ -98,11 +98,11 @@ export default function FormInputEditSettings({
           />
         </MenuItem>
 
-        <MenuItem key={editSettingsFields.guidanceScale.label} sx={{ py: 0 }}>
+        <MenuItem key={editSettingsFields.baseSteps.label} sx={{ py: 0 }}>
           <FormInputSlider
-            name="guidanceScale"
+            name="baseSteps"
             control={control}
-            field={editSettingsFields.guidanceScale as any}
+            field={editSettingsFields.baseSteps as any}
             required={true}
           />
         </MenuItem>

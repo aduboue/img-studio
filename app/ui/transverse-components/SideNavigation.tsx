@@ -136,6 +136,8 @@ export default function SideNav() {
           / Made with <span style={{ margin: 1, color: palette.primary.main }}>❤</span> by
           <a
             href="https://www.linkedin.com/in/aduboue/"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
               color: 'white',
               fontWeight: 700,
