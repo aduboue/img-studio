@@ -262,7 +262,7 @@ export default function EditForm({
             control={control}
             label={selectedEditMode?.promptIndication ?? ''}
             required={selectedEditMode?.mandatoryPrompt}
-            rows={2}
+            rows={3}
           />
         )}
 

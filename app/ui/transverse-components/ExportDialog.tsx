@@ -374,7 +374,7 @@ export default function ExportStepper({
     return (
       <>
         <Typography variant="subtitle1" color={palette.secondary.main} sx={{ pl: 1, width: '70%' }}>
-          {'Upscale your 1:1 image resolution to make it look sharper and clearer.'}
+          {'Upscale your image resolution to make it look sharper and clearer.'}
         </Typography>
         <Controller
           name="upscaleFactor"
