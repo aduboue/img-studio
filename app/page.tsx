@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Box from '@mui/material/Box'
 import Image from 'next/image'
-import icon from '../public/ad4s_logo.png'
+import icon from '../public/ad4s_logo_blue.svg'
 import GoogleSignInButton from './ui/ux-components/GoogleSignInButton'
 import { pages } from './routes'
 import { useRouter } from 'next/navigation'

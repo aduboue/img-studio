@@ -13,19 +13,6 @@ const CustomizedButtonBase = {
     bgcolor: palette.action.hover,
     fontWeight: 700,
   },
-  '& .MuiListItemIcon-root': {
-    position: 'relative',
-    left: 7,
-    bottom: 2,
-    minWidth: 45,
-    px: 0,
-    color: palette.secondary.main,
-  },
-  '& .MuiListitemText-root': {
-    '& .MuiTypography-root': {
-      fontWeight: 700,
-    },
-  },
 }
 
 const CustomizedPrimaryText = {
@@ -42,7 +29,6 @@ const CustomizedSecondaryText = {
 const editModeField = EditImageFormFields.editMode
 const editModeOptions = editModeField.options
 
-//TODO update interface editMode
 export default function EditModeSelection({
   handleNewEditMode,
   selectedEditMode,
@@ -94,7 +80,7 @@ export default function EditModeSelection({
                   <Typography sx={CustomizedPrimaryText}>{option.label}</Typography>
                   <Collapse
                     in={selectedEditMode.value === option.value}
-                    timeout={selectedEditMode.value === option.value ? 400 : 75}
+                    timeout={selectedEditMode.value === option.value ? 400 : 200}
                     orientation="horizontal"
                     unmountOnExit
                   >
