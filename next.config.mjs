@@ -8,7 +8,7 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
-      }
+      },
     ],
 
     minimumCacheTTL: 60, // Minimum cache time in seconds (e.g., 1 minute)
@@ -19,6 +19,15 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '30mb', // Add this line
     },
+  },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/generate',
+        permanent: false,
+      },
+    ]
   },
 }
 
