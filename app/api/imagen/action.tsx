@@ -369,6 +369,8 @@ export async function generateImage(
 
     return enhancedImageList
   } catch (error) {
+    console.error(error)
+
     const errorString = error instanceof Error ? error.toString() : ''
     if (
       errorString.includes('safety settings for peopleface generation') ||
@@ -377,11 +379,13 @@ export async function generateImage(
       return {
         error: errorString.replace('Error: ', ''),
       }
-    } else {
-      console.error(error)
-      return {
-        error: 'Issue while generating images.',
-      }
+    }
+
+    const myError = error as Error & { errors: any[] }
+    const myErrorMsg = myError.errors[0].message.replace('Image generation failed with the following error: ', '')
+
+    return {
+      error: myErrorMsg,
     }
   }
 }
