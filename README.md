@@ -2,12 +2,15 @@
 
 ## 0\\ Get access to **Imagen models**
 
-- **In general, for Vertex:** in the console **(new\!)**
-  - Go to `Vertex AI` \> `Enable all recommended APIs`
-  - They should include: **Vertex AI API, Cloud Storage API**
-- **For Imagen Generation:** reach out to your Google Cloud contacts to get granted access to Imagen 3 editing models \- **Imagen 3 Generate** (imagen-3.0-generate-001) and **Imagen 3 Generate Fast** (imagen-3.0-fast-generate-001)
-- **For Imagen Editing**: reach out to your Google Cloud contacts to ask Preview access, or get notified when it is GA
-  - **For Vertex Segmentation**: you will need access to this new model as well when using editing
+- **In general, for Vertex:** in the console
+  - Go to `Vertex AI` \> `Enable all recommended APIs` (they should include: **Vertex AI API, Cloud Storage API)**
+  - Make sure the Vertex Service Account exists in your project `service-PROJECT_NUMBER@gcp-sa-aiplatform.iam.gserviceaccount.com`
+- **For Imagen Generation:**
+  - Models are now in public GA, **Imagen 3 Generate** (`imagen-3.0-generate-001`) and **Imagen 3 Generate Fast** (`imagen-3.0-fast-generate-001`)
+  - **For people generation** (adult and/ or children), you now need to fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSduBp9w84qgim6vLriQ9p7sdz62bMJaL-nNmIVoyiOwd84SMw/viewform) to get access.
+- **For Imagen Editing & Customization**
+  - You can fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform) to get access to the Preview feature (name: `imagen-3.0-capability-preview-0930`)
+  - You will also need the **Vertex Image Segmentation model** when using editing, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSdzIR1EeQGFcMsqd9nPip5e9ovDKSjfWRd58QVjo1zLpfdvEg/viewform?resourcekey=0-Pvqc66u-0Z1QmuzHq4wLKg&pli=1) to get access (name: `image-segmentation-001`)
 
 ## 1\\ Create **Cloud Storage** buckets
 
@@ -20,7 +23,7 @@
     - In this file, for each **fields** (ex: contextAuthorTeam, contextTargetPlatform, contextAssociatedBrand, contextCollection), you can only change the **ID** of the field (ex: `“contextAuthorTeam”`), its **label** (ex: `“In which team are you?”`), its **name** (ex: `“Associated team(s)”`), its tag **isMandatory** (ex: `true`) and finally its **options**
     - Attention\! The ID and the options’ values must only be letters, no spaces, no special characters, starting with a lowercase letter
 
-2\\ Setup **Cloud Build** trigger
+## 2\\ Setup **Cloud Build** trigger
 
 - Name: `YOUR_COMPANY-imgstudio`
 - **Event:** `Manual invocation`
@@ -52,15 +55,15 @@
   - `_NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS`
     - The sections of your users’ email address used to log in via IAP that will need to be removed in order to get their user ID, separated by commas
     - Ex: my email address is ‘admin-jdupont@company.com’, the value to set would be `admin-,@company.com` so that the user ID jdupont can be extracted
-  - `_NEXT_PUBLIC_EDIT_ENABLED` **(new\!)**
-    - Allow to enable edit features, set it to ‘`false`’ if you don’t have access yet
-  - `_NEXT_PUBLIC_EDIT_MODEL` **(new\!)**
+  - `_NEXT_PUBLIC_EDIT_ENABLED`
+    - Allow to enable edit features, **set it to `false` if you do not have access yet**
+  - `_NEXT_PUBLIC_EDIT_MODEL`
     - **Only mandatory if Edit is enabled**
-    - Service name for the edit model, when you get access to it
-  - `_NEXT_PUBLIC_SEG_MODEL` **(new\!)**
+    - Service name for the edit model, when you get access to it **(see Step 0\)**
+  - `_NEXT_PUBLIC_SEG_MODEL`
     - **Only mandatory if Edit is enabled**
-    - Service name for the Vertex Segmentation model, when you get access to it
-- Service account: select the **default already existing Cloud Build service account** `PROJECT_NUMBER-compute@developer.gserviceaccount.com`
+    - Service name for the Vertex Segmentation model, when you get access to it **(see Step 0\)**
+- **Service account:** select the **default already existing Cloud Build service account** `PROJECT_NUMBER-compute@developer.gserviceaccount.com`
   - You may want to **check in IAM it has the roles**: `Artifact Registry Writer` and `Logs Writer`
 - \> Save
 - **Manualy run your first build \!**
@@ -213,8 +216,10 @@
       `rules_version = '2';`
       `service cloud.firestore {`
       `match /databases/{database}/documents {`
-      `match /{document=\*\*} {`
+      `match /{document=**} {`
       `allow read, get, list, create, update: if get(/databases/$(database)/documents/request.auth.uid).data.serviceAccount == 'YOUR_COMPANY-imgstudio-sa@PROJECT_ID.iam.gserviceaccount.com';`
       `allow delete: if false;`
-      `}}}`
+      `}`
+      `}`
+      `}`
     - \> Publish
