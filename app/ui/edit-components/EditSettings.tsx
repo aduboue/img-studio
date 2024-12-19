@@ -107,19 +107,6 @@ export default function FormInputEditSettings({
           />
         </MenuItem>
 
-        <MenuItem key={editSettingsFields.outputOptions.label}>
-          <FormInputDropdown
-            name="outputOptions"
-            label={editSettingsFields.outputOptions.label}
-            key={editSettingsFields.outputOptions.label}
-            control={control}
-            field={editSettingsFields.outputOptions as any}
-            styleSize="small"
-            width="150px"
-            required={true}
-          />
-        </MenuItem>
-
         <MenuItem key={editSettingsFields.personGeneration.label}>
           <FormInputDropdown
             name="personGeneration"
@@ -128,7 +115,20 @@ export default function FormInputEditSettings({
             control={control}
             field={editSettingsFields.personGeneration as any}
             styleSize="small"
-            width="150px"
+            width="160px"
+            required={true}
+          />
+        </MenuItem>
+
+        <MenuItem key={editSettingsFields.outputOptions.label}>
+          <FormInputDropdown
+            name="outputOptions"
+            label={editSettingsFields.outputOptions.label}
+            key={editSettingsFields.outputOptions.label}
+            control={control}
+            field={editSettingsFields.outputOptions as any}
+            styleSize="small"
+            width="160px"
             required={true}
           />
         </MenuItem>

@@ -99,7 +99,7 @@ export default function FormInputGenerateSettings({
                 control={control}
                 field={field}
                 styleSize="small"
-                width="150px"
+                width="160px"
                 required={true}
               />
             </MenuItem>

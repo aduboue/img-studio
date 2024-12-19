@@ -108,12 +108,16 @@ export const GenerateImageFormFields = {
     default: 'allow_adult',
     options: [
       {
-        value: 'allow_adult',
-        label: 'Allow adult only',
+        value: 'dont_allow',
+        label: 'No people',
       },
       {
-        value: 'dont_allow',
-        label: "Don't allow",
+        value: 'allow_adult',
+        label: 'Adults only',
+      },
+      {
+        value: 'allow_all',
+        label: 'Adults & Children',
       },
     ],
     isDataResetable: false,
