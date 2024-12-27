@@ -21,8 +21,6 @@ import {
   Close as CloseIcon,
   Autorenew,
   Lightbulb,
-  LibraryAdd,
-  Add,
 } from '@mui/icons-material'
 
 import { FormInputText } from '../ux-components/InputText'
@@ -31,7 +29,6 @@ import FormInputChipGroup from '../ux-components/InputChipGroup'
 import FormInputGenerateSettings from './GenerateSettings'
 
 import {
-  modelField,
   generalSettingsFields,
   advancedSettingsFields,
   imgStyleField,
@@ -42,22 +39,22 @@ import {
   formDataResetableFields,
   ImageI,
   RandomPrompts,
-  ReferenceObjectI,
   ReferenceObjectInit,
   ReferenceObjectDefaults,
   maxReferences,
+  GenerateImageFormFields,
 } from '../../api/generate-utils'
 
 import theme from '../../theme'
 import { generateImage } from '../../api/imagen/action'
 import { GeminiSwitch } from '../ux-components/GeminiButton'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import CustomTooltip from '../ux-components/Tooltip'
 import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-components/Accordion-SX'
 import { useAppContext } from '../../context/app-context'
-import ReferencePicker from './ReferencePicker'
 import { ReferenceBox } from './ReferenceBox'
+import { EditImageFormFields } from '@/app/api/edit-utils'
 const { palette } = theme
 
 export default function GenerateForm({
@@ -91,6 +88,16 @@ export default function GenerateForm({
 
   // Reference management logic
   const referenceObjects = watch('referenceObjects')
+  const [hasReferences, setHasReferences] = useState(false)
+  useEffect(() => {
+    if (referenceObjects.some((obj) => obj.base64Image !== '')) {
+      setHasReferences(true)
+      setValue('modelVersion', EditImageFormFields.modelVersion.default)
+    } else {
+      setHasReferences(false)
+      setValue('modelVersion', GenerateImageFormFields.modelVersion.default)
+    }
+  }, [JSON.stringify(referenceObjects)])
 
   const removeReferenceObject = (objectKey: string) => {
     // Find the reference object to be removed
@@ -227,7 +234,7 @@ export default function GenerateForm({
               name="modelVersion"
               label=""
               control={control}
-              field={modelField}
+              field={hasReferences ? EditImageFormFields.modelVersion : GenerateImageFormFields.modelVersion}
               styleSize="big"
               width=""
               required={false}

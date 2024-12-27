@@ -39,12 +39,12 @@ export const EditImageFormFields = {
   modelVersion: {
     type: 'select',
     label: 'Model version',
-    default: process.env.NEXT_PUBLIC_EDIT_MODEL ?? '',
+    default: 'imagen-3.0-generate-001',
     options: [
       {
-        value: process.env.NEXT_PUBLIC_EDIT_MODEL ?? '',
+        value: 'imagen-3.0-generate-001',
         label: 'Imagen 3',
-        indication: 'Edit your images with Imagen 3',
+        indication: '',
       },
     ],
     isDataResetable: false,

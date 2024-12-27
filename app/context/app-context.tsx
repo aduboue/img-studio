@@ -58,10 +58,7 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
           throw Error('Missing required environment variables')
         }
 
-        if (
-          process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' &&
-          (!process.env.NEXT_PUBLIC_EDIT_MODEL || !process.env.NEXT_PUBLIC_SEG_MODEL)
-        ) {
+        if (process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && !process.env.NEXT_PUBLIC_SEG_MODEL) {
           throw Error('Missing required environment variables for editing')
         }
 

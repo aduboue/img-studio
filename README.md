@@ -57,9 +57,6 @@
     - Ex: my email address is ‘admin-jdupont@company.com’, the value to set would be `admin-,@company.com` so that the user ID jdupont can be extracted
   - `_NEXT_PUBLIC_EDIT_ENABLED`
     - Allow to enable edit features, **set it to `false` if you do not have access yet**
-  - `_NEXT_PUBLIC_EDIT_MODEL`
-    - **Only mandatory if Edit is enabled**
-    - Service name for the edit model, when you get access to it **(see Step 0\)**
   - `_NEXT_PUBLIC_SEG_MODEL`
     - **Only mandatory if Edit is enabled**
     - Service name for the Vertex Segmentation model, when you get access to it **(see Step 0\)**

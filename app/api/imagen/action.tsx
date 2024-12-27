@@ -239,13 +239,9 @@ export async function generateImage(
       reference.referenceType !== ''
   )
   if (!hasValidReference) references = []
-  // const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO true version
-  const location = 'us-central1'
+  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
-  //TODO when GA, unique model name?
-  const modelVersion = hasValidReference
-    ? process.env.NEXT_PUBLIC_EDIT_MODEL ?? formData['modelVersion']
-    : formData['modelVersion']
+  const modelVersion = formData['modelVersion']
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
   // 2 - Building the prompt and rewrite it if needed with Gemini
