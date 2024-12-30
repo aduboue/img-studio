@@ -9,7 +9,7 @@
   - Models are now in public GA, **Imagen 3 Generate** (`imagen-3.0-generate-001`) and **Imagen 3 Generate Fast** (`imagen-3.0-fast-generate-001`)
   - **For people generation** (adult and/ or children), you now need to fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSduBp9w84qgim6vLriQ9p7sdz62bMJaL-nNmIVoyiOwd84SMw/viewform) to get access.
 - **For Imagen Editing & Customization**
-  - You can fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform) to get access to the Preview feature (name: `imagen-3.0-capability-preview-0930`)
+  - You can fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform) to get access to the Preview feature (name: `imagen-3.0-capability-0930`)
   - You will also need the **Vertex Image Segmentation model** when using editing, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSdzIR1EeQGFcMsqd9nPip5e9ovDKSjfWRd58QVjo1zLpfdvEg/viewform?resourcekey=0-Pvqc66u-0Z1QmuzHq4wLKg&pli=1) to get access (name: `image-segmentation-001`)
 
 ## 1\\ Create **Cloud Storage** buckets
