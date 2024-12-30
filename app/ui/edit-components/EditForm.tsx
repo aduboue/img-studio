@@ -159,8 +159,12 @@ export default function EditForm({
     onRequestSent(true)
 
     try {
-      if (formData['prompt'] === '' || formData['inputImage'] === '' || formData['inputMask'] === '')
-        throw Error('Missing either prompt, image or mask')
+      if (
+        formData['inputImage'] === '' ||
+        (selectedEditMode?.mandatoryPrompt && formData['prompt'] === '') ||
+        (selectedEditMode?.mandatoryMask && formData['inputMask'] === '')
+      )
+        throw Error('Missing either image, prompt or mask')
 
       const newEditedImage = await editImage(formData, appContext)
 
