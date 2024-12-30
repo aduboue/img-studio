@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  reactStrictMode: false, //TODO change to true
+  reactStrictMode: false,
   staticPageGenerationTimeout: 500,
   images: {
     remotePatterns: [

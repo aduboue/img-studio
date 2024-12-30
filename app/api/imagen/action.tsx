@@ -401,18 +401,14 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
     }
   }
 
-  // const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO true version
-  const location = 'us-central1'
+  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const modelVersion = formData['modelVersion']
-  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict` //TODO true version
-
-  // 2 - Building the edit prompt //TODO
-  let fullPrompt = formData.prompt
+  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
   if (appContext === undefined) throw Error('No provided app context')
 
-  // 3 - Building Imagen request body
+  // 2 - Building Imagen request body
   let editGcsURI = ''
   if (
     appContext === undefined ||
@@ -492,7 +488,7 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
     data: reqData,
   }
 
-  // 4 - Editing image
+  // 3 - Editing image
   let res
   try {
     res = await client.request(opts)
@@ -527,7 +523,7 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
     }
   }
 
-  // 5 Creating output image list
+  // 4 - Creating output image list
   try {
     const imagesInGCS: VisionGenerativeModelResultI[] = res.data.predictions
     const enhancedImageList = await buildImageList({

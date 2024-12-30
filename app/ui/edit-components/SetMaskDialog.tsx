@@ -73,7 +73,6 @@ async function addBorderToBase64Image(base64Image: string): Promise<string> {
   })
 }
 
-//TODO change any
 export default function SetMaskDialog({
   open,
   handleMaskDialogClose,

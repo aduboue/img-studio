@@ -159,7 +159,8 @@ export default function EditForm({
     onRequestSent(true)
 
     try {
-      //TODO first check if mandatory value are here: mask, image, prompt
+      if (formData['prompt'] === '' || formData['inputImage'] === '' || formData['inputMask'] === '')
+        throw Error('Missing either prompt, image or mask')
 
       const newEditedImage = await editImage(formData, appContext)
 

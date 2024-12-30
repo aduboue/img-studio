@@ -20,7 +20,6 @@ export interface EditImageFieldStyleI {
     | string[]
 }
 
-// TODO
 export interface EditImageFormFieldsI {
   modelVersion: EditImageFieldStyleI
   inputImage: EditImageFieldStyleI
@@ -39,10 +38,10 @@ export const EditImageFormFields = {
   modelVersion: {
     type: 'select',
     label: 'Model version',
-    default: 'imagen-3.0-generate-001',
+    default: 'imagen-3.0-capability-001',
     options: [
       {
-        value: 'imagen-3.0-generate-001',
+        value: 'imagen-3.0-capability-001',
         label: 'Imagen 3',
         indication: '',
       },
@@ -236,7 +235,7 @@ export const maskTypes = [
     description: 'Primary object, person, or subject only',
     readOnlyCanvas: true,
   },
-  /*{ //TODO add back when fixed
+  /*{ //TODO to be added back when feature fixed
     value: 'semantic',
     label: 'Semantic',
     description: 'One or more element(s) by their semantic class(es)',

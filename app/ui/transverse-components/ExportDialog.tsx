@@ -243,11 +243,6 @@ export default function ExportStepper({
       event?.stopPropagation()
       setIsCloseWithoutSubmit(true)
     } else {
-      /*if (formErrors && Object.keys(formErrors).length > 0) {
-        //TODO handle error
-      } else {
-        onClose()
-      }*/
       onClose()
     }
   }
