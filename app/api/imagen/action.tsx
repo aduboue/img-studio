@@ -231,13 +231,14 @@ export async function generateImage(
   }
 
   let references = formData['referenceObjects']
-  const hasValidReference = references.some(
+  const hasValidReference = references.every(
     (reference) =>
       reference.base64Image !== '' &&
       reference.description !== '' &&
       reference.refId !== null &&
       reference.referenceType !== ''
   )
+
   if (!hasValidReference) references = []
   const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
