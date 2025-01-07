@@ -213,6 +213,7 @@ export async function buildImageList({
 
 export async function generateImage(
   formData: GenerateImageFormI,
+  areAllRefValid: boolean,
   isGeminiRewrite: boolean,
   appContext: appContextDataI | null
 ) {
@@ -231,15 +232,8 @@ export async function generateImage(
   }
 
   let references = formData['referenceObjects']
-  const hasValidReference = references.every(
-    (reference) =>
-      reference.base64Image !== '' &&
-      reference.description !== '' &&
-      reference.refId !== null &&
-      reference.referenceType !== ''
-  )
 
-  if (!hasValidReference) references = []
+  if (!areAllRefValid) references = []
   const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const modelVersion = formData['modelVersion']
@@ -294,7 +288,7 @@ export async function generateImage(
   }
 
   // Adding references if necessary
-  if (hasValidReference) {
+  if (areAllRefValid) {
     reqData.parameters.editMode = 'EDIT_MODE_DEFAULT'
 
     reqData.instances[0].referenceImages = []

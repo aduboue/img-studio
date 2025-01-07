@@ -205,12 +205,17 @@ export default function GenerateForm({
     onRequestSent(true)
 
     try {
-      formData['referenceObjects'].forEach((ref) => {
-        if (ref.base64Image === '' || ref.referenceType === '' || ref.description === '')
-          throw Error('Incomplete reference(s) information provided, either image type or description missing.')
-      })
+      const areAllRefValid = formData['referenceObjects'].every(
+        (reference) =>
+          reference.base64Image !== '' &&
+          reference.description !== '' &&
+          reference.refId !== null &&
+          reference.referenceType !== ''
+      )
+      if (hasReferences && !areAllRefValid)
+        throw Error('Incomplete reference(s) information provided, either image type or description missing.')
 
-      const newGeneratedImages = await generateImage(formData, isGeminiRewrite, appContext)
+      const newGeneratedImages = await generateImage(formData, areAllRefValid, isGeminiRewrite, appContext)
 
       if (newGeneratedImages !== undefined && typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
         const errorMsg = newGeneratedImages['error'].replaceAll('Error: ', '')
