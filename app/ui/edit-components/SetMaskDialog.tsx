@@ -199,9 +199,7 @@ export default function SetMaskDialog({
         throw Error(errorMsg)
       }
 
-      // Add a black border added to indicate mask shape
-      const maskWithBorder = await addBorderToBase64Image(res)
-      setMaskImage(maskWithBorder)
+      setMaskImage(res)
 
       const newMaskPreview = await createMaskPreview(res, maskSize)
       setMaskPreview(newMaskPreview)
@@ -234,11 +232,6 @@ export default function SetMaskDialog({
       canvas.width = newWidth
       canvas.height = newHeight
       ctx.drawImage(img, 0, 0, newWidth, newHeight)
-
-      // Add a black border added to indicate mask shape
-      ctx.strokeStyle = 'black'
-      ctx.lineWidth = 1
-      ctx.strokeRect(1, 1, newWidth - 2, newHeight - 2)
 
       return new Promise<string | null>((resolve) => {
         canvas.toBlob(async (blob) => {
