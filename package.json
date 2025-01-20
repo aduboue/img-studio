@@ -3,7 +3,9 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
-    "start": "next start"
+    "start": "next start",
+    "generate-third-party": "node generate-third-party.js"
+
   },
   "dependencies": {
     "@emotion/cache": "latest",

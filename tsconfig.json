@@ -10,6 +10,7 @@
     "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "node",
+    "outDir": "./dist",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
@@ -31,7 +32,8 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "app/context",
-    "app/api/verify-iap.js"
+    "app/api/verify-iap.js",
+    "generate-third-party.js"
   ],
   "exclude": ["node_modules"]
 }
