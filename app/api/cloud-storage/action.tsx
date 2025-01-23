@@ -131,3 +131,39 @@ export async function fetchJsonFromStorage(gcsUri: string) {
     throw error
   }
 }
+
+export async function uploadBase64Image(
+  base64Image: string,
+  bucketName: string,
+  objectName: string,
+  contentType: string = 'image/png'
+): Promise<{ success?: boolean; message?: string; error?: string; fileUrl?: string }> {
+  const storage = new Storage({ projectId })
+
+  if (!base64Image) return { error: 'Invalid base64 data.' }
+
+  const imageBuffer = Buffer.from(base64Image, 'base64')
+  const options = {
+    destination: objectName,
+    metadata: {
+      contentType: contentType,
+    },
+  }
+
+  try {
+    await storage.bucket(bucketName).file(objectName).save(imageBuffer, options)
+
+    const fileUrl = `gs://${bucketName}/${objectName}`
+
+    return {
+      success: true,
+      message: `File uploaded to: ${fileUrl}`,
+      fileUrl: fileUrl,
+    }
+  } catch (error) {
+    console.error('Error uploading file:', error)
+    return {
+      error: 'Error uploading file to Google Cloud Storage.',
+    }
+  }
+}

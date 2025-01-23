@@ -467,9 +467,10 @@ export const fullPromptAdditionalFields = generateFieldList.filter(
   (field) => GenerateImageFormFields[field].isFullPromptAdditionalField == true
 )
 
-// Interface of result sent back by Imagen
+// Interface of result sent back by Imagen within GCS
 export interface VisionGenerativeModelResultI {
-  gcsUri: string
+  gcsUri?: string
+  bytesBase64Encoded?: string
   mimeType: string
 }
 

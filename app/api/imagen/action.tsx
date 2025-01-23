@@ -23,7 +23,7 @@ import {
   referenceTypeMatching,
   ReferenceObjectI,
 } from '../generate-utils'
-import { decomposeUri, downloadImage, getSignedURL } from '../cloud-storage/action'
+import { decomposeUri, downloadImage, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
 import { rewriteWithGemini, truncateLog } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
@@ -31,6 +31,12 @@ const { GoogleAuth } = require('google-auth-library')
 
 function cleanResult(inputString: string) {
   return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
+}
+
+function generateUniqueFolderId() {
+  let number = Math.floor(Math.random() * 9) + 1
+  for (let i = 0; i < 12; i++) number = number * 10 + Math.floor(Math.random() * 10)
+  return number
 }
 
 function normalizeSentence(sentence: string) {
@@ -146,7 +152,7 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
   return fullPrompt
 }
 
-export async function buildImageList({
+export async function buildImageListFromURI({
   imagesInGCS,
   aspectRatio,
   width,
@@ -171,7 +177,7 @@ export async function buildImageList({
         warning: `${image['raiFilteredReason']}`,
       }
     } else {
-      const { fileName } = await decomposeUri(image.gcsUri)
+      const { fileName } = await decomposeUri(image.gcsUri ?? '')
 
       const format = image.mimeType.replace('image/', '').toUpperCase()
 
@@ -188,7 +194,7 @@ export async function buildImageList({
 
       // Get signed URL from Cloud Storage API
       try {
-        const signedURL: string | { error: string } = await getSignedURL(image.gcsUri)
+        const signedURL: string | { error: string } = await getSignedURL(image.gcsUri ?? '')
 
         if (typeof signedURL === 'object' && 'error' in signedURL) {
           throw Error(cleanResult(signedURL.error))
@@ -200,6 +206,92 @@ export async function buildImageList({
             prompt: usedPrompt,
             altText: `Generated image ${fileName}`,
             key: ID,
+            width: width,
+            height: height,
+            ratio: aspectRatio,
+            date: formattedDate,
+            author: userID,
+            modelVersion: modelVersion,
+            mode: mode,
+          }
+        }
+      } catch (error) {
+        console.error(error)
+        return {
+          error: 'Error while getting secured access to content.',
+        }
+      }
+    }
+  })
+
+  const generatedImagesToDisplay = (await Promise.all(promises)).filter(
+    (image) => image !== null
+  ) as unknown as ImageI[]
+
+  return generatedImagesToDisplay
+}
+
+export async function buildImageListFromBase64({
+  imagesBase64,
+  targetGcsURI,
+  aspectRatio,
+  width,
+  height,
+  usedPrompt,
+  userID,
+  modelVersion,
+  mode,
+}: {
+  imagesBase64: VisionGenerativeModelResultI[]
+  targetGcsURI: string
+  aspectRatio: string
+  width: number
+  height: number
+  usedPrompt: string
+  userID: string
+  modelVersion: string
+  mode: string
+}) {
+  const bucketName = targetGcsURI.replace('gs://', '').split('/')[0]
+  let uniqueFolderId = generateUniqueFolderId()
+  const folderName = targetGcsURI.split(bucketName + '/')[1] + '/' + uniqueFolderId
+
+  const promises = imagesBase64.map(async (image) => {
+    if ('raiFilteredReason' in image) {
+      return {
+        warning: `${image['raiFilteredReason']}`,
+      }
+    } else {
+      const format = image.mimeType.replace('image/', '').toUpperCase()
+
+      const index = imagesBase64.findIndex((obj) => obj.bytesBase64Encoded === image.bytesBase64Encoded)
+      const fileName = 'sample_' + index.toString()
+
+      const fullOjectName = folderName + '/' + fileName + '.' + format.toLocaleLowerCase()
+
+      const today = new Date()
+      const formattedDate = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+
+      // Store base64 image in GCS, and get signed URL associated
+      try {
+        let imageGcsUri = ''
+        await uploadBase64Image(image.bytesBase64Encoded ?? '', bucketName, fullOjectName).then((result) => {
+          if (!result.success) throw Error(cleanResult(result.error ?? 'Could not upload image to GCS'))
+          imageGcsUri = result.fileUrl ?? ''
+        })
+
+        const signedURL: string | { error: string } = await getSignedURL(imageGcsUri)
+
+        if (typeof signedURL === 'object' && 'error' in signedURL) {
+          throw Error(cleanResult(signedURL.error))
+        } else {
+          return {
+            src: signedURL,
+            gcsUri: imageGcsUri,
+            format: format,
+            prompt: usedPrompt,
+            altText: `Generated image ${fileName}`,
+            key: index,
             width: width,
             height: height,
             ratio: aspectRatio,
@@ -360,17 +452,34 @@ export async function generateImage(
 
     const usedRatio = RatioToPixel.find((item) => item.ratio === opts.data.parameters.aspectRatio)
 
-    const imagesInGCS: VisionGenerativeModelResultI[] = res.data.predictions
-    const enhancedImageList = await buildImageList({
-      imagesInGCS: imagesInGCS,
-      aspectRatio: opts.data.parameters.aspectRatio,
-      width: usedRatio?.width ?? 0,
-      height: usedRatio?.height ?? 0,
-      usedPrompt: opts.data.instances[0].prompt,
-      userID: appContext?.userID ? appContext?.userID : '',
-      modelVersion: modelVersion,
-      mode: 'Generated',
-    })
+    const resultImages: VisionGenerativeModelResultI[] = res.data.predictions
+
+    const isResultBase64Images: boolean = resultImages.every((image) => image.hasOwnProperty('bytesBase64Encoded'))
+
+    let enhancedImageList
+    if (isResultBase64Images)
+      enhancedImageList = await buildImageListFromBase64({
+        imagesBase64: resultImages,
+        targetGcsURI: generationGcsURI,
+        aspectRatio: opts.data.parameters.aspectRatio,
+        width: usedRatio?.width ?? 0,
+        height: usedRatio?.height ?? 0,
+        usedPrompt: opts.data.instances[0].prompt,
+        userID: appContext?.userID ? appContext?.userID : '',
+        modelVersion: modelVersion,
+        mode: 'Generated',
+      })
+    else
+      enhancedImageList = await buildImageListFromURI({
+        imagesInGCS: resultImages,
+        aspectRatio: opts.data.parameters.aspectRatio,
+        width: usedRatio?.width ?? 0,
+        height: usedRatio?.height ?? 0,
+        usedPrompt: opts.data.instances[0].prompt,
+        userID: appContext?.userID ? appContext?.userID : '',
+        modelVersion: modelVersion,
+        mode: 'Generated',
+      })
 
     return enhancedImageList
   } catch (error) {
@@ -534,18 +643,34 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
 
   // 4 - Creating output image list
   try {
-    const imagesInGCS: VisionGenerativeModelResultI[] = res.data.predictions
+    const resultImages: VisionGenerativeModelResultI[] = res.data.predictions
 
-    const enhancedImageList = await buildImageList({
-      imagesInGCS: imagesInGCS,
-      aspectRatio: formData['ratio'],
-      width: formData['width'],
-      height: formData['height'],
-      usedPrompt: opts.data.instances[0].prompt,
-      userID: appContext?.userID ? appContext?.userID : '',
-      modelVersion: modelVersion,
-      mode: 'Edited',
-    })
+    const isResultBase64Images: boolean = resultImages.every((image) => image.hasOwnProperty('bytesBase64Encoded'))
+
+    let enhancedImageList
+    if (isResultBase64Images)
+      enhancedImageList = await buildImageListFromBase64({
+        imagesBase64: resultImages,
+        targetGcsURI: editGcsURI,
+        aspectRatio: formData['ratio'],
+        width: formData['width'],
+        height: formData['height'],
+        usedPrompt: opts.data.instances[0].prompt,
+        userID: appContext?.userID ? appContext?.userID : '',
+        modelVersion: modelVersion,
+        mode: 'Generated',
+      })
+    else
+      enhancedImageList = await buildImageListFromURI({
+        imagesInGCS: resultImages,
+        aspectRatio: formData['ratio'],
+        width: formData['width'],
+        height: formData['height'],
+        usedPrompt: opts.data.instances[0].prompt,
+        userID: appContext?.userID ? appContext?.userID : '',
+        modelVersion: modelVersion,
+        mode: 'Edited',
+      })
 
     return enhancedImageList
   } catch (error) {
