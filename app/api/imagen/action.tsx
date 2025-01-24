@@ -269,6 +269,14 @@ export async function buildImageListFromBase64({
 
       const fullOjectName = folderName + '/' + fileName + '.' + format.toLocaleLowerCase()
 
+      const ID = fullOjectName
+        .replaceAll('/', '')
+        .replace(userID, '')
+        .replace('generated-images', '')
+        .replace('edited-images', '')
+        .replace('sample_', '')
+        .replace(`.${format.toLowerCase()}`, '')
+
       const today = new Date()
       const formattedDate = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 
@@ -291,7 +299,7 @@ export async function buildImageListFromBase64({
             format: format,
             prompt: usedPrompt,
             altText: `Generated image ${fileName}`,
-            key: index,
+            key: ID,
             width: width,
             height: height,
             ratio: aspectRatio,
