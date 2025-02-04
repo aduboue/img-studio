@@ -201,7 +201,7 @@ export default function EditImageDropzone({
             {...getRootProps()}
           >
             <input {...getInputProps()} />
-            <Typography variant="body1">{'Drop or browse your image'}</Typography>
+            <Typography variant="body1">{'Drop or select your image'}</Typography>
           </Box>
         )}
         {imageToEdit && (

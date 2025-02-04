@@ -35,6 +35,7 @@ import {
   Close as CloseIcon,
   Autorenew,
   Lightbulb,
+  Mms,
 } from '@mui/icons-material'
 
 import { FormInputText } from '../ux-components/InputText'
@@ -69,6 +70,7 @@ import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-component
 import { useAppContext } from '../../context/app-context'
 import { ReferenceBox } from './ReferenceBox'
 import { EditImageFormFields } from '@/app/api/edit-utils'
+import ImageToPromptModal from './ImageToPromptModal'
 const { palette } = theme
 
 export default function GenerateForm({
@@ -156,6 +158,7 @@ export default function GenerateForm({
 
     setValue('referenceObjects', updatedReferenceObjects)
   }
+
   const addAdditionalRefObject = (objectKey: string) => {
     if (referenceObjects.length >= maxReferences) return
 
@@ -177,6 +180,9 @@ export default function GenerateForm({
 
     setValue('referenceObjects', updatedReferenceObjects)
   }
+
+  // Image to prompt generator logic
+  const [imageToPromptOpen, setImageToPromptOpen] = useState(false)
 
   // Provide random prompt
   const getRandomPrompt = () => {
@@ -294,10 +300,22 @@ export default function GenerateForm({
           control={control}
           label="Prompt - What would you like to generate?"
           required={true}
-          rows={4}
+          rows={7}
         />
 
         <Stack justifyContent="flex-end" direction="row" gap={0} pb={3}>
+          <CustomTooltip title="Image to prompt generator" size="small">
+            <IconButton
+              onClick={() => setImageToPromptOpen(true)}
+              aria-label="Prompt Generator"
+              disableRipple
+              sx={{ px: 0.5 }}
+            >
+              <Avatar sx={CustomizedAvatarButton}>
+                <Mms sx={CustomizedIconButton} />
+              </Avatar>
+            </IconButton>
+          </CustomTooltip>
           <CustomTooltip title="Get prompt ideas" size="small">
             <IconButton
               onClick={() => setValue('prompt', getRandomPrompt())}
@@ -466,6 +484,12 @@ export default function GenerateForm({
           </AccordionDetails>
         </Accordion>
       </form>
+
+      <ImageToPromptModal
+        open={imageToPromptOpen}
+        setNewPrompt={(string) => setValue('prompt', string)}
+        setImageToPromptOpen={setImageToPromptOpen}
+      />
     </>
   )
 }

@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { Box, IconButton, Typography } from '@mui/material'
-import React, { useEffect, useMemo, useState } from 'react'
+import { Box, IconButton } from '@mui/material'
+import React from 'react'
 import { useDropzone } from 'react-dropzone'
 import Image from 'next/image'
 
@@ -23,22 +23,26 @@ import { Add, ControlPointDuplicate } from '@mui/icons-material'
 import { getAspectRatio } from '../edit-components/EditImageDropzone'
 const { palette } = theme
 
-export default function ReferenceImageDropzone({
-  setReferenceImage,
-  referenceImage,
+export default function ImageDropzone({
+  setImage,
+  image,
   onNewErrorMsg,
+  size,
+  maxSize,
   setValue,
   addAdditionalRefObject,
   isNewImagePossible,
   refPosition,
 }: {
-  setReferenceImage: (base64Image: string) => void
-  referenceImage: string | null
+  setImage: (base64Image: string) => void
+  image: string | null
   onNewErrorMsg: (msg: string) => void
-  setValue: any
-  addAdditionalRefObject: () => void
-  isNewImagePossible: boolean
-  refPosition: number
+  size: string
+  maxSize: number
+  setValue?: any
+  addAdditionalRefObject?: () => void
+  isNewImagePossible?: boolean
+  refPosition?: number
 }) {
   const onDrop = async (acceptedFiles: File[]) => {
     onNewErrorMsg('')
@@ -53,15 +57,17 @@ export default function ReferenceImageDropzone({
 
     const base64 = await fileToBase64(file)
     const newImage = `data:${file.type};base64,${base64}`
-    setReferenceImage(newImage)
+    setImage(newImage)
 
-    const img = new window.Image()
-    img.onload = () => {
-      setValue(`referenceObjects.${refPosition}.width`, img.width)
-      setValue(`referenceObjects.${refPosition}.height`, img.height)
-      setValue(`referenceObjects.${refPosition}.ratio`, getAspectRatio(img.width, img.height))
+    if (setValue) {
+      const img = new window.Image()
+      img.onload = () => {
+        setValue(`referenceObjects.${refPosition}.width`, img.width)
+        setValue(`referenceObjects.${refPosition}.height`, img.height)
+        setValue(`referenceObjects.${refPosition}.ratio`, getAspectRatio(img.width, img.height))
+      }
+      img.src = newImage
     }
-    img.src = newImage
   }
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop })
@@ -71,10 +77,10 @@ export default function ReferenceImageDropzone({
       <Box
         id="DropzoneContainer"
         sx={{
-          width: '5vw',
-          maxWidth: 70,
-          height: '5vw',
-          maxHeight: 70,
+          width: size,
+          maxWidth: maxSize,
+          height: size,
+          maxHeight: maxSize,
           position: 'relative',
           m: 0,
           p: 0,
@@ -83,7 +89,7 @@ export default function ReferenceImageDropzone({
           overflow: 'hidden',
         }}
       >
-        {!referenceImage && (
+        {!image && (
           <Box
             sx={{
               width: '100%',
@@ -110,7 +116,7 @@ export default function ReferenceImageDropzone({
             <Add />
           </Box>
         )}
-        {referenceImage && (
+        {image && (
           <Box
             sx={{
               position: 'relative',
@@ -121,8 +127,8 @@ export default function ReferenceImageDropzone({
             }}
           >
             <Image
-              key={referenceImage}
-              src={referenceImage}
+              key={image}
+              src={image}
               loading="lazy"
               alt={'temp'}
               style={{
@@ -135,7 +141,7 @@ export default function ReferenceImageDropzone({
               height={20}
               quality={50}
             />
-            {isNewImagePossible && (
+            {isNewImagePossible && addAdditionalRefObject && (
               <Box
                 onClick={addAdditionalRefObject}
                 sx={{

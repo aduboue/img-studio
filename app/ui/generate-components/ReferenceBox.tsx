@@ -15,7 +15,7 @@
 import React, { useState } from 'react'
 import { Box, IconButton, Stack, CircularProgress } from '@mui/material'
 import theme from '../../theme'
-import ReferenceImageDropzone from './ReferenceImageDropzone'
+import ImageDropzone from './ImageDropzone'
 import { maxReferences, ReferenceObjectI, referenceTypeField } from '@/app/api/generate-utils'
 import { FormInputTextLine } from '../ux-components/InputTextLine'
 import FormInputChipGroup from '../ux-components/InputChipGroup'
@@ -110,13 +110,13 @@ export const ReferenceBox = ({
       >
         <Clear sx={{ fontSize: '1.3rem' }} />
       </IconButton>
-      <ReferenceImageDropzone
+      <ImageDropzone
         key={objectKey + refPosition + '_dropzone'}
-        setReferenceImage={(base64Image: string) =>
-          setValue(`referenceObjects.${refPosition}.base64Image`, base64Image)
-        }
-        referenceImage={currentReferenceObject.base64Image}
+        setImage={(base64Image: string) => setValue(`referenceObjects.${refPosition}.base64Image`, base64Image)}
+        image={currentReferenceObject.base64Image}
         onNewErrorMsg={onNewErrorMsg}
+        size="5vw"
+        maxSize={70}
         setValue={setValue}
         addAdditionalRefObject={() => addAdditionalRefObject(objectKey)}
         isNewImagePossible={!isRefIncomplete && !currentReferenceObject.isAdditionalImage && refCount < maxReferences}
