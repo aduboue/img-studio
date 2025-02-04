@@ -79,10 +79,10 @@ export const GenerateImageFormFields = {
   },
   modelVersion: {
     type: 'select',
-    default: 'imagen-3.0-generate-001',
+    default: 'imagen-3.0-generate-002',
     options: [
       {
-        value: 'imagen-3.0-generate-001',
+        value: 'imagen-3.0-generate-002',
         label: 'Imagen 3',
         indication: 'High performance model version',
       },
