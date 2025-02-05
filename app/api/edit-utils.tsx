@@ -147,7 +147,7 @@ export const EditImageFormFields = {
       {
         value: 'EDIT_MODE_BGSWAP',
         label: 'Product showcase',
-        description: 'Place product in a new scene',
+        description: 'Swap image background',
         icon: 'store',
         mandatoryPrompt: true,
         promptIndication: 'Prompt - Describe in what situation you want to put the product',
