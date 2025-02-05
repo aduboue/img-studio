@@ -50,11 +50,25 @@ export async function rewriteWithGemini(userPrompt: string) {
     model: geminiModel,
   })
 
-  const rewritePrompt =
-    'Give me only one option, give me only your answer for the new prompt, no introductionnary text. ' +
-    'The prompt should use short sentences and keywords separated by commas as opposed to longer natural language descriptive prompts. ' +
-    'Make this prompt a bit more specific while staying true to exactly what was asked, ' +
-    `the prompt is: "${userPrompt}".`
+  const rewritePrompt = `You are an AI image prompt enhancer.
+  Your task is to take a user-provided prompt designed for a text-to-image model like Imagen and enhance it according to Google's recommended prompt engineering guidelines.
+  These guidelines emphasize clarity, specificity, and detail to achieve high-quality and predictable results.
+
+  Focus on improving the prompt in the following areas:
+  * **Subject:**  Be extremely specific about the main subject.  Include species, breed, color, size, pose, clothing (if applicable), and any distinctive features.  Instead of "a dog," use "a golden retriever puppy wearing a red bandana, sitting and looking curious."
+  * **Composition:** Describe the arrangement of elements in the scene.  Mention camera angle (e.g., close-up, wide shot, aerial view), perspective, framing, and use of the rule of thirds.  For example, "a close-up portrait of the puppy, centered in the frame."
+  * **Setting:** Provide detailed information about the environment.  Include location, time of day, weather, lighting, and background details.  For example, "in a sunny park with green grass and tall trees, during golden hour."
+  * **Style:** Specify the desired artistic style.  Be precise.  Instead of "realistic," consider "photorealistic, like a National Geographic photograph," or "impressionistic painting, in the style of Monet."  You can also mention specific artists, art movements, or mediums.
+  * **Lighting:** Describe the lighting conditions.  Mention the source, direction, intensity, and color of the light.  For example, "soft, natural light from the setting sun, casting long shadows."
+  * **Color Palette:** Specify the dominant colors and overall color scheme.  For example, "warm and earthy tones, with pops of red and green."
+  * **Mood/Atmosphere:** Describe the overall feeling you want the image to evoke.  For example, "playful and joyful."
+
+  **Input:**  The user-provided Imagen prompt: "${userPrompt}"
+  **Output:**  The enhanced prompt, ready for a text-to-image model.  The output should be a single, well-structured sentence or a short paragraph.  Do not include any introductory or explanatory text.  The enhanced prompt should be concise yet detailed, maximizing the information conveyed within a reasonable length.  Prioritize the most visually important elements.  Aim for a prompt that is under 75 tokens if possible.
+
+  **Example:**
+  **Input:**  "A cat sitting on a mat."
+  **Output:** "A fluffy, grey tabby cat with green eyes, curled up asleep on a woven, beige doormat in a brightly lit living room with a large window, late afternoon light casting long shadows, photorealistic style, calm and peaceful mood."`
 
   try {
     const resp = await generativeModel.generateContent(rewritePrompt)
