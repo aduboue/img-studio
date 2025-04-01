@@ -40,7 +40,7 @@ The next step is to run a build pipeline (using Cloud Build) to deploy the app a
   - Step-3: Terraform init
   - Step-4: Terraform deploy
 #### Necessary Parameters
-  - You need to manually update these values inside your `cloudbuild.yaml` file
+  - The bootstrap script will do this for you, but you may want to double check the following parameters are correctly specified inside your `cloudbuild.yaml` file:
       - _IAP_ALLOWED_MEMBERS: The list of IAM members allowed to access the app. Use prefix user:, group:, or domain: for IAM users, groups, or domains, respectively. Example: `'["group:my-user-group@example.com", "user:admin-joe@example.com"]'`
       - _NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS: Set this your company's domain using the following format: `',@example.com'`
       - _DOMAIN_NAME: If you plan on setting up a custom DNS name, set this value. Otherwise, leave it empty. If you need it empty, your app will be accessible through `<LB_IP_ADDRESS>.nip.io`. The LB_IP_ADDRESS will be shown in the output of the build logs.

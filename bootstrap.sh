@@ -2,7 +2,6 @@
 #===============================================================================
 # Script: bootstrap.sh
 # Description: Sets up resources in Google Cloud for IMG Studio application
-# Author: Victor Dantas
 # Date: March 21, 2025
 # Usage: ./bootstrap.sh
 #===============================================================================
@@ -311,11 +310,24 @@ update_cloudbuild_template() {
   # Replace placeholders in the template
   local domain_value="${DOMAIN_NAME:-}"
   
+  # Extract company domain from IAP_USER_GROUP
+  local company_domain=""
+  if [[ "$IAP_USER_GROUP" =~ @([^@]+)$ ]]; then
+    company_domain="${BASH_REMATCH[1]}"
+    log_debug "Extracted company domain: $company_domain"
+  else
+    log_warning "Could not extract company domain from $IAP_USER_GROUP"
+    # Default to empty string if extraction fails
+    company_domain=""
+  fi
+  
   log_debug "Replacing <DOMAIN_NAME_PLACEHOLDER> with '$domain_value'"
   log_debug "Replacing <IAM_GROUP_PLACEHOLDER> with '$IAP_USER_GROUP'"
+  log_debug "Replacing <COMPANY_DOMAIN_PLACEHOLDER> with '$company_domain'"
   
   sed -i "s|<DOMAIN_NAME_PLACEHOLDER>|${domain_value}|g" cloudbuild.yaml
   sed -i "s|<IAM_GROUP_PLACEHOLDER>|${IAP_USER_GROUP}|g" cloudbuild.yaml
+  sed -i "s|<COMPANY_DOMAIN_PLACEHOLDER>|${company_domain}|g" cloudbuild.yaml
   
   log_success "Updated cloudbuild.yaml with your configuration"
 }
