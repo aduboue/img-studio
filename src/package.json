@@ -1,0 +1,57 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "generate-third-party": "node generate-third-party.js"
+
+  },
+  "dependencies": {
+    "@emotion/cache": "latest",
+    "@emotion/react": "latest",
+    "@emotion/styled": "latest",
+    "@fontsource/roboto": "^5.1.0",
+    "@google-cloud/firestore": "^7.10.0",
+    "@google-cloud/iap": "^3.4.0",
+    "@google-cloud/storage": "^7.12.1",
+    "@google-cloud/vertexai": "^1.6.0",
+    "@mui/icons-material": "^6.0.2",
+    "@mui/material": "^6.0.2",
+    "@mui/material-nextjs": "^6.0.2",
+    "@tailwindcss/forms": "^0.5.7",
+    "autoprefixer": "^10.4.20",
+    "fabric": "^6.4.3",
+    "fs": "^0.0.1-security",
+    "google-auth-library": "^9.13.0",
+    "net": "^1.0.2",
+    "next-auth": "5.0.0-beta.19",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-dropzone": "^14.2.9",
+    "react-hook-form": "^7.52.2",
+    "react-mask-editor": "^0.0.2",
+    "react-sketch-canvas": "^7.0.0-next.4",
+    "sharp": "^0.33.5",
+    "tailwindcss": "3.4.4",
+    "tls": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/fabric": "^5.3.9",
+    "@types/node": "20.14.8",
+    "@types/node-fetch": "^2.6.11",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "18.3.0",
+    "@types/react-window": "^1.8.8",
+    "html-loader": "^5.1.0",
+    "install": "^0.13.0",
+    "next": "^14.2.14",
+    "npm": "^11.0.0",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=20.12.0"
+  }
+}
