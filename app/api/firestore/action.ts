@@ -15,7 +15,7 @@
 'use server'
 
 import { Timestamp } from '@google-cloud/firestore'
-import { ExportImageFormI, ImageMetadataI, ExportImageFormFieldsI } from '../export-utils'
+import { ExportMediaFormI, MediaMetadataI, ExportMediaFormFieldsI } from '../export-utils'
 
 const { Firestore, FieldValue } = require('@google-cloud/firestore')
 const firestore = new Firestore()
@@ -23,19 +23,19 @@ firestore.settings({ ignoreUndefinedProperties: true })
 
 export async function addNewFirestoreEntry(
   entryID: string,
-  data: ExportImageFormI,
-  ExportImageFormFields: ExportImageFormFieldsI
+  data: ExportMediaFormI,
+  ExportImageFormFields: ExportMediaFormFieldsI
 ) {
   const document = firestore.collection('metadata').doc(entryID)
 
-  let cleanData: ImageMetadataI = {} as ImageMetadataI
-  data = { ...data.imageToExport, ...data }
+  let cleanData: MediaMetadataI = {} as MediaMetadataI
+  data = { ...data.mediaToExport, ...data }
   let combinedFilters: string[] = []
 
   if (ExportImageFormFields) {
     Object.entries(ExportImageFormFields).forEach(([name, field]) => {
       const sourceProp = field.prop || name
-      const valueFromData = data[sourceProp as keyof ExportImageFormI]
+      const valueFromData = data[sourceProp as keyof ExportMediaFormI]
       let transformedValue = valueFromData
 
       if (Array.isArray(valueFromData) && valueFromData.every((item) => typeof item === 'string')) {
@@ -43,7 +43,7 @@ export async function addNewFirestoreEntry(
         valueFromData.forEach((item) => combinedFilters.push(`${name}_${item}`))
       }
 
-      cleanData[name as keyof ImageMetadataI] = transformedValue ?? null
+      cleanData[name as keyof MediaMetadataI] = transformedValue ?? null
     })
   }
 
@@ -68,7 +68,7 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
   const batchSize = 24
 
   const collection = firestore.collection('metadata')
-  let thisBatchDocuments: ImageMetadataI[] = []
+  let thisBatchDocuments: MediaMetadataI[] = []
 
   let query = collection
 
@@ -106,7 +106,7 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
       const data = doc.data()
       delete data.timestamp
       delete data.combinedFilters
-      return data as ImageMetadataI
+      return data as MediaMetadataI
     })
 
     const newLastVisibleDocument = {

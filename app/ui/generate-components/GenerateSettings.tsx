@@ -21,7 +21,7 @@ const { palette } = theme
 
 import FormInputDropdown from '../ux-components/InputDropdown'
 import FormInputChipGroup from '../ux-components/InputChipGroup'
-import { FormInputGenerateSettingsI } from '../ux-components/InputInterface'
+import { GenerateSettingsI } from '../ux-components/InputInterface'
 import { FormInputTextSmall } from '../ux-components/InputTextSmall'
 import { Settings } from '@mui/icons-material'
 import CustomTooltip from '../ux-components/Tooltip'
@@ -40,12 +40,12 @@ const CustomizedMenu = {
   },
 }
 
-export default function FormInputGenerateSettings({
+export default function GenerateSettings({
   control,
   setValue,
   generalSettingsFields,
   advancedSettingsFields,
-}: FormInputGenerateSettingsI) {
+}: GenerateSettingsI) {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {

@@ -60,15 +60,17 @@ export const ChipGroup = ({
   onChange,
   handleChipClick,
   disabled,
+  weight,
 }: {
   width: string
-  label: string
+  label?: string
   required: boolean
   options: string[]
   value: string
   onChange: any
   handleChipClick: any
   disabled?: boolean
+  weight?: number
 }) => {
   return (
     <Box
@@ -80,18 +82,20 @@ export const ChipGroup = ({
         width: width,
       }}
     >
-      <Typography
-        variant="caption"
-        sx={{
-          color: palette.text.primary,
-          fontSize: '0.75rem',
-          fontWeight: 500,
-          lineHeight: '1.3em',
-          pb: 0.5,
-        }}
-      >
-        {label + (required ? ' *' : '')}
-      </Typography>
+      {label !== undefined && (
+        <Typography
+          variant="caption"
+          sx={{
+            color: palette.text.primary,
+            fontSize: '0.75rem',
+            fontWeight: 500,
+            lineHeight: '1.3em',
+            pb: 0.5,
+          }}
+        >
+          {label + (required ? ' *' : '')}
+        </Typography>
+      )}
       <Stack
         direction="row"
         spacing={0}
@@ -111,7 +115,7 @@ export const ChipGroup = ({
             onChange={onChange}
             variant={value === chipValue ? 'filled' : 'outlined'}
             color={value === chipValue ? 'primary' : 'secondary'}
-            sx={CustomizedChip}
+            sx={{ ...CustomizedChip, ...(weight !== undefined ? { fontWeight: weight } : { fontWeight: 400 }) }}
           />
         ))}
       </Stack>

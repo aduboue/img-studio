@@ -23,10 +23,11 @@ import { ArrowRight, AutoAwesome, Close, Download, Edit } from '@mui/icons-mater
 import { useAppContext, appContextDataDefault } from '../../context/app-context'
 
 import theme from '../../theme'
-import { ImageMetadataI } from '../../api/export-utils'
+import { MediaMetadataI } from '../../api/export-utils'
 import { CustomizedSendButton } from '../ux-components/Button-SX'
-import { downloadImage } from '../../api/cloud-storage/action'
+import { downloadMedia } from '../../api/cloud-storage/action'
 import { useRouter } from 'next/navigation'
+import { downloadBase64Media } from '../transverse-components/ExportDialog'
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
@@ -41,39 +42,47 @@ const Transition = React.forwardRef(function Transition(
 export default function ExploreDialog({
   open,
   documentToExplore,
-  handleImageExploreClose,
+  handleMediaExploreClose,
 }: {
   open: boolean
-  documentToExplore: ImageMetadataI | undefined
-  handleImageExploreClose: () => void
+  documentToExplore: MediaMetadataI | undefined
+  handleMediaExploreClose: () => void
 }) {
   const [downloadStatus, setDownloadStatus] = useState('Download')
 
   const { setAppContext } = useAppContext()
   const router = useRouter()
 
-  const handleEditClick = (imageGcsURI: string) => {
+  const handleEditClick = (uri: string) => {
     setAppContext((prevContext) => {
-      if (prevContext) return { ...prevContext, imageToEdit: imageGcsURI }
-      else return { ...appContextDataDefault, imageToEdit: imageGcsURI }
+      if (prevContext) return { ...prevContext, imageToEdit: uri }
+      else return { ...appContextDataDefault, imageToEdit: uri }
     })
     router.push('/edit')
   }
 
-  const handleRegenerateClick = (prompt: string) => {
-    setAppContext((prevContext) => {
-      if (prevContext) return { ...prevContext, promptToGenerate: prompt }
-      else return { ...appContextDataDefault, promptToGenerate: prompt }
-    })
+  const handleRegenerateClick = (prompt: string, format: string) => {
+    if (format === 'MP4') {
+      setAppContext((prevContext) => {
+        if (prevContext) return { ...prevContext, promptToGenerateVideo: prompt, promptToGenerateImage: '' }
+        else return { ...appContextDataDefault, promptToGenerateVideo: prompt, promptToGenerateImage: '' }
+      })
+    } else {
+      setAppContext((prevContext) => {
+        if (prevContext) return { ...prevContext, promptToGenerateImage: prompt, promptToGenerateVideo: '' }
+        else return { ...appContextDataDefault, promptToGenerateImage: prompt, promptToGenerateVideo: '' }
+      })
+    }
+
     router.push('/generate')
   }
 
-  const handleDownload = async (documentToExplore: ImageMetadataI) => {
+  const handleDownload = async (documentToExplore: MediaMetadataI) => {
     try {
       setDownloadStatus('Preparing download...')
-      const res = await downloadImage(documentToExplore.imageGcsURI)
-      const imageName = `${documentToExplore.imageID}.${documentToExplore.imageFormat.toLowerCase()}`
-      downloadBase64Image(res.image, imageName)
+      const res = await downloadMedia(documentToExplore.gcsURI)
+      const mediaName = `${documentToExplore.id}.${documentToExplore.format.toLowerCase()}`
+      downloadBase64Media(res.data, mediaName, documentToExplore.format)
 
       if (typeof res === 'object' && res['error']) {
         throw Error(res['error'].replaceAll('Error: ', ''))
@@ -85,24 +94,15 @@ export default function ExploreDialog({
     }
   }
 
-  const downloadBase64Image = (base64Data: any, filename: string) => {
-    const link = document.createElement('a')
-    link.href = `data:image/jpeg;base64,${base64Data}`
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   const { appContext } = useAppContext()
-  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
+  const exportMetaOptions = appContext ? appContext.exportMetaOptions : appContextDataDefault.exportMetaOptions
 
-  if (ExportImageFormFields)
+  if (exportMetaOptions)
     return (
       <Dialog
         open={open}
-        onClose={handleImageExploreClose}
-        aria-describedby="parameter the export of an image"
+        onClose={handleMediaExploreClose}
+        aria-describedby="explore media metadata"
         TransitionComponent={Transition}
         PaperProps={{
           sx: {
@@ -121,7 +121,7 @@ export default function ExploreDialog({
       >
         <IconButton
           aria-label="close"
-          onClick={handleImageExploreClose}
+          onClick={handleMediaExploreClose}
           sx={{
             position: 'absolute',
             right: 8,
@@ -142,12 +142,12 @@ export default function ExploreDialog({
                 alignContent: 'center',
               }}
             >
-              {'Explore image metadata'}
+              {'Explore media metadata'}
             </Typography>
           </DialogTitle>
           <Box sx={{ pt: 1, pb: 2, width: '90%' }}>
             {documentToExplore &&
-              Object.entries(ExportImageFormFields).map(([key, fieldConfig]) => {
+              Object.entries(exportMetaOptions).map(([key, fieldConfig]) => {
                 const value = documentToExplore[key]
                 let displayValue = value ? `${value}` : null
 
@@ -201,18 +201,20 @@ export default function ExploreDialog({
                 <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
                   <Button
                     variant="contained"
-                    onClick={() => handleRegenerateClick(documentToExplore ? documentToExplore.imagePrompt : '')}
+                    onClick={() =>
+                      handleRegenerateClick(documentToExplore ? documentToExplore.prompt : '', documentToExplore.format)
+                    }
                     endIcon={<AutoAwesome sx={{ mr: 0.4 }} />}
                     sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
                   >
                     {'Replay prompt'}
                   </Button>
                 </Box>
-                {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && (
+                {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && documentToExplore.format !== 'MP4' && (
                   <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
                     <Button
                       variant="contained"
-                      onClick={() => handleEditClick(documentToExplore ? documentToExplore.imageGcsURI : '')}
+                      onClick={() => handleEditClick(documentToExplore ? documentToExplore.gcsURI : '')}
                       endIcon={<Edit />}
                       sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
                     >

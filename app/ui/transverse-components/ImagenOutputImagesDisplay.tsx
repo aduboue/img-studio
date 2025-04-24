@@ -33,7 +33,7 @@ import {
   Stack,
 } from '@mui/material'
 
-import { ImageI } from '../../api/generate-utils'
+import { ImageI } from '../../api/generate-image-utils'
 import { CustomizedAvatarButton, CustomizedIconButton } from '../ux-components/Button-SX'
 import ExportStepper from './ExportDialog'
 
@@ -47,9 +47,11 @@ const { palette } = theme
 export default function OutputImagesDisplay({
   isLoading,
   generatedImagesInGCS,
+  generatedCount,
 }: {
   isLoading: boolean
   generatedImagesInGCS: ImageI[]
+  generatedCount: number
 }) {
   // Full screen image display
   const [imageFullScreen, setImageFullScreen] = useState<ImageI>()
@@ -89,7 +91,11 @@ export default function OutputImagesDisplay({
         {isLoading ? (
           <Skeleton variant="rounded" width={450} height={450} sx={{ mt: 2, bgcolor: palette.primary.light }} />
         ) : (
-          <ImageList cols={2} gap={8} sx={{ cursor: 'pointer', '&.MuiImageList-root': { pb: 5, px: 1 } }}>
+          <ImageList
+            cols={generatedCount > 1 ? 2 : 1}
+            gap={8}
+            sx={{ cursor: 'pointer', '&.MuiImageList-root': { pb: 5, px: 1 } }}
+          >
             {generatedImagesInGCS.map((image) =>
               image.src ? (
                 <ImageListItem
@@ -192,6 +198,7 @@ export default function OutputImagesDisplay({
             maxHeight: '90vh',
             maxWidth: '90vw',
           }}
+          disableAutoFocus={true}
         >
           <Image
             key={'displayed-image'}
@@ -208,8 +215,9 @@ export default function OutputImagesDisplay({
       )}
       <ExportStepper
         open={imageExportOpen}
-        imageToExport={imageToExport}
-        handleImageExportClose={handleImageExportClose}
+        upscaleAvailable={true}
+        mediaToExport={imageToExport}
+        handleMediaExportClose={handleImageExportClose}
       />
     </>
   )

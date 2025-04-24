@@ -34,7 +34,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from '@mui/material'
-import { ImageI } from '../../api/generate-utils'
+import { ImageI } from '../../api/generate-image-utils'
 import { TransitionProps } from '@mui/material/transitions'
 import { CustomizedSendButton } from '../ux-components/Button-SX'
 import {
@@ -48,16 +48,23 @@ import {
 } from '@mui/icons-material'
 import { CustomRadio } from '../ux-components/InputRadioButton'
 
-import { ExportImageFormFieldsI, ExportImageFormI } from '../../api/export-utils'
+import { ExportMediaFormFieldsI, ExportMediaFormI } from '../../api/export-utils'
 import { Controller, set, SubmitHandler, useForm } from 'react-hook-form'
 import FormInputChipGroupMultiple from '../ux-components/InputChipGroupMultiple'
 import { CloseWithoutSubmitWarning, ExportErrorWarning } from '../transverse-components/ExportAlerts'
 
 import theme from '../../theme'
-import { copyImageToTeamBucket, downloadImage } from '../../api/cloud-storage/action'
+import {
+  copyImageToTeamBucket,
+  downloadMedia,
+  getVideoThumbnailBase64,
+  uploadBase64Image,
+} from '../../api/cloud-storage/action'
 import { upscaleImage } from '../../api/imagen/action'
 import { addNewFirestoreEntry } from '../../api/firestore/action'
 import { useAppContext, appContextDataDefault } from '../../context/app-context'
+import { VideoI } from '@/app/api/generate-video-utils'
+
 const { palette } = theme
 
 const Transition = React.forwardRef(function Transition(
@@ -69,14 +76,25 @@ const Transition = React.forwardRef(function Transition(
   return <Slide direction="up" ref={ref} {...props} />
 })
 
+export const downloadBase64Media = (base64Data: any, filename: string, format: string) => {
+  const link = document.createElement('a')
+  link.href = `data:${format};base64,${base64Data}`
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
 export default function ExportStepper({
   open,
-  imageToExport,
-  handleImageExportClose,
+  upscaleAvailable,
+  mediaToExport,
+  handleMediaExportClose,
 }: {
   open: boolean
-  imageToExport: ImageI | undefined
-  handleImageExportClose: () => void
+  upscaleAvailable: boolean
+  mediaToExport: ImageI | VideoI | undefined
+  handleMediaExportClose: () => void
 }) {
   const [activeStep, setActiveStep] = useState(0)
   const [isCloseWithoutSubmit, setIsCloseWithoutSubmit] = useState(false)
@@ -91,15 +109,15 @@ export default function ExportStepper({
     setValue,
     getValues,
     formState: { errors },
-  } = useForm<ExportImageFormI>({
-    defaultValues: { upscaleFactor: imageToExport?.ratio === '1:1' ? 'x4' : 'no' },
+  } = useForm<ExportMediaFormI>({
+    defaultValues: { upscaleFactor: mediaToExport?.ratio === '1:1' ? 'x4' : 'no' },
   })
 
   useEffect(() => {
-    if (imageToExport) {
-      setValue('imageToExport', imageToExport)
+    if (mediaToExport) {
+      setValue('mediaToExport', mediaToExport)
     }
-  }, [imageToExport])
+  }, [mediaToExport])
 
   const handleNext = () => {
     setActiveStep((prevActiveStep) => prevActiveStep + 1)
@@ -114,94 +132,110 @@ export default function ExportStepper({
     setIsDownload(event.target.checked)
   }
 
-  const downloadBase64Image = (base64Data: any, filename: string) => {
-    const link = document.createElement('a')
-    link.href = `data:image/jpeg;base64,${base64Data}`
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
-
   const { appContext } = useAppContext()
-  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
+  const exportMediaFormFields = appContext ? appContext.exportMetaOptions : appContextDataDefault.exportMetaOptions
 
-  let MetadataReviewFields: any
+  let metadataReviewFields: any
   var infoToReview: { label: string; value: string }[] = []
-  let temp: { [key: string]: ExportImageFormFieldsI[keyof ExportImageFormFieldsI] }[] = []
-  if (ExportImageFormFields) {
-    const ExportImageFieldList: (keyof ExportImageFormFieldsI)[] = Object.keys(ExportImageFormFields).map(
-      (key) => key as keyof ExportImageFormFieldsI
+  let temp: { [key: string]: ExportMediaFormFieldsI[keyof ExportMediaFormFieldsI] }[] = []
+  if (exportMediaFormFields) {
+    const exportMediaFieldList: (keyof ExportMediaFormFieldsI)[] = Object.keys(exportMediaFormFields).map(
+      (key) => key as keyof ExportMediaFormFieldsI
     )
 
-    MetadataReviewFields = ExportImageFieldList.filter(
+    metadataReviewFields = exportMediaFieldList.filter(
       (field) =>
-        ExportImageFormFields[field].type === 'text-info' &&
-        ExportImageFormFields[field].isExportVisible &&
-        !ExportImageFormFields[field].isUpdatable
+        exportMediaFormFields[field].type === 'text-info' &&
+        exportMediaFormFields[field].isExportVisible &&
+        !exportMediaFormFields[field].isUpdatable
     )
-    imageToExport &&
-      MetadataReviewFields.forEach((field: any) => {
-        const prop = ExportImageFormFields[field].prop ? ExportImageFormFields[field].prop : ''
-        if (prop !== '')
+    mediaToExport &&
+      metadataReviewFields.forEach((field: any) => {
+        const prop = exportMediaFormFields[field].prop
+        const value = mediaToExport[prop as keyof (ImageI | VideoI)]
+        if (prop && value)
           infoToReview.push({
-            label: ExportImageFormFields[field].label,
-            value: imageToExport[prop as keyof ImageI].toString(),
+            label: exportMediaFormFields[field].label,
+            value: value.toString(),
           })
       })
 
-    Object.entries(ExportImageFormFields).forEach(([name, field]) => {
-      if (field.isUpdatable && field.isExportVisible) {
-        temp.push({ [name]: field })
-      }
+    Object.entries(exportMediaFormFields).forEach(([name, field]) => {
+      if (field.isUpdatable && field.isExportVisible) temp.push({ [name]: field })
     })
   }
-
   const MetadataImproveFields = temp
 
-  const handleImageExportSubmit: SubmitHandler<ExportImageFormI> = React.useCallback(
-    async (formData: ExportImageFormI) => {
+  const handleImageExportSubmit: SubmitHandler<ExportMediaFormI> = React.useCallback(
+    async (formData: ExportMediaFormI) => {
       setIsExporting(true)
       setExportStatus('Starting...')
+
+      const media = formData.mediaToExport
 
       try {
         // 1. Upscale if needed
         let upscaledGcsUri
-        const upscaleFactor = formData['upscaleFactor']
+        const upscaleFactor = formData.upscaleFactor
         if (upscaleFactor === 'x2' || upscaleFactor === 'x4') {
           try {
             setExportStatus('Upscaling...')
 
-            upscaledGcsUri = await upscaleImage(formData['imageToExport']['gcsUri'], upscaleFactor, appContext)
-            if (typeof upscaledGcsUri === 'object' && 'error' in upscaledGcsUri) {
-              throw Error(upscaledGcsUri['error'].replaceAll('Error: ', ''))
-            }
-            formData['imageToExport']['gcsUri'] = upscaledGcsUri
+            upscaledGcsUri = await upscaleImage(media.gcsUri, upscaleFactor, appContext)
+            if (typeof upscaledGcsUri === 'object' && 'error' in upscaledGcsUri)
+              throw Error(upscaledGcsUri.error.replaceAll('Error: ', ''))
 
-            formData['imageToExport']['width'] =
-              formData['imageToExport']['width'] * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
-            formData['imageToExport']['height'] =
-              formData['imageToExport']['height'] * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
+            media.gcsUri = upscaledGcsUri
+
+            media.width = media.width * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
+            media.height = media.height * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
           } catch (error: any) {
             throw Error(error)
           }
         }
 
-        // 2. Copy image to team library
-        const currentGcsUri = formData['imageToExport']['gcsUri']
-        const imageID = formData['imageToExport']['key']
+        // 2. Copy media to team library
+        const currentGcsUri = media.gcsUri
+        const id = media.key
         try {
           setExportStatus('Exporting...')
-          const res = await copyImageToTeamBucket(currentGcsUri, imageID)
+          const res = await copyImageToTeamBucket(currentGcsUri, id)
 
-          if (typeof res === 'object' && 'error' in res) {
-            throw Error(res['error'].replaceAll('Error: ', ''))
-          }
+          if (typeof res === 'object' && 'error' in res) throw Error(res.error.replaceAll('Error: ', ''))
 
           const movedGcsUri = res
-          formData['imageToExport']['gcsUri'] = movedGcsUri
+          media.gcsUri = movedGcsUri
         } catch (error: any) {
           throw Error(error)
+        }
+
+        // 2.5. If media is a video, upload its thumbnail
+        if (media.format === 'MP4') {
+          setExportStatus('Generating thumbnail...')
+
+          const result = await getVideoThumbnailBase64(media.gcsUri, media.ratio)
+          if (!result.thumbnailBase64Data) console.error('Failed to generate thumbnail:', result.error)
+          const thumbnailBase64Data = result.thumbnailBase64Data
+
+          if (thumbnailBase64Data && process.env.NEXT_PUBLIC_TEAM_BUCKET) {
+            try {
+              const uploadResult = await uploadBase64Image(
+                thumbnailBase64Data,
+                process.env.NEXT_PUBLIC_TEAM_BUCKET,
+                `${id}_thumbnail.png`,
+                'image/png'
+              )
+
+              if (uploadResult.success && uploadResult.fileUrl) formData.videoThumbnailGcsUri = uploadResult.fileUrl
+              else {
+                formData.videoThumbnailGcsUri = ''
+                console.warn('Video thumbnail upload failed:', uploadResult.error)
+              }
+            } catch (thumbError: any) {
+              console.error('Video thumbnail upload exception:', thumbError)
+            }
+          } else
+            console.warn(`Video ${id} is a video format but has no thumbnailBase64Data. Skipping thumbnail upload.`)
         }
 
         // 3. Upload metadata to firestore
@@ -209,15 +243,10 @@ export default function ExportStepper({
           setExportStatus('Saving data...')
 
           let res
-          if (ExportImageFormFields) {
-            res = await addNewFirestoreEntry(imageID, formData, ExportImageFormFields)
-          } else {
-            throw Error("Can't find ExportImageFormFields")
-          }
+          if (exportMediaFormFields) res = await addNewFirestoreEntry(id, formData, exportMediaFormFields)
+          else throw Error("Can't find exportMediaFormFields")
 
-          if (typeof res === 'object' && 'error' in res) {
-            throw Error(res['error'].replaceAll('Error: ', ''))
-          }
+          if (typeof res === 'object' && 'error' in res) throw Error(res.error.replaceAll('Error: ', ''))
         } catch (error: any) {
           throw Error(error)
         }
@@ -226,13 +255,11 @@ export default function ExportStepper({
         if (isDownload) {
           try {
             setExportStatus('Preparing download...')
-            const res = await downloadImage(formData['imageToExport']['gcsUri'])
-            const imageName = `${formData['imageToExport']['key']}.${formData['imageToExport']['format'].toLowerCase()}`
-            downloadBase64Image(res.image, imageName)
+            const res = await downloadMedia(media.gcsUri)
+            const name = `${media.key}.${media.format.toLowerCase()}`
+            downloadBase64Media(res.data, name, media.format)
 
-            if (typeof res === 'object' && res['error']) {
-              throw Error(res['error'].replaceAll('Error: ', ''))
-            }
+            if (typeof res === 'object' && res.error) throw Error(res.error.replaceAll('Error: ', ''))
           } catch (error: any) {
             throw Error(error)
           }
@@ -251,7 +278,7 @@ export default function ExportStepper({
 
   const onCloseTry: DialogProps['onClose'] = (
     event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>,
-    reason
+    reason: string
   ) => {
     if (reason && (reason === 'backdropClick' || reason === 'escapeKeyDown')) {
       event?.stopPropagation()
@@ -263,14 +290,14 @@ export default function ExportStepper({
   const onClose = () => {
     setIsCloseWithoutSubmit(false)
     setActiveStep(0)
-    handleImageExportClose()
+    handleMediaExportClose()
     setErrorMsg('')
     setIsExporting(false)
     setExportStatus('')
     setIsDownload(false)
-    resetField('imageToExport')
+    resetField('mediaToExport')
   }
-  const isSquareRatio = imageToExport ? imageToExport.ratio === '1:1' : true
+  const isSquareRatio = mediaToExport ? mediaToExport.ratio === '1:1' : true
 
   function CustomStepIcon(props: StepIconProps) {
     const { active, completed, icon } = props
@@ -337,7 +364,7 @@ export default function ExportStepper({
     return (
       <>
         <Typography variant="subtitle1" color={palette.secondary.main} sx={{ pl: 1, width: '85%' }}>
-          {'Set up metadata to better make your image discoverable within the shared Library.'}
+          {'Set up metadata to ensure discoverabilty within shared Library.'}
         </Typography>
 
         <Box sx={{ py: 2, width: '90%', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
@@ -383,7 +410,7 @@ export default function ExportStepper({
     return (
       <>
         <Typography variant="subtitle1" color={palette.secondary.main} sx={{ pl: 1, width: '70%' }}>
-          {'Upscale your image resolution to make it look sharper and clearer.'}
+          {'Upscale resolution to have a sharper and clearer look.'}
         </Typography>
         <Controller
           name="upscaleFactor"
@@ -392,15 +419,15 @@ export default function ExportStepper({
             <RadioGroup {...field} sx={{ p: 2 }}>
               <CustomRadio
                 label="No upscaling"
-                subLabel={imageToExport ? `${imageToExport.width} x ${imageToExport.height} px` : ''}
+                subLabel={mediaToExport ? `${mediaToExport.width} x ${mediaToExport.height} px` : ''}
                 value="no"
                 currentSelectedValue={field.value}
                 enabled={true}
               />
               <CustomRadio
                 label="Scale x2"
-                subLabel={`${imageToExport && imageToExport.width * 2} x ${
-                  imageToExport && imageToExport.height * 2
+                subLabel={`${mediaToExport && mediaToExport.width * 2} x ${
+                  mediaToExport && mediaToExport.height * 2
                 } px`}
                 value="x2"
                 currentSelectedValue={field.value}
@@ -408,8 +435,8 @@ export default function ExportStepper({
               />
               <CustomRadio
                 label="Scale x4"
-                subLabel={`${imageToExport && imageToExport.width * 4} x ${
-                  imageToExport && imageToExport.height * 4
+                subLabel={`${mediaToExport && mediaToExport.width * 4} x ${
+                  mediaToExport && mediaToExport.height * 4
                 } px`}
                 value="x4"
                 currentSelectedValue={field.value}
@@ -454,7 +481,7 @@ export default function ExportStepper({
               }}
             />
           }
-          label="Download image locally as well"
+          label="Download this media locally as well"
           disableTypography
           sx={{ px: 1.5, pt: 1, '&.MuiFormControlLabel-root': { fontSize: '1.1rem', alignContent: 'center' } }}
         />
@@ -486,7 +513,7 @@ export default function ExportStepper({
     <Dialog
       open={open}
       onClose={onCloseTry}
-      aria-describedby="parameter the export of an image"
+      aria-describedby="parameter the export of the media"
       TransitionComponent={Transition}
       PaperProps={{
         sx: {
@@ -555,17 +582,19 @@ export default function ExportStepper({
                 <TagStep />
               </StepContent>
             </Step>
-            <Step key="upscale">
-              <StepLabel StepIconComponent={CustomStepIcon}>
-                <CustomStepLabel text="Upscale resolution" step={2} />
-              </StepLabel>
-              <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
-                <UpscaleStep />
-              </StepContent>
-            </Step>
+            {upscaleAvailable && (
+              <Step key="upscale">
+                <StepLabel StepIconComponent={CustomStepIcon}>
+                  <CustomStepLabel text="Upscale resolution" step={2} />
+                </StepLabel>
+                <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
+                  <UpscaleStep />
+                </StepContent>
+              </Step>
+            )}
             <Step key="export">
               <StepLabel StepIconComponent={CustomStepIcon}>
-                <CustomStepLabel text="Ready to export!" step={3} />
+                <CustomStepLabel text="Ready to export!" step={upscaleAvailable ? 3 : 2} />
               </StepLabel>
               <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
                 <ExportStep />

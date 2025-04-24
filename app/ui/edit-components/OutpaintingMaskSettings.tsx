@@ -39,7 +39,7 @@ import {
 } from '@mui/material'
 import theme from '../../theme'
 import { useState } from 'react'
-import { RatioToPixel } from '../../api/generate-utils'
+import { RatioToPixel } from '../../api/generate-image-utils'
 import { ChipGroup } from '../ux-components/InputChipGroup'
 import { OutpaintPreview } from '../edit-components/OutpaintPreview'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'

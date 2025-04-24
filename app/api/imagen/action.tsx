@@ -15,16 +15,16 @@
 'use server'
 
 import {
-  fullPromptAdditionalFields,
   GenerateImageFormI,
-  VisionGenerativeModelResultI,
+  ImagenModelResultI,
   ImageI,
   RatioToPixel,
   referenceTypeMatching,
   ReferenceObjectI,
-} from '../generate-utils'
-import { decomposeUri, downloadImage, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
-import { rewriteWithGemini, truncateLog } from '../gemini/action'
+  imageGenerationUtils,
+} from '../generate-image-utils'
+import { decomposeUri, downloadMedia, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
+import { rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
 const { GoogleAuth } = require('google-auth-library')
@@ -70,13 +70,13 @@ function normalizeSentence(sentence: string) {
   return normalizedSentence
 }
 
-async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boolean, references: ReferenceObjectI[]) {
+async function generatePrompt(formData: any, isGeminiRewrite: boolean, references?: ReferenceObjectI[]) {
   let fullPrompt = formData['prompt']
 
   // Rewrite the content of the prompt
   if (isGeminiRewrite) {
     try {
-      const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt)
+      const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt, 'Image')
 
       if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
         const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
@@ -93,13 +93,13 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
 
   // Add additional parameters to the prompt
   let parameters = ''
-  fullPromptAdditionalFields.forEach((additionalField) => {
+  imageGenerationUtils.fullPromptFields.forEach((additionalField) => {
     if (formData[additionalField] !== '')
       parameters += ` ${formData[additionalField]} ${additionalField.replaceAll('_', ' ')}, `
   })
   if (parameters !== '') fullPrompt = `${fullPrompt}, ${parameters}`
 
-  // Add quality modifiers to the prompt
+  // Add quality modifiers to the prompt for Image Generation
   let quality_modifiers = ', high-quality, beautiful, stylized'
   if (formData['style'] === 'photo') {
     quality_modifiers = quality_modifiers + ', 4K'
@@ -117,7 +117,7 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
   fullPrompt = fullPrompt + quality_modifiers
 
   // Add references to the prompt
-  if (references.length > 0) {
+  if (references !== undefined && references.length > 0) {
     let reference = 'Generate an image '
     let subjects: string[] = []
     let subjectsID: number[] = []
@@ -162,7 +162,7 @@ export async function buildImageListFromURI({
   modelVersion,
   mode,
 }: {
-  imagesInGCS: VisionGenerativeModelResultI[]
+  imagesInGCS: ImagenModelResultI[]
   aspectRatio: string
   width: number
   height: number
@@ -242,7 +242,7 @@ export async function buildImageListFromBase64({
   modelVersion,
   mode,
 }: {
-  imagesBase64: VisionGenerativeModelResultI[]
+  imagesBase64: ImagenModelResultI[]
   targetGcsURI: string
   aspectRatio: string
   width: number
@@ -460,7 +460,7 @@ export async function generateImage(
 
     const usedRatio = RatioToPixel.find((item) => item.ratio === opts.data.parameters.aspectRatio)
 
-    const resultImages: VisionGenerativeModelResultI[] = res.data.predictions
+    const resultImages: ImagenModelResultI[] = res.data.predictions
 
     const isResultBase64Images: boolean = resultImages.every((image) => image.hasOwnProperty('bytesBase64Encoded'))
 
@@ -651,7 +651,7 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
 
   // 4 - Creating output image list
   try {
-    const resultImages: VisionGenerativeModelResultI[] = res.data.predictions
+    const resultImages: ImagenModelResultI[] = res.data.predictions
 
     const isResultBase64Images: boolean = resultImages.every((image) => image.hasOwnProperty('bytesBase64Encoded'))
 
@@ -710,7 +710,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
   // 2 Downloading source image
   let res
   try {
-    res = await downloadImage(sourceUri)
+    res = await downloadMedia(sourceUri)
 
     if (typeof res === 'object' && res['error']) {
       throw Error(res['error'].replaceAll('Error: ', ''))
@@ -718,7 +718,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
   } catch (error: any) {
     throw Error(error)
   }
-  const { image } = res
+  const { data } = res
 
   // 3 - Building Imagen request body
   let targetGCSuri = ''
@@ -737,7 +737,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
       {
         prompt: '',
         image: {
-          bytesBase64Encoded: image,
+          bytesBase64Encoded: data,
         },
       },
     ],

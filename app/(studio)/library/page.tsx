@@ -24,22 +24,22 @@ import theme from '../../theme'
 import { getSignedURL } from '@/app/api/cloud-storage/action'
 import { ExportErrorWarning } from '@/app/ui/transverse-components/ExportAlerts'
 import { fetchDocumentsInBatches } from '@/app/api/firestore/action'
-import { ImageMetadataWithSignedUrl } from '@/app/api/export-utils'
-import LibraryImagesDisplay from '@/app/ui/library-components/LibraryImagesDisplay'
+import { MediaMetadataWithSignedUrl } from '@/app/api/export-utils'
+import LibraryMediasDisplay from '../../ui/library-components/LibraryMediasDisplay'
 import LibraryFiltering from '../../ui/library-components/LibraryFiltering'
 const { palette } = theme
 
 export default function Page() {
   const [errorMsg, setErrorMsg] = useState('')
-  const [isImagesLoading, setIsImagesLoading] = useState(false)
-  const [fetchedImagesByPage, setFetchedImagesByPage] = useState<ImageMetadataWithSignedUrl[][]>([])
+  const [isMediasLoading, setIsMediasLoading] = useState(false)
+  const [fetchedMediasByPage, setFetchedMediasByPage] = useState<MediaMetadataWithSignedUrl[][]>([])
   const [lastVisibleDocument, setLastVisibleDocument] = useState<any | null>(null)
   const [isMorePageToLoad, setisMorePageToLoad] = useState(false)
   const [filters, setFilters] = useState(null)
   const [openFilters, setOpenFilters] = useState(false)
 
   const fetchDataAndSignedUrls = async (filters: any) => {
-    setIsImagesLoading(true)
+    setIsMediasLoading(true)
     setisMorePageToLoad(false)
 
     const selectedFilters = Object.entries(filters)
@@ -66,26 +66,41 @@ export default function Page() {
       if (documents.length === 0) {
         setErrorMsg('Sorry, your search returned no results')
         setOpenFilters(true)
-        setIsImagesLoading(false)
+        setIsMediasLoading(false)
         return
       }
 
+      // Get signed URL for both media, and thumbnail if video
       const documentsWithSignedUrls = await Promise.all(
-        documents.flatMap(async (doc: { imageGcsURI: string }) => {
-          if (!doc.imageGcsURI) return { ...doc, signedUrl: '' } as ImageMetadataWithSignedUrl
+        documents.flatMap(async (doc: { gcsURI: string; videoThumbnailGcsUri?: string }) => {
+          if (!doc.gcsURI) return { ...doc, signedUrl: '' } as MediaMetadataWithSignedUrl
 
           try {
-            const signedUrl = await getSignedURL(doc.imageGcsURI)
-
+            const signedUrl = await getSignedURL(doc.gcsURI)
             if (signedUrl.error) {
               const errorMsg = signedUrl['error'].replaceAll('Error: ', '')
               throw Error(errorMsg)
             }
 
-            return { ...doc, signedUrl: signedUrl } as ImageMetadataWithSignedUrl
+            let thumbnailSignedUrl = null
+            if (doc.videoThumbnailGcsUri) {
+              thumbnailSignedUrl = await getSignedURL(doc.videoThumbnailGcsUri)
+              if (thumbnailSignedUrl.error) {
+                const errorMsg = signedUrl['error'].replaceAll('Error: ', '')
+                throw Error(errorMsg)
+              }
+            }
+
+            if (thumbnailSignedUrl)
+              return {
+                ...doc,
+                signedUrl: signedUrl,
+                videoThumbnailSignedUrl: thumbnailSignedUrl,
+              } as MediaMetadataWithSignedUrl
+            else return { ...doc, signedUrl: signedUrl } as MediaMetadataWithSignedUrl
           } catch (error) {
             console.error('Error fetching signed URL:', error)
-            return { ...doc, signedUrl: '' } as ImageMetadataWithSignedUrl
+            return { ...doc, signedUrl: '' } as MediaMetadataWithSignedUrl
           }
         })
       )
@@ -98,23 +113,23 @@ export default function Page() {
       ) {
         setLastVisibleDocument(res.lastVisibleDocument)
         res.isMorePageToLoad && setisMorePageToLoad(res.isMorePageToLoad)
-        const newFetchedImagesByPage = fetchedImagesByPage
-          ? fetchedImagesByPage.concat([documentsWithSignedUrls])
+        const newFetchedMediasByPage = fetchedMediasByPage
+          ? fetchedMediasByPage.concat([documentsWithSignedUrls])
           : [documentsWithSignedUrls]
-        setFetchedImagesByPage(newFetchedImagesByPage)
+        setFetchedMediasByPage(newFetchedMediasByPage)
       }
-      setIsImagesLoading(false)
+      setIsMediasLoading(false)
     } catch (error) {
       console.error(error)
-      setErrorMsg('An error occurred while fetching images. Please try again later.')
+      setErrorMsg('An error occurred while fetching medias. Please try again later.')
       setOpenFilters(true)
-      setIsImagesLoading(false)
+      setIsMediasLoading(false)
     }
   }
 
   const submitFilters = async (filters: any) => {
-    setIsImagesLoading(true)
-    setFetchedImagesByPage([])
+    setIsMediasLoading(true)
+    setFetchedMediasByPage([])
     setLastVisibleDocument(null)
     setisMorePageToLoad(false)
     setErrorMsg('')
@@ -126,21 +141,21 @@ export default function Page() {
     if (lastVisibleDocument === null && filters !== null) {
       fetchDataAndSignedUrls(filters).catch((error) => {
         console.error(error)
-        setErrorMsg('An error occurred while fetching images. Please try again later.')
+        setErrorMsg('An error occurred while fetching medias. Please try again later.')
         setOpenFilters(true)
-        setIsImagesLoading(false)
+        setIsMediasLoading(false)
       })
     }
   }, [filters])
 
   useEffect(() => {
-    setIsImagesLoading(true)
+    setIsMediasLoading(true)
     fetchDataAndSignedUrls({})
   }, [])
 
   const handleLoadMore = async () => {
     if (lastVisibleDocument) {
-      setIsImagesLoading(true)
+      setIsMediasLoading(true)
       await fetchDataAndSignedUrls(filters ?? {})
     }
   }
@@ -165,23 +180,23 @@ export default function Page() {
           <ExportErrorWarning
             errorMsg={errorMsg}
             onClose={() => {
-              setIsImagesLoading(false)
+              setIsMediasLoading(false)
               setErrorMsg('')
               setOpenFilters(true)
             }}
           />
         )}
         <LibraryFiltering
-          isImagesLoading={isImagesLoading}
-          setIsImagesLoading={setIsImagesLoading}
+          isMediasLoading={isMediasLoading}
+          setIsMediasLoading={setIsMediasLoading}
           setErrorMsg={setErrorMsg}
           submitFilters={(filters: any) => submitFilters(filters)}
           openFilters={openFilters}
           setOpenFilters={setOpenFilters}
         />
-        <LibraryImagesDisplay
-          isImagesLoading={isImagesLoading}
-          fetchedImagesByPage={fetchedImagesByPage}
+        <LibraryMediasDisplay
+          isMediasLoading={isMediasLoading}
+          fetchedMediasByPage={fetchedMediasByPage}
           handleLoadMore={handleLoadMore}
           isMorePageToLoad={isMorePageToLoad}
         />

@@ -39,31 +39,31 @@ import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } fr
 import { useEffect, useRef } from 'react'
 import CustomTooltip from '../ux-components/Tooltip'
 import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-components/Accordion-SX'
-import { FilterImageFormI } from '../../api/export-utils'
+import { FilterMediaFormI } from '../../api/export-utils'
 import FormInputChipGroupMultiple from '../ux-components/InputChipGroupMultiple'
 import { useAppContext, appContextDataDefault } from '../../context/app-context'
 
 const { palette } = theme
 
 export default function LibraryFiltering({
-  isImagesLoading,
-  setIsImagesLoading,
+  isMediasLoading,
+  setIsMediasLoading,
   setErrorMsg,
   submitFilters,
   openFilters,
   setOpenFilters,
 }: {
-  isImagesLoading: boolean
-  setIsImagesLoading: any
+  isMediasLoading: boolean
+  setIsMediasLoading: any
   setErrorMsg: any
   submitFilters: any
   openFilters: boolean
   setOpenFilters: any
 }) {
-  const { handleSubmit, reset, control, setValue } = useForm<FilterImageFormI>()
+  const { handleSubmit, reset, control, setValue } = useForm<FilterMediaFormI>()
 
   const { appContext } = useAppContext()
-  const ExportImageFormFields = appContext ? appContext.exportFields : appContextDataDefault.exportFields
+  const ExportImageFormFields = appContext ? appContext.exportMetaOptions : appContextDataDefault.exportMetaOptions
   let temp2: any = []
   if (ExportImageFormFields) {
     Object.entries(ExportImageFormFields).forEach(([name, field]) => {
@@ -104,8 +104,8 @@ export default function LibraryFiltering({
     prevSelectedFields.current = new Set(activeFieldKeys)
   }, [watchedFieldValues, setValue])
 
-  const onSubmit: SubmitHandler<FilterImageFormI> = async (formData: FilterImageFormI) => {
-    setIsImagesLoading(true)
+  const onSubmit: SubmitHandler<FilterMediaFormI> = async (formData: FilterMediaFormI) => {
+    setIsMediasLoading(true)
     setOpenFilters(false)
 
     try {
@@ -163,8 +163,8 @@ export default function LibraryFiltering({
               <Button
                 type="submit"
                 variant="contained"
-                disabled={isImagesLoading}
-                endIcon={isImagesLoading ? <WatchLaterIcon /> : <SendIcon />}
+                disabled={isMediasLoading}
+                endIcon={isMediasLoading ? <WatchLaterIcon /> : <SendIcon />}
                 sx={{ ...CustomizedSendButton, ...{ ml: 0 } }}
               >
                 {'Fetch'}

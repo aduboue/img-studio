@@ -40,7 +40,7 @@ function getFormatFromBase64(base64String: string) {
   return base64String.split(';')[0].split(':')[1]
 }
 
-export async function rewriteWithGemini(userPrompt: string) {
+export async function rewriteWithGemini(userPrompt: string, generationType: string) {
   const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
   const geminiModel = process.env.NEXT_PUBLIC_GEMINI_MODEL
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
@@ -50,7 +50,7 @@ export async function rewriteWithGemini(userPrompt: string) {
     model: geminiModel,
   })
 
-  const rewritePrompt = `You are an AI image prompt enhancer.
+  const rewriteImagePrompt = `You are an AI image prompt enhancer.
   Your task is to take a user-provided prompt designed for a text-to-image model like Imagen and enhance it according to Google's recommended prompt engineering guidelines.
   These guidelines emphasize clarity, specificity, and detail to achieve high-quality and predictable results.
 
@@ -70,8 +70,30 @@ export async function rewriteWithGemini(userPrompt: string) {
   **Input:**  "A cat sitting on a mat."
   **Output:** "A fluffy, grey tabby cat with green eyes, curled up asleep on a woven, beige doormat in a brightly lit living room with a large window, late afternoon light casting long shadows, photorealistic style, calm and peaceful mood."`
 
+  const rewriteVideoPrompt = `You are an AI video prompt enhancer.
+  Your task is to take a user-provided prompt designed for a text-to-video model (like Veo) and enhance it according to Google's recommended prompt engineering guidelines for video generation.
+  These guidelines emphasize clarity, specificity, detail, action, and camera work to achieve high-quality, dynamic, and predictable video results.
+
+  Focus on improving the prompt in the following areas:
+  * **Subject:** Be specific about the main subject(s). Include age, appearance, clothing, species, breed, color, size, and any distinctive features. (e.g., "a joyful woman in her early 30s with curly brown hair, wearing a yellow raincoat")
+  * **Scene:** Describe the environment/location clearly. Include place, time of day, weather, and key background details. (e.g., "on a bustling Parisian street corner during a light spring shower")
+  * **Action:** Detail what the subject is actively doing during the shot. Be specific about the movement or activity. (e.g., "laughing as she opens a bright red umbrella")
+  * **Camera Motion:** Specify how the camera moves or its perspective. Use terms like tracking shot, panning, tilting, dolly zoom, handheld, static shot, drone view, aerial shot, POV shot, orbit shot, etc. (e.g., "Slow-motion orbiting shot")
+  * **Style:** Define the overall aesthetic and visual treatment. Mention cinematic, animation style (e.g., 3D cartoon, anime), film look (e.g., vintage film, film noir), documentary, etc. (e.g., "cinematic, high definition")
+  * **Composition:** Describe the framing and angle of the shot. Use terms like wide shot, medium shot, close-up, extreme close-up, low angle, high angle, eye-level, over-the-shoulder, etc. (e.g., "medium shot framing her from the waist up")
+  * **Ambiance:** Convey the mood using descriptions of lighting and color. Mention time of day lighting (e.g., golden hour, night scene, overcast daylight), color temperature (e.g., warm tones, cool blue tones), and overall mood (e.g., dramatic, cheerful, mysterious). (e.g., "overcast daylight with bright, cheerful colors contrasted against grey skies")
+
+  **Input:** The user-provided Veo prompt: "${userPrompt}"
+  **Output:** The enhanced prompt, ready for a text-to-video model. The output should be a single, well-structured sentence or a short paragraph. Do not include any introductory or explanatory text. The enhanced prompt should be concise yet detailed, prioritizing the most visually important elements and describing the key action and camera work. Aim for a prompt that is under 75 tokens if possible.
+
+  **Example:**
+  **Input:** "A dog running in a park."
+  **Output:** "Cinematic tracking shot following a Golden Retriever puppy running excitedly through a green park field, chasing a red ball, bright sunny afternoon light, wide shot capturing the dog's movement and the expanse of the park, joyful and energetic mood."`
+
   try {
-    const resp = await generativeModel.generateContent(rewritePrompt)
+    const resp = await generativeModel.generateContent(
+      generationType === 'Image' ? rewriteImagePrompt : rewriteVideoPrompt
+    )
     const contentResponse = await resp.response
 
     if ('error' in contentResponse) throw Error(await cleanResult(contentResponse.error))

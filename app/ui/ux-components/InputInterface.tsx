@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { advancedSettingsI, chipGroupFieldsI, generalSettingsI, selectFieldsI } from '../../api/generate-utils'
+import { advancedSettingsI, chipGroupFieldsI, generalSettingsI, selectFieldsI } from '../../api/generate-image-utils'
 
 export interface FormTextInputI {
   name: string
@@ -54,7 +54,7 @@ export interface FormChipGroupMultipleInputI {
   required: boolean
 }
 
-export interface FormInputGenerateSettingsI {
+export interface GenerateSettingsI {
   control: any
   setValue?: any
   generalSettingsFields: generalSettingsI

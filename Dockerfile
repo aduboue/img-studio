@@ -38,6 +38,7 @@ ARG _NEXT_PUBLIC_GCS_BUCKET_LOCATION
 ARG _NEXT_PUBLIC_GEMINI_MODEL
 ARG _NEXT_PUBLIC_SEG_MODEL
 ARG _NEXT_PUBLIC_EDIT_ENABLED
+ARG _NEXT_PUBLIC_VEO_ENABLED
 ARG _NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS
 ARG _NEXT_PUBLIC_OUTPUT_BUCKET
 ARG _NEXT_PUBLIC_TEAM_BUCKET
@@ -48,6 +49,7 @@ ENV NEXT_PUBLIC_PROJECT_ID=$_NEXT_PUBLIC_PROJECT_ID \
   NEXT_PUBLIC_GEMINI_MODEL=$_NEXT_PUBLIC_GEMINI_MODEL \
   NEXT_PUBLIC_SEG_MODEL=$_NEXT_PUBLIC_SEG_MODEL \
   NEXT_PUBLIC_EDIT_ENABLED=$_NEXT_PUBLIC_EDIT_ENABLED \
+  NEXT_PUBLIC_VEO_ENABLED=$_NEXT_PUBLIC_VEO_ENABLED \
   NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS=$_NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS \
   NEXT_PUBLIC_OUTPUT_BUCKET=$_NEXT_PUBLIC_OUTPUT_BUCKET \
   NEXT_PUBLIC_TEAM_BUCKET=$_NEXT_PUBLIC_TEAM_BUCKET \
@@ -61,6 +63,13 @@ FROM node:20-alpine AS runner
 
 # Set the working directory
 WORKDIR /app
+
+# Install ffmpeg using Alpine's package manager
+# This ensures that ffmpeg and its required shared libraries are present.
+# It's important for running the ffmpeg binary that @ffmpeg-installer/ffmpeg provides.
+USER root
+RUN apk update && apk add --no-cache ffmpeg
+USER node
 
 # Copy the built application and required files from the builder stage
 COPY --from=builder /app/next.config.mjs ./
