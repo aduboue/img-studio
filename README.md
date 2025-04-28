@@ -127,5 +127,7 @@ Do the following steps:
 
 If those steps don't solve the issue, please wait a few minutes before trying to access the app again.
 
+## Acknowledgements
+Terraform contributions: [@maoye-google](https://github.com/maoye-google)
 
 > ###### _This is not an officially supported Google product. This project is not eligible for the [Google Open Source Software Vulnerability Rewards Program](https://bughunters.google.com/open-source-security)._
