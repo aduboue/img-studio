@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+/**/node_modules
 /.pnp
 .pnp.js
 
@@ -8,6 +9,7 @@
 
 # next.js
 /.next/
+/**/.next/
 /out/
 
 # production
@@ -26,6 +28,10 @@ yarn-error.log*
 .env*.local
 .env
 
+IDE Files
+.idx
+.idx/* */
+
 # vercel
 .vercel
 
@@ -35,3 +41,5 @@ next-env.d.ts
 
 package-lock.json
 
+# Dynamically generated files
+cloudbuild.yaml

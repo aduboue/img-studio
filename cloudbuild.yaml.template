@@ -1,0 +1,113 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+steps:
+# Img Studio Container steps
+- id: 'Img Studio - App Build'
+  name: 'gcr.io/cloud-builders/docker'
+  args:
+    - 'build'
+    - '-t'
+    - '${_APP_IMAGE_NAME}'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_PROJECT_ID=$_NEXT_PUBLIC_PROJECT_ID'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_VERTEX_API_LOCATION=$_NEXT_PUBLIC_VERTEX_API_LOCATION'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_GCS_BUCKET_LOCATION=$_NEXT_PUBLIC_GCS_BUCKET_LOCATION'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_GEMINI_MODEL=$_NEXT_PUBLIC_GEMINI_MODEL'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_SEG_MODEL=$_NEXT_PUBLIC_SEG_MODEL'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_EDIT_ENABLED=$_NEXT_PUBLIC_EDIT_ENABLED'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS=$_NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_OUTPUT_BUCKET=$_NEXT_PUBLIC_OUTPUT_BUCKET'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_TEAM_BUCKET=$_NEXT_PUBLIC_TEAM_BUCKET'
+    - '--build-arg'
+    - '_NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI=$_NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI'
+    - '.'
+  dir: src/
+- id: 'Img Studio - Push Image'
+  name: 'gcr.io/cloud-builders/docker'
+  args: 
+  - 'push'
+  - '${_APP_IMAGE_NAME}'
+  dir: src/
+
+# Terraform init
+- id: 'Terraform Inititalization'
+  name: 'hashicorp/terraform:1.3.6'
+  entrypoint: 'sh'
+  args: 
+  - '-c'
+  - | 
+    terraform init \
+    -backend-config="bucket=$PROJECT_ID-tf-state" \
+    -backend-config="prefix=img-studio"
+  dir: terraform
+  
+# Terraform Apply
+- id: 'Terraform Apply'
+  name: 'hashicorp/terraform:1.3.6'
+  args: 
+  - apply
+  - -auto-approve
+  dir: terraform
+
+# General Setting
+substitutions:
+  _APP_NAME: 'imgstudio' # Optional: change the app name (used in artifact registry)
+  _APP_REGION: 'us-central1' # Do not change unless you changed the Cloud region in the bootstrap script
+  _AR_REPO_NAME: 'docker-repo' # Do not change unless you changed the name of the artifact registry repository in the bootstrap script
+  _IAP_ALLOWED_MEMBERS: '["group:<IAM_GROUP_PLACEHOLDER>"]' # IAM members allowed to access the app. Use prefixes 'user:', 'group:', or 'domain:' for user, user groups, and Cloud Identity domains, respectively.
+  _NEXT_PUBLIC_PRINCIPAL_TO_USER_FILTERS: ',@<COMPANY_DOMAIN_PLACEHOLDER>' # String to filter out of user principal IDs
+  _DOMAIN_NAME: '<DOMAIN_NAME_PLACEHOLDER>' # Leave this empty if you do not want to configure a custom domain name at this time
+         
+  # The following values should not be changed unless needed
+  _APP_IMAGE_NAME: ${_APP_REGION}-docker.pkg.dev/${PROJECT_ID}/${_AR_REPO_NAME}/${_APP_NAME}:${BUILD_ID}
+  _NEXT_PUBLIC_PROJECT_ID: ${PROJECT_ID}            # Do not change
+  _NEXT_PUBLIC_VERTEX_API_LOCATION: 'us-central1'   # Be sure to check the availability before changing this
+  _NEXT_PUBLIC_GCS_BUCKET_LOCATION: ${_APP_REGION}  # Do not change
+  _NEXT_PUBLIC_GEMINI_MODEL: 'gemini-2.0-flash-exp' # Default recommended text handling model.
+  _NEXT_PUBLIC_SEG_MODEL: 'image-segmentation-001'  # Segmentation Model name. Not recommend to change
+  _NEXT_PUBLIC_EDIT_ENABLED: 'true'                 # Your allowlist status for this feature
+  _NEXT_PUBLIC_OUTPUT_BUCKET: '${PROJECT_ID}-imgstudio-output'      # Do not change
+  _NEXT_PUBLIC_TEAM_BUCKET: '${PROJECT_ID}-imgstudio-library'       # Do not change
+  _NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI: 'gs://${PROJECT_ID}-imgstudio-export-config/export-fields-options.json' # Do not change
+options:
+  logging: CLOUD_LOGGING_ONLY
+  dynamic_substitutions: true
+  env: # everything need to be in lower case format
+    - TF_VAR_project_id=$PROJECT_ID
+    - TF_VAR_app_tag=$BUILD_ID
+    - TF_VAR_region=${_APP_REGION}
+    - TF_VAR_app_name=${_APP_NAME}
+    - TF_VAR_app_container_name=${_APP_IMAGE_NAME}
+    - TF_VAR_iap_allowed_members=${_IAP_ALLOWED_MEMBERS}
+    - TF_VAR_domain_name=${_DOMAIN_NAME}
+
+tags:
+  - img-studio
+  - terraform
+images:
+  - ${_APP_IMAGE_NAME}
+timeout: 3600s
+
+serviceAccount: 'projects/${PROJECT_ID}/serviceAccounts/build-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+
+  

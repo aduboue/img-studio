@@ -1,0 +1,29 @@
+steps:
+- id: 'tf init'
+  name: 'hashicorp/terraform:1.3.6'
+  entrypoint: 'sh'
+  args: 
+  - '-c'
+  - | 
+    terraform init \
+    -backend-config="bucket=$PROJECT_ID-tf-state" \
+    -backend-config="prefix=img-studio"
+  dir: terraform
+
+- id: 'tf destroy'
+  name: 'hashicorp/terraform:1.3.6'
+  args: 
+  - destroy
+  - -auto-approve
+  dir: terraform
+
+options:
+  env:
+    - TF_VAR_project_id=$PROJECT_ID
+
+tags:
+  - terraform
+  - img-studio
+  - destroy
+
+timeout: 3600s
