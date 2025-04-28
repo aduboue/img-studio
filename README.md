@@ -47,7 +47,7 @@
   - `_NEXT_PUBLIC_VERTEX_API_LOCATION`
     - The region you want to use for VertexAI APIs
     - Ex: `europe-west9`
-  - `_NEXT_PUBLIC_GEMINI_MODEL` \= `gemini-1.5-flash-001`
+  - `_NEXT_PUBLIC_GEMINI_MODEL` \= `gemini-2.0-flash-001`
     - Don’t change this
   - `_NEXT_PUBLIC_OUTPUT_BUCKET`
     - The name of the raw generated output content bucket
