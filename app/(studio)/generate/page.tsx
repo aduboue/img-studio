@@ -37,6 +37,13 @@ import { getVideoGenerationStatus } from '@/app/api/veo/action'
 import { ChipGroup } from '@/app/ui/ux-components/InputChipGroup'
 import OutputVideosDisplay from '@/app/ui/transverse-components/VeoOutputVideosDisplay'
 
+// Video Polling Constants
+const INITIAL_POLLING_INTERVAL_MS = 6000 // Start polling after 6 seconds
+const MAX_POLLING_INTERVAL_MS = 60000 // Max interval 60 seconds
+const BACKOFF_FACTOR = 1.2 // Increase interval by 20% each time
+const MAX_POLLING_ATTEMPTS = 30 // Max 30 attempts
+const JITTER_FACTOR = 0.2 // Add up to 20% jitter
+
 export default function Page() {
   const [generationMode, setGenerationMode] = useState('Generate an Image')
 
@@ -65,10 +72,9 @@ export default function Page() {
   // Video Polling State
   const [pollingOperationName, setPollingOperationName] = useState<string | null>(null)
   const [operationMetadata, setOperationMetadata] = useState<OperationMetadataI | null>(null)
-  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null)
   const pollingAttemptsRef = useRef<number>(0)
-  const POLLING_INTERVAL_MS = 10000
-  const MAX_POLLING_ATTEMPTS = 40
+  const currentPollingIntervalRef = useRef<number>(INITIAL_POLLING_INTERVAL_MS)
 
   // Handler for switching generation mode
   const generationModeSwitch = ({ clickedValue }: { clickedValue: string }) => {
@@ -77,13 +83,14 @@ export default function Page() {
       setGenerationErrorMsg('')
       setGeneratedImages([])
       setGeneratedVideos([])
-      // Ensure polling state is reset if switching mode during an errored poll state
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
+      // Ensure polling state is reset if switching mode
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current)
+        timeoutIdRef.current = null
       }
       setPollingOperationName(null)
       setOperationMetadata(null)
+      setIsLoading(false)
     }
   }
 
@@ -99,11 +106,11 @@ export default function Page() {
     setIsLoading(false)
     setGenerationErrorMsg(newErrorMsg)
 
-    if (pollingIntervalRef.current) {
-      clearInterval(pollingIntervalRef.current)
-      pollingIntervalRef.current = null
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current)
+      timeoutIdRef.current = null
     }
-    setPollingOperationName(null)
+    setPollingOperationName(null) // Stop further polling by clearing operation name
     setOperationMetadata(null)
   }
 
@@ -125,42 +132,45 @@ export default function Page() {
 
   // Handler called by GenerateForm ONLY when video generation is initiated successfully
   const handleVideoPollingStart = (operationName: string, metadata: OperationMetadataI) => {
+    // Clear any existing polling timeout if a new generation starts
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current)
+      timeoutIdRef.current = null
+    }
     setPollingOperationName(operationName)
     setOperationMetadata(metadata)
     pollingAttemptsRef.current = 0
+    currentPollingIntervalRef.current = INITIAL_POLLING_INTERVAL_MS
+    // setIsLoading(true) is handled by onRequestSent
   }
 
   // Video generation polling useEffect
   useEffect(() => {
-    // Stop polling and reset loading state
-    const stopPolling = (isSuccess: boolean) => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        pollingIntervalRef.current = null
+    // Stop polling and reset relevant states
+    const stopPolling = (isSuccess: boolean, finalLoadingState = false) => {
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current)
+        timeoutIdRef.current = null
       }
-      setPollingOperationName(null)
-      setOperationMetadata(null)
-      setIsLoading(false)
+
+      setIsLoading(finalLoadingState)
     }
 
     // Function to perform one poll attempt
     const poll = async () => {
       if (!pollingOperationName || !operationMetadata) {
-        console.warn('Poll called unexpectedly without operation details.')
-        // Attempt to stop cleanly if interval is somehow running
-        if (pollingIntervalRef.current) {
-          clearInterval(pollingIntervalRef.current)
-          pollingIntervalRef.current = null
-        }
-        setIsLoading(false)
+        console.warn('Poll called without active operation details.')
+        stopPolling(false, false)
         return
       }
 
       // Timeout check
       if (pollingAttemptsRef.current >= MAX_POLLING_ATTEMPTS) {
-        console.error(`Polling timeout for operation: ${pollingOperationName}`)
-        handleNewErrorMsg('Video generation timed out. Please check operation status manually.')
-        stopPolling(false)
+        console.error(`Polling timeout for operation: ${pollingOperationName} after ${MAX_POLLING_ATTEMPTS} attempts.`)
+        handleNewErrorMsg(
+          `Video generation timed out after ${MAX_POLLING_ATTEMPTS} attempts. Please check operation status manually or try again.`
+        )
+
         return
       }
 
@@ -174,58 +184,79 @@ export default function Page() {
           operationMetadata.prompt
         )
 
-        // Check if polling was stopped while waiting for the result
-        if (!pollingIntervalRef.current && !statusResult.done) {
-          console.log('Polling stopped externally during async operation.')
+        // If pollingOperationName became null while waiting (e.g., user switched mode or cancelled)
+        if (!pollingOperationName) {
+          console.log('Polling stopped externally (operation name cleared) during async operation.')
+          stopPolling(false, false)
           return
         }
 
         if (statusResult.done) {
           if (statusResult.error) {
-            console.error(`Polling completed with error: ${statusResult.error}`)
+            console.error(`Polling completed with error: ${statusResult.error} for ${pollingOperationName}`)
             handleNewErrorMsg(statusResult.error)
-            stopPolling(false)
-          } else if (statusResult.videos) {
+          } else if (statusResult.videos && statusResult.videos.length > 0) {
             handleVideoGenerationComplete(statusResult.videos)
-            stopPolling(true)
+            stopPolling(true, false)
+            setPollingOperationName(null)
+            setOperationMetadata(null)
           } else {
-            console.warn(`Polling done, but no videos or error.`)
-            handleNewErrorMsg('Video generation finished, but no results were returned.')
-            stopPolling(false)
+            console.warn(
+              `Polling done, but no videos or error for ${pollingOperationName}. Videos array empty or undefined.`
+            )
+            handleNewErrorMsg('Video generation finished, but no valid results were returned.')
           }
-        }
-        // else: Not done, continue polling (interval takes care of next call)
-      } catch (error: any) {
-        console.error(`Error during polling attempt:`, error.response?.data || error.message || error)
+        } else {
+          // Not done, schedule next poll with exponential backoff
+          const jitter = currentPollingIntervalRef.current * JITTER_FACTOR * (Math.random() - 0.5) // Symmetrical jitter
+          const nextInterval = Math.round(currentPollingIntervalRef.current + jitter)
 
-        // Check if polling was stopped externally during async error
-        if (!pollingIntervalRef.current) {
-          console.log('Polling stopped externally during async error.')
+          timeoutIdRef.current = setTimeout(poll, nextInterval)
+
+          // Increase interval for the subsequent attempt
+          currentPollingIntervalRef.current = Math.min(
+            currentPollingIntervalRef.current * BACKOFF_FACTOR,
+            MAX_POLLING_INTERVAL_MS
+          )
+        }
+      } catch (error: any) {
+        console.error(
+          `Error during polling attempt ${pollingAttemptsRef.current} for ${pollingOperationName}:`,
+          error.response?.data || error.message || error
+        )
+        // If pollingOperationName became null while waiting for error (e.g., user switched mode)
+        if (!pollingOperationName) {
+          console.log('Polling stopped externally (operation name cleared) during async error handling.')
+          stopPolling(false, false)
           return
         }
         handleNewErrorMsg('An error occurred while checking the video status. Please try again.')
-        stopPolling(false)
       }
     }
 
-    // Start polling only when an operation name is set
-    if (pollingOperationName) {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-      }
-      pollingAttemptsRef.current = 0
-      poll() // Initial poll
-      pollingIntervalRef.current = setInterval(poll, POLLING_INTERVAL_MS)
+    // Start polling only when an operation name is set and no timeout is currently active
+    if (pollingOperationName && !timeoutIdRef.current) {
+      // Resetting attempts and interval is now done in handleVideoPollingStart
+      // pollingAttemptsRef.current = 0;
+      // currentPollingIntervalRef.current = INITIAL_POLLING_INTERVAL_MS;
+
+      // Initial poll, subsequent polls are scheduled by poll() itself via setTimeout
+      timeoutIdRef.current = setTimeout(poll, currentPollingIntervalRef.current)
     }
 
-    // Cleanup: Clear interval if component unmounts or pollingOperationName becomes null
+    // Cleanup: Clear timeout if component unmounts or pollingOperationName becomes null
     return () => {
-      if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current)
-        console.log(`Cleaned up interval on effect cleanup for ${pollingOperationName}`)
+      if (timeoutIdRef.current) {
+        clearTimeout(timeoutIdRef.current)
+        console.log(
+          `Cleaned up active polling timeout on effect cleanup/re-run for ${
+            pollingOperationName || 'previous operation'
+          }`
+        )
+        timeoutIdRef.current = null
       }
     }
-  }, [pollingOperationName])
+  }, [pollingOperationName, operationMetadata, appContext])
 
   if (appContext?.isLoading === true) {
     return (
