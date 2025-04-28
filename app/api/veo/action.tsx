@@ -14,8 +14,7 @@
 
 'use server'
 
-import { referenceTypeMatching, ReferenceObjectI, imageGenerationUtils } from '../generate-image-utils'
-import { decomposeUri, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
+import { decomposeUri, getSignedURL } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import {
@@ -31,47 +30,11 @@ import {
   BuildVideoListParams,
   ProcessedVideoResult,
 } from '../generate-video-utils'
+import { normalizeSentence } from '../imagen/action'
 const { GoogleAuth } = require('google-auth-library')
 
 function cleanResult(inputString: string) {
   return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
-}
-
-function generateUniqueFolderId() {
-  let number = Math.floor(Math.random() * 9) + 1
-  for (let i = 0; i < 12; i++) number = number * 10 + Math.floor(Math.random() * 10)
-  return number
-}
-
-function normalizeSentence(sentence: string) {
-  // Split the sentence into individual words
-  const words = sentence.toLowerCase().split(' ')
-
-  // Capitalize the first letter of each sentence
-  let normalizedSentence = ''
-  let newSentence = true
-  for (let i = 0; i < words.length; i++) {
-    let word = words[i]
-    if (newSentence) {
-      word = word.charAt(0).toUpperCase() + word.slice(1)
-      newSentence = false
-    }
-    if (word.endsWith('.') || word.endsWith('!') || word.endsWith('?')) {
-      newSentence = true
-    }
-    normalizedSentence += word + ' '
-  }
-
-  // Replace multiple spaces with single spaces
-  normalizedSentence = normalizedSentence.replace(/  +/g, ' ')
-
-  // Remove any trailing punctuation and spaces
-  normalizedSentence = normalizedSentence.trim()
-
-  // Remove double commas
-  normalizedSentence = normalizedSentence.replace(/, ,/g, ',')
-
-  return normalizedSentence
 }
 
 async function generatePrompt(formData: any, isGeminiRewrite: boolean) {
@@ -207,7 +170,7 @@ export async function buildVideoListFromURI({
       result !== null && typeof result === 'object' && !('error' in result) && !('warning' in result)
   )
 
-  // Optional: Log any errors or warnings encountered during the batch processing
+  // Log any errors or warnings encountered during the batch processing
   processedResults.forEach((result) => {
     if (result && typeof result === 'object') {
       if ('error' in result) console.error(`Video Processing Error Skipped: ${result.error}`)
@@ -218,11 +181,10 @@ export async function buildVideoListFromURI({
   return generatedVideosToDisplay
 }
 
-// Initiates TEXT-TO-VIDEO generation request with using the Long Running Predict endpoint
-// Returns long-running operation name needed for polling
+// Initiates TEXT-TO-VIDEO generation request, returns long-running operation name needed for polling
 export async function generateVideo(
   formData: GenerateVideoFormI,
-  isGeminiRewrite: boolean, // Controls if prompt is rewritten
+  isGeminiRewrite: boolean,
   appContext: appContextDataI | null
 ): Promise<GenerateVideoInitiationResult | ErrorResult> {
   // 1 - Authenticate to Google Cloud
@@ -296,7 +258,6 @@ export async function generateVideo(
   try {
     const res = await client.request(opts)
 
-    // Check for the operation name in the response
     if (res.data && res.data.name) {
       const successResult = { operationName: res.data.name, prompt: fullPrompt as string }
       return successResult
@@ -306,11 +267,10 @@ export async function generateVideo(
       return errorResult
     }
   } catch (error: any) {
-    // Log the detailed error response if available
     console.error('Video Generation Request Error:', error.response?.data || error.message)
 
     let errorMessage = 'An unexpected error occurred while initiating video generation.'
-    // Try to extract specific error messages from Google Cloud error structure
+
     if (error.response?.data?.error?.message) {
       errorMessage = error.response.data.error.message
     } else if (error.errors && error.errors.length > 0 && error.errors[0].message) {
@@ -375,10 +335,6 @@ export async function getVideoGenerationStatus(
         console.error(`Operation ${operationName} failed:`, pollingData.error)
         return { done: true, error: pollingData.error.message || 'Video generation failed.' }
       } else if (pollingData.response && pollingData.response.videos) {
-        // Adjust based on actual response structure
-        console.log(`Operation ${operationName} completed successfully.`)
-
-        // Extract raw results from the 'videos' array
         const rawVideoResults = pollingData.response.videos.map((video: any) => ({
           gcsUri: video.gcsUri,
           mimeType: video.mimeType,

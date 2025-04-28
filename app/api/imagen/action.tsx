@@ -39,7 +39,7 @@ function generateUniqueFolderId() {
   return number
 }
 
-function normalizeSentence(sentence: string) {
+export async function normalizeSentence(sentence: string) {
   // Split the sentence into individual words
   const words = sentence.toLowerCase().split(' ')
 

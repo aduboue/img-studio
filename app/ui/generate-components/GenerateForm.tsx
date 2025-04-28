@@ -15,9 +15,9 @@
 'use client'
 
 import * as React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { Control, set, SubmitHandler, useForm, useWatch } from 'react-hook-form'
+import { Control, SubmitHandler, useForm, useWatch } from 'react-hook-form'
 
 import {
   Accordion,

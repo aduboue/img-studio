@@ -123,32 +123,28 @@ export default function Page() {
     // isLoading is set to false within the polling effect's stopPolling call
   }
 
-  // Handler called by GenerateForm ONLY when video generation is *initiated* successfully
+  // Handler called by GenerateForm ONLY when video generation is initiated successfully
   const handleVideoPollingStart = (operationName: string, metadata: OperationMetadataI) => {
     setPollingOperationName(operationName)
     setOperationMetadata(metadata)
     pollingAttemptsRef.current = 0
-    // isLoading should already be true via handleRequestSent
-    console.log(`Polling started for operation: ${operationName}`)
   }
 
-  // --- Polling useEffect Hook (Updated) ---
+  // Video generation polling useEffect
   useEffect(() => {
     // Stop polling and reset loading state
     const stopPolling = (isSuccess: boolean) => {
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current)
         pollingIntervalRef.current = null
-        console.log(`Polling stopped for ${pollingOperationName}. Success: ${isSuccess}`)
       }
       setPollingOperationName(null)
       setOperationMetadata(null)
-      setIsLoading(false) // <<< Stop loading when polling ends
+      setIsLoading(false)
     }
 
     // Function to perform one poll attempt
     const poll = async () => {
-      // Guard clause: Ensure we should be polling
       if (!pollingOperationName || !operationMetadata) {
         console.warn('Poll called unexpectedly without operation details.')
         // Attempt to stop cleanly if interval is somehow running
@@ -156,20 +152,19 @@ export default function Page() {
           clearInterval(pollingIntervalRef.current)
           pollingIntervalRef.current = null
         }
-        setIsLoading(false) // Ensure loading stops
+        setIsLoading(false)
         return
       }
 
       // Timeout check
       if (pollingAttemptsRef.current >= MAX_POLLING_ATTEMPTS) {
         console.error(`Polling timeout for operation: ${pollingOperationName}`)
-        handleNewErrorMsg('Video generation timed out. Please check operation status manually.') // Sets error, stops loading
-        stopPolling(false) // Ensure interval is cleared even if handler did it
+        handleNewErrorMsg('Video generation timed out. Please check operation status manually.')
+        stopPolling(false)
         return
       }
 
       pollingAttemptsRef.current++
-      console.log(`Polling attempt ${pollingAttemptsRef.current} for ${pollingOperationName}`)
 
       try {
         const statusResult: VideoGenerationStatusResult = await getVideoGenerationStatus(
@@ -188,12 +183,11 @@ export default function Page() {
         if (statusResult.done) {
           if (statusResult.error) {
             console.error(`Polling completed with error: ${statusResult.error}`)
-            handleNewErrorMsg(statusResult.error) // Sets error, stops loading
+            handleNewErrorMsg(statusResult.error)
             stopPolling(false)
           } else if (statusResult.videos) {
-            console.log(`Polling completed successfully. Videos: ${statusResult.videos.length}`)
-            handleVideoGenerationComplete(statusResult.videos) // Sets videos
-            stopPolling(true) // Stops polling, sets loading false
+            handleVideoGenerationComplete(statusResult.videos)
+            stopPolling(true)
           } else {
             console.warn(`Polling done, but no videos or error.`)
             handleNewErrorMsg('Video generation finished, but no results were returned.')
@@ -217,12 +211,11 @@ export default function Page() {
     // Start polling only when an operation name is set
     if (pollingOperationName) {
       if (pollingIntervalRef.current) {
-        clearInterval(pollingIntervalRef.current) // Clear previous interval if any
+        clearInterval(pollingIntervalRef.current)
       }
-      pollingAttemptsRef.current = 0 // Reset on start
+      pollingAttemptsRef.current = 0
       poll() // Initial poll
       pollingIntervalRef.current = setInterval(poll, POLLING_INTERVAL_MS)
-      console.log(`Set interval for ${pollingOperationName}`)
     }
 
     // Cleanup: Clear interval if component unmounts or pollingOperationName becomes null
