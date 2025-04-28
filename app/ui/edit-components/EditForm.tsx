@@ -194,8 +194,6 @@ export default function EditForm({
       }
     } catch (error: any) {
       onNewErrorMsg(error.toString())
-    } finally {
-      onRequestSent(false, 0)
     }
   }
 
