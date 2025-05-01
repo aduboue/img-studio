@@ -197,7 +197,7 @@ export async function buildImageListFromURI({
         const signedURL: string | { error: string } = await getSignedURL(image.gcsUri ?? '')
 
         if (typeof signedURL === 'object' && 'error' in signedURL) {
-          throw Error(cleanResult(signedURL.error))
+          throw Error(cleanResult(signedURL['error']))
         } else {
           return {
             src: signedURL,
@@ -291,7 +291,7 @@ export async function buildImageListFromBase64({
         const signedURL: string | { error: string } = await getSignedURL(imageGcsUri)
 
         if (typeof signedURL === 'object' && 'error' in signedURL) {
-          throw Error(cleanResult(signedURL.error))
+          throw Error(cleanResult(signedURL['error']))
         } else {
           return {
             src: signedURL,
@@ -455,8 +455,6 @@ export async function generateImage(
     // NO images at all were generated out of all samples
     if ('raiFilteredReason' in res.data.predictions[0])
       throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
-
-    console.log('Image generated with success')
 
     const usedRatio = RatioToPixel.find((item) => item.ratio === opts.data.parameters.aspectRatio)
 
@@ -626,8 +624,6 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
     if ('raiFilteredReason' in res.data.predictions[0]) {
       throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
     }
-
-    console.log('Image generated with success')
   } catch (error) {
     console.error(error)
 

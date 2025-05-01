@@ -33,6 +33,8 @@ import {
 } from '@mui/material'
 import {
   ArrowDownward as ArrowDownwardIcon,
+  ArrowLeft,
+  ArrowRight,
   Autorenew,
   Close as CloseIcon,
   Lightbulb,
@@ -43,7 +45,7 @@ import {
 
 import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-components/Accordion-SX'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
-import FormInputChipGroup from '../ux-components/InputChipGroup'
+import FormInputChipGroup, { ChipGroup } from '../ux-components/InputChipGroup'
 import FormInputDropdown from '../ux-components/InputDropdown'
 import { FormInputText } from '../ux-components/InputText'
 import { GeminiSwitch } from '../ux-components/GeminiButton'
@@ -59,6 +61,7 @@ const { palette } = theme
 import { useAppContext } from '../../context/app-context'
 import { generateImage } from '../../api/imagen/action'
 import {
+  chipGroupFieldsI,
   GenerateImageFormFields,
   GenerateImageFormI,
   ImageGenerationFieldsI,
@@ -72,10 +75,12 @@ import { EditImageFormFields } from '@/app/api/edit-utils'
 import {
   GenerateVideoFormFields,
   GenerateVideoFormI,
+  InterpolImageI,
   OperationMetadataI,
   VideoGenerationFieldsI,
 } from '@/app/api/generate-video-utils'
 import { generateVideo } from '@/app/api/veo/action'
+import { getOrientation, VideoInterpolBox } from './VideoInterpolBox'
 
 export default function GenerateForm({
   generationType,
@@ -88,6 +93,7 @@ export default function GenerateForm({
   onImageGeneration,
   onVideoPollingStart,
   initialPrompt,
+  initialITVimage,
 }: {
   generationType: string
   isLoading: boolean
@@ -99,6 +105,7 @@ export default function GenerateForm({
   onImageGeneration?: (newImages: ImageI[]) => void
   onVideoPollingStart?: (operationName: string, metadata: OperationMetadataI) => void
   initialPrompt?: string
+  initialITVimage?: InterpolImageI
 }) {
   const { handleSubmit, resetField, control, setValue, getValues, watch } = useForm<
     GenerateVideoFormI | GenerateImageFormI
@@ -107,19 +114,25 @@ export default function GenerateForm({
   })
   const { appContext } = useAppContext()
 
+  // Manage accordions
+  const [expanded, setExpanded] = React.useState<string | false>('attributes')
+  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
+    setExpanded(isExpanded ? panel : false)
+  }
+  useEffect(() => {
+    if (generationType === 'Video') {
+      if (initialITVimage && initialITVimage.base64Image !== '') setExpanded('interpolation')
+      else setExpanded('attributes')
+    } else if (generationType === 'Image') setExpanded('attributes')
+  }, [initialITVimage, generationType])
+
   // Manage if prompt should be generated with Gemini
   const [isGeminiRewrite, setIsGeminiRewrite] = useState(true)
   const handleGeminiRewrite = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsGeminiRewrite(event.target.checked)
   }
 
-  // Manage accordions
-  const [expanded, setExpanded] = React.useState<string | false>('attributes')
-  const handleChange = (panel: string) => (event: React.SyntheticEvent, isExpanded: boolean) => {
-    setExpanded(isExpanded ? panel : false)
-  }
-
-  // Reference management logic
+  // Imagen reference management logic
   const referenceObjects = watch('referenceObjects')
   const [hasReferences, setHasReferences] = useState(false)
   const [modelOptionField, setModelOptionField] = useState<selectFieldsI>(GenerateImageFormFields.modelVersion)
@@ -140,7 +153,6 @@ export default function GenerateForm({
       setValue('modelVersion', GenerateVideoFormFields.modelVersion.default)
     }
   }, [JSON.stringify(referenceObjects), generationType])
-
   const removeReferenceObject = (objectKey: string) => {
     // Find the reference object to be removed
     const removeReference = referenceObjects.find((obj) => obj.objectKey === objectKey)
@@ -207,6 +219,27 @@ export default function GenerateForm({
     setValue('referenceObjects', updatedReferenceObjects)
   }
 
+  // Veo interpolation image management logic
+  const interpolImageFirst = watch('interpolImageFirst')
+  const interpolImageLast = watch('interpolImageLast')
+  const optionalVeoPrompt = // Prompt optional if either only first frame, OR if both first and last frame
+    (interpolImageFirst && interpolImageFirst.base64Image !== '') ||
+    (interpolImageFirst &&
+      interpolImageFirst.base64Image !== '' &&
+      interpolImageLast &&
+      interpolImageLast.base64Image !== '')
+  let orientation = 'horizontal'
+  orientation =
+    interpolImageFirst && interpolImageFirst.base64Image !== ''
+      ? getOrientation(interpolImageFirst.ratio)
+      : interpolImageLast && interpolImageLast.base64Image !== ''
+      ? getOrientation(interpolImageLast.ratio)
+      : ''
+  useEffect(() => {
+    if (orientation === 'horizontal') setValue('aspectRatio', '16:9')
+    else if (orientation === 'vertical') setValue('aspectRatio', '9:16')
+  }, [orientation])
+
   // Image to prompt generator logic
   const [imageToPromptOpen, setImageToPromptOpen] = useState(false)
 
@@ -218,7 +251,12 @@ export default function GenerateForm({
   // Handle 'Replay prompt' from Library
   useEffect(() => {
     if (initialPrompt) setValue('prompt', initialPrompt)
-  }, [initialPrompt])
+  }, [initialPrompt, setValue])
+
+  // Handle Image to video from generated or edited image
+  useEffect(() => {
+    if (initialITVimage) setValue('interpolImageFirst', initialITVimage)
+  }, [initialITVimage, setValue])
 
   // Update Secondary style dropdown depending on picked primary style
   const subImgStyleField = (control: Control<GenerateImageFormI | GenerateVideoFormI, any>) => {
@@ -245,9 +283,17 @@ export default function GenerateForm({
     return subImgStyleField
   }
 
-  // Does not reset settings - only prompt, prompt parameters and negative prompt
+  // Does not reset settings - only prompt, prompt parameters, image references and negative prompt
   const onReset = () => {
-    generationFields.resetableFields.forEach((field) => resetField(field as keyof GenerateImageFormI))
+    generationFields.resetableFields.forEach((field) =>
+      resetField(field as keyof GenerateImageFormI | keyof GenerateVideoFormI)
+    )
+
+    if (generationType === 'Video') {
+      setValue('interpolImageFirst', generationFields.defaultValues.interpolImageFirst)
+      setValue('interpolImageLast', generationFields.defaultValues.interpolImageLast)
+    }
+
     onNewErrorMsg('')
   }
 
@@ -286,11 +332,12 @@ export default function GenerateForm({
     onRequestSent(true, parseInt(formData.sampleCount))
 
     try {
+      if (formData.prompt === '') setIsGeminiRewrite(false)
       const result = await generateVideo(formData, isGeminiRewrite, appContext)
 
       if ('error' in result) throw new Error(result.error.replace('Error: ', ''))
-      else if (result.operationName && result.prompt && onVideoPollingStart)
-        onVideoPollingStart(result.operationName, { formData: formData, prompt: result.prompt })
+      else if ('operationName' in result && 'prompt' in result)
+        onVideoPollingStart && onVideoPollingStart(result.operationName, { formData: formData, prompt: result.prompt })
       else throw new Error('Failed to initiate video generation: Invalid response from server.')
     } catch (error: any) {
       onNewErrorMsg(error.toString().replace('Error: ', ''))
@@ -350,8 +397,8 @@ export default function GenerateForm({
           <FormInputText
             name="prompt"
             control={control}
-            label="Prompt - What would you like to generate?"
-            required={true}
+            label={`${optionalVeoPrompt ? '(Optional)' : ''} Prompt - What would you like to generate?`}
+            required={!optionalVeoPrompt}
             rows={7}
           />
 
@@ -470,6 +517,81 @@ export default function GenerateForm({
               </AccordionDetails>
             </Accordion>
           )}
+          {generationType === 'Video' &&
+            process.env.NEXT_PUBLIC_VEO_ENABLED === 'true' &&
+            process.env.NEXT_PUBLIC_VEO_ITV_ENABLED === 'true' && (
+              <Accordion
+                disableGutters
+                expanded={expanded === 'interpolation'}
+                onChange={handleChange('interpolation')}
+                sx={CustomizedAccordion}
+              >
+                <AccordionSummary
+                  expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
+                  aria-controls="panel1-content"
+                  id="panel1-header"
+                  sx={CustomizedAccordionSummary}
+                >
+                  <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
+                    {`Image(s) to video${
+                      process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? ' / Camera preset' : ''
+                    }`}
+                  </Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
+                  <Stack
+                    direction="row"
+                    flexWrap="wrap"
+                    justifyContent="flex-start"
+                    alignItems="flex-start"
+                    spacing={0.5}
+                    sx={{ pt: 1, pb: 1 }}
+                  >
+                    <VideoInterpolBox
+                      label="Base image"
+                      sublabel={
+                        process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? '(or first frame)' : '(input)'
+                      }
+                      objectKey="interpolImageFirst"
+                      onNewErrorMsg={onNewErrorMsg}
+                      setValue={setValue}
+                      interpolImage={interpolImageFirst}
+                      orientation={orientation}
+                    />
+                    {process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && (
+                      <>
+                        <ArrowRight color={interpolImageLast.base64Image === '' ? 'secondary' : 'primary'} />
+                        <VideoInterpolBox
+                          label="Last frame"
+                          sublabel="(optional)"
+                          objectKey="interpolImageLast"
+                          onNewErrorMsg={onNewErrorMsg}
+                          setValue={setValue}
+                          interpolImage={interpolImageLast}
+                          orientation={orientation}
+                        />
+                      </>
+                    )}
+                  </Stack>
+                  {
+                    // TODO add back when working
+                    /* process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && (
+                    <Box sx={{ py: 2 }}>
+                      <FormInputChipGroup
+                        name="cameraPreset"
+                        label={videoGenerationUtils.cameraPreset.label ?? ''}
+                        control={control}
+                        setValue={setValue}
+                        width="450px"
+                        field={videoGenerationUtils.cameraPreset as chipGroupFieldsI}
+                        required={false}
+                      />
+                    </Box>
+                  )*/
+                  }
+                </AccordionDetails>
+              </Accordion>
+            )}
           <Accordion
             disableGutters
             defaultExpanded
@@ -484,7 +606,7 @@ export default function GenerateForm({
               sx={CustomizedAccordionSummary}
             >
               <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
-                {generationType + ' attributes'}
+                {generationType + ' / prompt attributes'}
               </Typography>
             </AccordionSummary>
             <AccordionDetails sx={{ py: 0 }}>

@@ -24,6 +24,7 @@ export interface appContextDataI {
   exportMetaOptions?: ExportMediaFormFieldsI
   isLoading: boolean
   imageToEdit?: string
+  imageToVideo?: string
   promptToGenerateImage?: string
   promptToGenerateVideo?: string
 }
@@ -41,6 +42,7 @@ export const appContextDataDefault = {
   exportMetaOptions: undefined,
   isLoading: true,
   imageToEdit: '',
+  imageToVideo: '',
   promptToGenerateImage: '',
   promptToGenerateVideo: '',
 }

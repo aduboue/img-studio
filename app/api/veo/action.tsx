@@ -14,7 +14,7 @@
 
 'use server'
 
-import { decomposeUri, getSignedURL } from '../cloud-storage/action'
+import { decomposeUri, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
 import { rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import {
@@ -29,6 +29,7 @@ import {
   VideoRatioToPixel,
   BuildVideoListParams,
   ProcessedVideoResult,
+  cameraPresetsOptions,
 } from '../generate-video-utils'
 import { normalizeSentence } from '../imagen/action'
 const { GoogleAuth } = require('google-auth-library')
@@ -121,18 +122,18 @@ export async function buildVideoListFromURI({
       const signedURLResult: string | { error: string } = await getSignedURL(videoResult.gcsUri)
 
       // Handle potential errors from getting the signed URL
-      if (typeof signedURLResult === 'object' && 'error' in signedURLResult) {
+      if (typeof signedURLResult === 'object' && signedURLResult['error'])
         throw new Error(
           `Failed to get signed URL for ${videoResult.gcsUri}: ${
-            cleanResult ? cleanResult(signedURLResult.error) : signedURLResult.error
+            cleanResult ? cleanResult(signedURLResult['error']) : signedURLResult['error']
           }`
         )
-      }
+
       const signedURL = signedURLResult // Assign if successful
 
       // 8. Construct the final VideoI object with all metadata
       const videoDetails: VideoI = {
-        src: signedURL,
+        src: signedURL as string,
         gcsUri: videoResult.gcsUri,
         thumbnailGcsUri: '',
         format: format,
@@ -181,12 +182,26 @@ export async function buildVideoListFromURI({
   return generatedVideosToDisplay
 }
 
-// Initiates TEXT-TO-VIDEO generation request, returns long-running operation name needed for polling
+// Initiates Video generation request, returns long-running operation name needed for polling
 export async function generateVideo(
   formData: GenerateVideoFormI,
   isGeminiRewrite: boolean,
   appContext: appContextDataI | null
 ): Promise<GenerateVideoInitiationResult | ErrorResult> {
+  // 0 - Check requested features
+  const hasInterpolImageFirst =
+    formData.interpolImageFirst &&
+    formData.interpolImageFirst.base64Image !== '' &&
+    formData.interpolImageFirst.format !== ''
+  const hasInterpolImageLast =
+    formData.interpolImageLast &&
+    formData.interpolImageLast.base64Image !== '' &&
+    formData.interpolImageLast.format !== ''
+  const isImageToVideo =
+    (hasInterpolImageFirst && !hasInterpolImageLast) || (hasInterpolImageLast && !hasInterpolImageFirst)
+  const isInterpolation = hasInterpolImageFirst && hasInterpolImageLast
+  const isCameraPreset = formData.cameraPreset !== ''
+
   // 1 - Authenticate to Google Cloud
   let client
   try {
@@ -201,24 +216,27 @@ export async function generateVideo(
 
   const location = 'us-central1' //TODO update when not in Preview anymore
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
-  const modelVersion = formData.modelVersion || GenerateVideoFormFields.modelVersion.default
+  let modelVersion = formData.modelVersion || GenerateVideoFormFields.modelVersion.default
+  if (isInterpolation || isCameraPreset) modelVersion = 'veo-2.0-generate-exp' //TODO update when not in Preview anymore
 
   // Construct the API URL for initiating long-running video generation
   const videoAPIUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predictLongRunning`
 
   // 2 - Build the prompt, potentially rewriting with Gemini
   let fullPrompt: string | ErrorResult
-  try {
-    fullPrompt = await generatePrompt(formData, isGeminiRewrite)
+  if (formData.prompt !== '') {
+    try {
+      fullPrompt = await generatePrompt(formData, isGeminiRewrite)
 
-    if (typeof fullPrompt === 'object' && 'error' in fullPrompt) {
-      throw new Error(fullPrompt.error)
+      if (typeof fullPrompt === 'object' && 'error' in fullPrompt) {
+        throw new Error(fullPrompt.error)
+      }
+    } catch (error) {
+      console.error('Prompt Generation Error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred while generating the prompt.'
+      return { error: errorMessage }
     }
-  } catch (error) {
-    console.error('Prompt Generation Error:', error)
-    const errorMessage = error instanceof Error ? error.message : 'An error occurred while generating the prompt.'
-    return { error: errorMessage }
-  }
+  } else fullPrompt = ''
 
   // 3 - Validate App Context and determine GCS URI
   if (!appContext?.gcsURI || !appContext?.userID) {
@@ -237,7 +255,6 @@ export async function generateVideo(
     personGeneration: formData.personGeneration,
   }
 
-  // Full request body
   const reqData: any = {
     instances: [
       {
@@ -247,14 +264,88 @@ export async function generateVideo(
     parameters: parameters,
   }
 
-  // 5 - Prepare HTTP request options
+  if (formData.cameraPreset)
+    reqData.instances[0].cameraControl = cameraPresetsOptions.find(
+      (item) => item.label === formData.cameraPreset
+    )?.value
+
+  // 5 - Handle Image-to-video & interpolation
+  // 5.1 - Simple ITV use case, either first or last frame provided, API requires the base64
+  if (isImageToVideo) {
+    if (hasInterpolImageFirst) {
+      const interpolImageFirst = formData.interpolImageFirst.base64Image.startsWith('data:')
+        ? formData.interpolImageFirst.base64Image.split(',')[1]
+        : formData.interpolImageFirst.base64Image
+      reqData.instances[0].image = {
+        bytesBase64Encoded: interpolImageFirst,
+        mimeType: formData.interpolImageFirst.format,
+      }
+    } else {
+      const interpolImageLast = formData.interpolImageLast.base64Image.startsWith('data:')
+        ? formData.interpolImageLast.base64Image.split(',')[1]
+        : formData.interpolImageLast.base64Image
+      reqData.instances[0].lastFrame = {
+        bytesBase64Encoded: interpolImageLast,
+        mimeType: formData.interpolImageLast.format,
+      }
+    }
+  }
+
+  // 5.2 - Interpolation use case, API requires the GCS URIs of the images
+  if (isInterpolation) {
+    try {
+      // Store base64 image in GCS first
+      const generationGcsURI = `${appContext.gcsURI}/${appContext.userID}/generated-videos/interpolation-frames`
+      const bucketName = generationGcsURI.replace('gs://', '').split('/')[0]
+      const folderName = generationGcsURI.split(bucketName + '/')[1]
+
+      // Handle first frame for interpolation
+      let interpolImageFirstUri = ''
+      const objectNameFirst = `${folderName}/${Math.random().toString(36).substring(2, 15)}.${
+        formData.interpolImageFirst.format.split('/')[1]
+      }`
+      await uploadBase64Image(formData.interpolImageFirst.base64Image.split(',')[1], bucketName, objectNameFirst).then(
+        (result) => {
+          if (!result.success) throw Error(cleanResult(result.error ?? 'Could not upload image to GCS'))
+          interpolImageFirstUri = result.fileUrl ?? ''
+        }
+      )
+      reqData.instances[0].image = {
+        gcsUri: interpolImageFirstUri,
+        mimeType: formData.interpolImageFirst.format,
+      }
+
+      // Handle Last frame for interpolation
+      let interpolImageLastUri = ''
+      const objectNameLast = `${folderName}/${Math.random().toString(36).substring(2, 15)}.${
+        formData.interpolImageLast.format.split('/')[1]
+      }`
+      await uploadBase64Image(formData.interpolImageLast.base64Image.split(',')[1], bucketName, objectNameLast).then(
+        (result) => {
+          if (!result.success) throw Error(cleanResult(result.error ?? 'Could not upload image to GCS'))
+          interpolImageLastUri = result.fileUrl ?? ''
+        }
+      )
+      reqData.instances[0].lastFrame = {
+        gcsUri: interpolImageLastUri,
+        mimeType: formData.interpolImageLast.format,
+      }
+    } catch (error) {
+      console.error(error)
+      return {
+        error: 'Error while getting secured access to content.',
+      }
+    }
+  }
+
+  // 6 - Prepare HTTP request options
   const opts = {
     url: videoAPIUrl,
     method: 'POST',
     data: reqData,
   }
 
-  // 6 - Initiate video generation request
+  // 7 - Initiate video generation request
   try {
     const res = await client.request(opts)
 
@@ -271,16 +362,13 @@ export async function generateVideo(
 
     let errorMessage = 'An unexpected error occurred while initiating video generation.'
 
-    if (error.response?.data?.error?.message) {
-      errorMessage = error.response.data.error.message
-    } else if (error.errors && error.errors.length > 0 && error.errors[0].message) {
-      errorMessage = error.errors[0].message
-    } else if (error instanceof Error) {
-      errorMessage = error.message
-    }
+    if (error.response?.status === 400) return { error: errorMessage }
 
-    const finalErrorResult = { error: errorMessage }
-    return finalErrorResult
+    if (error.response?.data?.error?.message) errorMessage = error.response.data.error.message
+    else if (error.errors && error.errors.length > 0 && error.errors[0].message) errorMessage = error.errors[0].message
+    else if (error instanceof Error) errorMessage = error.message
+
+    return { error: errorMessage }
   }
 }
 
@@ -291,6 +379,7 @@ export async function getVideoGenerationStatus(
   formData: GenerateVideoFormI,
   passedPrompt: string
 ): Promise<VideoGenerationStatusResult> {
+  // 1 - Authenticate to Google Cloud
   let client
   try {
     const auth = new GoogleAuth({ scopes: 'https://www.googleapis.com/auth/cloud-platform' })
@@ -300,6 +389,7 @@ export async function getVideoGenerationStatus(
     return { done: true, error: 'Unable to authenticate for polling status.' }
   }
 
+  // 2 - Build polling request
   // Extract project ID, location, model ID from operationName
   // Example operationName: projects/PROJECT_ID/locations/LOCATION_ID/publishers/google/models/MODEL_ID/operations/OPERATION_ID
   const parts = operationName.split('/')
@@ -324,6 +414,7 @@ export async function getVideoGenerationStatus(
     },
   }
 
+  // 3 - Poll for status of video generation operation
   try {
     const res = await client.request(opts)
     const pollingData: PollingResponse = res.data

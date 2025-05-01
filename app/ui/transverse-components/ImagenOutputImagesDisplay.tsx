@@ -17,7 +17,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 
-import { Edit, FileUpload } from '@mui/icons-material'
+import { Edit, FileUpload, VideocamRounded } from '@mui/icons-material'
 
 import Image from 'next/image'
 import {
@@ -84,6 +84,13 @@ export default function OutputImagesDisplay({
     })
     router.push('/edit')
   }
+  const handleITVClick = (imageGcsURI: string) => {
+    setAppContext((prevContext) => {
+      if (prevContext) return { ...prevContext, imageToVideo: imageGcsURI }
+      else return { ...appContextDataDefault, imageToVideo: imageGcsURI }
+    })
+    router.push('/generate')
+  }
 
   return (
     <>
@@ -148,6 +155,11 @@ export default function OutputImagesDisplay({
                       display: 'flex',
                       backgroundColor: 'transparent',
                       flexWrap: 'wrap',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        border: 0,
+                        boxShadow: 0,
+                      },
                     }}
                     position="top"
                     actionIcon={
@@ -156,11 +168,24 @@ export default function OutputImagesDisplay({
                           <CustomWhiteTooltip title="Edit this image" size="small">
                             <IconButton
                               onClick={() => handleEditClick(image.gcsUri)}
-                              aria-label="Export image"
-                              sx={{ px: 0, zIndex: 10 }}
+                              aria-label="Edit image"
+                              sx={{ pr: 0.4, zIndex: 10 }}
                             >
                               <Avatar sx={CustomizedAvatarButton}>
                                 <Edit sx={CustomizedIconButton} />
+                              </Avatar>
+                            </IconButton>
+                          </CustomWhiteTooltip>
+                        )}
+                        {process.env.NEXT_PUBLIC_VEO_ENABLED === 'true' && (
+                          <CustomWhiteTooltip title="Image to video" size="small">
+                            <IconButton
+                              onClick={() => handleITVClick(image.gcsUri)}
+                              aria-label="Image to video"
+                              sx={{ px: 0, zIndex: 10 }}
+                            >
+                              <Avatar sx={CustomizedAvatarButton}>
+                                <VideocamRounded sx={CustomizedIconButton} />
                               </Avatar>
                             </IconButton>
                           </CustomWhiteTooltip>

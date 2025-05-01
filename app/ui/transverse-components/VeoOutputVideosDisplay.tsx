@@ -17,7 +17,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 
-import { FileUpload, PlayArrow, PlayArrowRounded } from '@mui/icons-material' // Removed Edit icon
+import { FileUpload, PlayArrowRounded } from '@mui/icons-material' // Removed Edit icon
 
 import {
   Avatar,
@@ -28,7 +28,6 @@ import {
   ImageListItem,
   ImageList,
   ImageListItemBar,
-  Typography,
   Stack,
 } from '@mui/material'
 
@@ -71,7 +70,13 @@ export default function OutputVideosDisplay({
 
   return (
     <>
-      <Box sx={{ height: '79vh', maxHeight: 650, width: '90%' }}>
+      <Box
+        sx={{
+          height: '79vh',
+          maxHeight: 550,
+          width: generatedVideosInGCS[0] ? (generatedVideosInGCS[0].ratio === '16:9' ? '90%' : '70%') : '90%',
+        }}
+      >
         {isLoading ? (
           <Skeleton variant="rounded" width={450} height={450} sx={{ mt: 2, bgcolor: palette.primary.light }} />
         ) : (
@@ -139,6 +144,11 @@ export default function OutputVideosDisplay({
                       display: 'flex',
                       backgroundColor: 'transparent',
                       flexWrap: 'wrap',
+                      '&:hover': {
+                        backgroundColor: 'transparent',
+                        border: 0,
+                        boxShadow: 0,
+                      },
                     }}
                     position="top"
                     actionIcon={
@@ -147,7 +157,15 @@ export default function OutputVideosDisplay({
                           <IconButton
                             onClick={() => handleVideoExportOpen(video)}
                             aria-label="Export video"
-                            sx={{ pr: 1, pl: 0.5 }}
+                            sx={{
+                              pr: 1,
+                              pl: 0.5,
+                              '&:hover': {
+                                backgroundColor: 'transparent',
+                                border: 0,
+                                boxShadow: 0,
+                              },
+                            }}
                           >
                             <Avatar sx={CustomizedAvatarButton}>
                               <FileUpload sx={CustomizedIconButton} />

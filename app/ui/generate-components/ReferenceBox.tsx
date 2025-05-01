@@ -115,12 +115,12 @@ export const ReferenceBox = ({
         setImage={(base64Image: string) => setValue(`referenceObjects.${refPosition}.base64Image`, base64Image)}
         image={currentReferenceObject.base64Image}
         onNewErrorMsg={onNewErrorMsg}
-        size="5vw"
-        maxSize={70}
+        size={{ width: '5vw', height: '5vw' }}
+        maxSize={{ width: 70, height: 70 }}
+        object={`referenceObjects.${refPosition}`}
         setValue={setValue}
         addAdditionalRefObject={() => addAdditionalRefObject(objectKey)}
         isNewImagePossible={!isRefIncomplete && !currentReferenceObject.isAdditionalImage && refCount < maxReferences}
-        refPosition={refPosition}
       />
       {!currentReferenceObject.isAdditionalImage && (
         <>

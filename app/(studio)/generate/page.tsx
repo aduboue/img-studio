@@ -21,12 +21,13 @@ import GenerateForm from '../../ui/generate-components/GenerateForm'
 import { useEffect, useRef, useState } from 'react'
 import { imageGenerationUtils, ImageI, ImageRandomPrompts } from '../../api/generate-image-utils'
 import OutputImagesDisplay from '../../ui/transverse-components/ImagenOutputImagesDisplay'
-import { useAppContext } from '../../context/app-context'
+import { appContextDataDefault, useAppContext } from '../../context/app-context'
 import { Typography } from '@mui/material'
 
 import theme from '../../theme'
 const { palette } = theme
 import {
+  InterpolImageI,
   OperationMetadataI,
   VideoGenerationStatusResult,
   videoGenerationUtils,
@@ -36,6 +37,8 @@ import {
 import { getVideoGenerationStatus } from '@/app/api/veo/action'
 import { ChipGroup } from '@/app/ui/ux-components/InputChipGroup'
 import OutputVideosDisplay from '@/app/ui/transverse-components/VeoOutputVideosDisplay'
+import { downloadMedia } from '@/app/api/cloud-storage/action'
+import { getAspectRatio } from '@/app/ui/edit-components/EditImageDropzone'
 
 // Video Polling Constants
 const INITIAL_POLLING_INTERVAL_MS = 6000 // Start polling after 6 seconds
@@ -54,7 +57,7 @@ export default function Page() {
   const [generatedCount, setGeneratedCount] = useState<number>(0)
 
   const [generationErrorMsg, setGenerationErrorMsg] = useState('')
-  const { appContext, error: appContextError } = useAppContext()
+  const { appContext, error: appContextError, setAppContext } = useAppContext()
 
   // Handle 'Replay prompt' from Library
   const [initialPrompt, setInitialPrompt] = useState<string | null>(null)
@@ -62,12 +65,66 @@ export default function Page() {
     if (appContext && appContext.promptToGenerateImage) {
       setGenerationMode('Generate an Image')
       setInitialPrompt(appContext.promptToGenerateImage)
+      // Re-initialize parameter in context
+      setAppContext((prevContext) => {
+        if (prevContext) return { ...prevContext, promptToGenerateImage: '' }
+        else return { ...appContextDataDefault, promptToGenerateImage: '' }
+      })
     }
     if (appContext && appContext.promptToGenerateVideo) {
       setGenerationMode('Generate a Video')
       setInitialPrompt(appContext.promptToGenerateVideo)
+      // Re-initialize parameter in context
+      setAppContext((prevContext) => {
+        if (prevContext) return { ...prevContext, promptToGenerateVideo: '' }
+        else return { ...appContextDataDefault, promptToGenerateVideo: '' }
+      })
     }
   }, [appContext?.promptToGenerateImage, appContext?.promptToGenerateVideo])
+
+  // Handle Image to video from generated or edited image
+  const [initialITVimage, setInitialITVimage] = useState<InterpolImageI | null>(null)
+  useEffect(() => {
+    const fetchAndSetImage = async () => {
+      if (appContext && appContext.imageToVideo) {
+        setGenerationMode('Generate a Video')
+        try {
+          const { data } = await downloadMedia(appContext.imageToVideo)
+          const newImage = `data:image/png;base64,${data}`
+
+          let { width, height, ratio } = { width: 0, height: 0, ratio: '' }
+          const img = new window.Image()
+          img.onload = () => {
+            width = img.width
+            height = img.height
+            ratio = getAspectRatio(img.width, img.height)
+          }
+          img.src = newImage
+
+          const initialITVimage = {
+            format: 'png',
+            base64Image: newImage,
+            purpose: 'first',
+            ratio: ratio,
+            width: width,
+            height: height,
+          }
+
+          data && setInitialITVimage(initialITVimage as InterpolImageI)
+
+          // Re-initialize parameter in context
+          setAppContext((prevContext) => {
+            if (prevContext) return { ...prevContext, imageToVideo: '' }
+            else return { ...appContextDataDefault, imageToVideo: '' }
+          })
+        } catch (error) {
+          console.error('Error fetching image:', error)
+        }
+      }
+    }
+
+    fetchAndSetImage()
+  }, [appContext?.imageToVideo])
 
   // Video Polling State
   const [pollingOperationName, setPollingOperationName] = useState<string | null>(null)
@@ -91,6 +148,8 @@ export default function Page() {
       setPollingOperationName(null)
       setOperationMetadata(null)
       setIsLoading(false)
+
+      if (clickedValue === 'Generate an Image') setInitialITVimage(null)
     }
   }
 
@@ -99,6 +158,8 @@ export default function Page() {
     setIsLoading(loading)
     setGenerationErrorMsg('')
     setGeneratedCount(count)
+    setGeneratedImages([])
+    setGeneratedVideos([])
   }
 
   // Handler called on ANY final error (initial or polling) or polling timeout
@@ -193,8 +254,7 @@ export default function Page() {
 
         if (statusResult.done) {
           if (statusResult.error) {
-            console.error(`Polling completed with error: ${statusResult.error} for ${pollingOperationName}`)
-            handleNewErrorMsg(statusResult.error)
+            handleNewErrorMsg('Error while generating videos. Please try again.')
           } else if (statusResult.videos && statusResult.videos.length > 0) {
             handleVideoGenerationComplete(statusResult.videos)
             stopPolling(true, false)
@@ -277,18 +337,16 @@ export default function Page() {
     <Box p={5} sx={{ maxHeight: '100vh' }}>
       <Grid wrap="nowrap" container spacing={6} direction="row" columns={2}>
         <Grid size={1.1} flex={0} sx={{ maxWidth: 700, minWidth: 610 }}>
-          {process.env.NEXT_PUBLIC_VEO_ENABLED === 'true' && (
-            <ChipGroup
-              width={'100%'}
-              required={false}
-              options={['Generate an Image', 'Generate a Video']}
-              value={generationMode}
-              disabled={isLoading}
-              onChange={generationModeSwitch}
-              handleChipClick={generationModeSwitch}
-              weight={500}
-            />
-          )}
+          <ChipGroup
+            width={'100%'}
+            required={false}
+            options={['Generate an Image', 'Generate a Video']}
+            value={generationMode}
+            disabled={isLoading || process.env.NEXT_PUBLIC_VEO_ENABLED !== 'true'}
+            onChange={generationModeSwitch}
+            handleChipClick={generationModeSwitch}
+            weight={500}
+          />
 
           {generationMode === 'Generate an Image' && (
             <GenerateForm
@@ -317,6 +375,7 @@ export default function Page() {
               randomPrompts={VideoRandomPrompts}
               generationFields={videoGenerationUtils}
               initialPrompt={initialPrompt ?? ''}
+              initialITVimage={initialITVimage ?? undefined}
             />
           )}
         </Grid>

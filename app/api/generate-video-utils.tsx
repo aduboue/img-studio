@@ -18,6 +18,7 @@ import {
   GenerateFieldI1,
   GenerateFieldSecondartStyleI,
   GenerateFieldStyleI,
+  selectFieldsI,
 } from './generate-image-utils'
 
 export interface GenerateVideoFormFieldsI {
@@ -35,6 +36,9 @@ export interface GenerateVideoFormFieldsI {
   framing: GenerateFieldI1
   angle: GenerateFieldI1
   ambiance: GenerateFieldI1
+  interpolImageFirst: GenerateFieldI1
+  interpolImageLast: GenerateFieldI1
+  cameraPreset: GenerateFieldI1
 }
 
 export const GenerateVideoFormFields = {
@@ -215,6 +219,103 @@ export const GenerateVideoFormFields = {
     isDataResetable: true,
     isFullPromptAdditionalField: true,
   },
+  interpolImageFirst: {
+    type: 'image',
+    isDataResetable: true,
+    isFullPromptAdditionalField: false,
+  },
+  interpolImageLast: {
+    type: 'image',
+    isDataResetable: true,
+    isFullPromptAdditionalField: false,
+  },
+  cameraPreset: {
+    label: 'Camera preset',
+    type: 'chip-group',
+    default: '',
+    options: [
+      'Fixed',
+      'Pan left',
+      'Pan right',
+      'Push in',
+      'Pull out',
+      'Pedestal down',
+      'Pedestal up',
+      'Truck left',
+      'Truck right',
+      'Tilt down',
+      'Tilt up',
+    ],
+    isDataResetable: true,
+    isFullPromptAdditionalField: false,
+  },
+}
+
+// Camera preset options
+export const cameraPresetsOptions = [
+  {
+    value: 'FIXED',
+    label: 'Fixed',
+  },
+  {
+    value: 'PAN_LEFT',
+    label: 'Pan left',
+  },
+  {
+    value: 'PAN_RIGHT',
+    label: 'Pan right',
+  },
+  {
+    value: 'PULL_OUT',
+    label: 'Pull out',
+  },
+  {
+    value: 'PUSH_IN',
+    label: 'Push in',
+  },
+  {
+    value: 'PEDESTAL_DOWN',
+    label: 'Pedestal down',
+  },
+  {
+    value: 'PEDESTAL_UP',
+    label: 'Pedestal up',
+  },
+  {
+    value: 'TRUCK_LEFT',
+    label: 'Truck left',
+  },
+  {
+    value: 'TRUCK_RIGHT',
+    label: 'Truck right',
+  },
+  {
+    value: 'TILT_DOWN',
+    label: 'Tilt down',
+  },
+  {
+    value: 'TILT_UP',
+    label: 'Tilt up',
+  },
+]
+
+// Interface of Image use for interpolation during video generation
+export const InterpolImageDefaults = {
+  format: 'image/png',
+  base64Image: '',
+  purpose: '',
+  ratio: '',
+  width: 0,
+  height: 0,
+}
+
+export interface InterpolImageI {
+  format: string
+  base64Image: string
+  purpose: 'first' | 'last'
+  ratio: string
+  width: number
+  height: number
 }
 
 // Set default values for Generate Form
@@ -228,6 +329,8 @@ generateFieldList.forEach((field) => {
   const defaultValue = 'default' in fieldParams ? fieldParams.default : ''
   formDataDefaults = { ...formDataDefaults, [field]: defaultValue }
 })
+formDataDefaults.interpolImageFirst = { ...InterpolImageDefaults, purpose: 'first' }
+formDataDefaults.interpolImageLast = { ...InterpolImageDefaults, purpose: 'last' }
 
 interface CompositionFieldsI {
   motion: GenerateFieldI1
@@ -243,6 +346,7 @@ export interface VideoGenerationFieldsI {
   styleOptions: GenerateFieldStyleI
   subStyleOptions: GenerateFieldSecondartStyleI
   compositionOptions: CompositionFieldsI
+  cameraPreset: GenerateFieldI1
   resetableFields: (keyof GenerateVideoFormFieldsI)[]
   fullPromptFields: (keyof GenerateVideoFormFieldsI)[]
   defaultValues: any
@@ -268,6 +372,7 @@ export const videoGenerationUtils: VideoGenerationFieldsI = {
     motion: GenerateVideoFormFields.motion,
     angle: GenerateVideoFormFields.angle,
   },
+  cameraPreset: GenerateVideoFormFields.cameraPreset,
   resetableFields: generateFieldList.filter((field) => GenerateVideoFormFields[field].isDataResetable == true),
   fullPromptFields: generateFieldList.filter(
     (field) => GenerateVideoFormFields[field].isFullPromptAdditionalField == true
@@ -291,6 +396,9 @@ export interface GenerateVideoFormI {
   composition: string
   angle: string
   ambiance: string
+  interpolImageFirst: InterpolImageI
+  interpolImageLast: InterpolImageI
+  cameraPreset: string
 }
 
 // Interface of Video object created after image generation

@@ -225,6 +225,11 @@ export default function LibraryMediasDisplay({
         <ImageListItemBar
           sx={{
             background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0) 100%)',
+            '&:hover': {
+              backgroundColor: 'transparent',
+              border: 0,
+              boxShadow: 0,
+            },
           }}
           position="top"
           actionIcon={
