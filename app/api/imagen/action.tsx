@@ -24,7 +24,7 @@ import {
   imageGenerationUtils,
 } from '../generate-image-utils'
 import { decomposeUri, downloadMedia, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
-import { rewriteWithGemini } from '../gemini/action'
+import { getFullReferenceDescription, rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
 const { GoogleAuth } = require('google-auth-library')
@@ -73,21 +73,6 @@ export async function normalizeSentence(sentence: string) {
 async function generatePrompt(formData: any, isGeminiRewrite: boolean, references?: ReferenceObjectI[]) {
   let fullPrompt = formData['prompt']
 
-  // Rewrite the content of the prompt
-  if (isGeminiRewrite) {
-    try {
-      const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt, 'Image')
-
-      if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
-        const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
-        throw Error(errorMsg)
-      } else fullPrompt = geminiReturnedPrompt as string
-    } catch (error) {
-      console.error(error)
-      return { error: 'Error while rewriting prompt with Gemini .' }
-    }
-  }
-
   // Add the photo/ art/ digital style to the prompt
   fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of ` + fullPrompt
 
@@ -100,7 +85,7 @@ async function generatePrompt(formData: any, isGeminiRewrite: boolean, reference
   if (parameters !== '') fullPrompt = `${fullPrompt}, ${parameters}`
 
   // Add quality modifiers to the prompt for Image Generation
-  let quality_modifiers = ', high-quality, beautiful, stylized'
+  let quality_modifiers = ''
   if (formData['style'] === 'photo') {
     quality_modifiers = quality_modifiers + ', 4K'
   } else quality_modifiers = quality_modifiers + ', by a professional, detailed'
@@ -115,6 +100,33 @@ async function generatePrompt(formData: any, isGeminiRewrite: boolean, reference
     quality_modifiers = quality_modifiers + ', Long exposure times, sharp focus, long exposure, smooth water or clouds'
 
   fullPrompt = fullPrompt + quality_modifiers
+
+  // Rewrite the content of the prompt
+  if (isGeminiRewrite) {
+    try {
+      const isStyleRefProvided = references && references.some((ref) => ref.referenceType === 'Style')
+      const isPersonRefProvided = references && references.some((ref) => ref.referenceType === 'Person')
+      const isAnimalRefProvided = references && references.some((ref) => ref.referenceType === 'Animal')
+      const isObjectRefProvided = references && references.some((ref) => ref.referenceType === 'Product')
+
+      const geminiReturnedPrompt = await rewriteWithGemini(
+        fullPrompt,
+        'Image',
+        isPersonRefProvided,
+        isAnimalRefProvided,
+        isObjectRefProvided,
+        isStyleRefProvided
+      )
+
+      if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
+        const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
+        throw Error(errorMsg)
+      } else fullPrompt = geminiReturnedPrompt as string
+    } catch (error) {
+      console.error(error)
+      return { error: 'Error while rewriting prompt with Gemini .' }
+    }
+  }
 
   // Add references to the prompt
   if (references !== undefined && references.length > 0) {
@@ -406,7 +418,7 @@ export async function generateImage(
     reqData.parameters.editMode = 'EDIT_MODE_DEFAULT'
 
     reqData.instances[0].referenceImages = []
-
+    let fullRefDescriptionDone: number[] = []
     for (const [index, reference] of references.entries()) {
       const params = referenceTypeMatching[reference.referenceType as keyof typeof referenceTypeMatching]
 
@@ -437,7 +449,15 @@ export async function generateImage(
           },
         }
 
+      // Adding new reference to the API request data
       reqData.instances[0].referenceImages[index] = newReference
+
+      // Fetching for each reference a full description to add to the prompt for more performant results
+      if (!fullRefDescriptionDone.includes(reference.refId)) {
+        fullRefDescriptionDone.push(reference.refId)
+        const fullAIrefDescription = await getFullReferenceDescription(reference.base64Image, reference.referenceType)
+        reqData.instances[0].prompt = reqData.instances[0].prompt + `\n\n[${reference.refId}] ` + fullAIrefDescription
+      }
     }
   }
   const opts = {
@@ -491,21 +511,22 @@ export async function generateImage(
   } catch (error) {
     console.error(error)
 
-    const errorString = error instanceof Error ? error.toString() : ''
+    const errorString = error instanceof Error ? error.toString() : String(error)
     if (
       errorString.includes('safety settings for peopleface generation') ||
       errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines")
-    ) {
+    )
       return {
-        error: errorString.replace('Error: ', ''),
+        error: errorString.replace(/^Error: /i, ''),
       }
-    }
 
     const myError = error as Error & { errors: any[] }
-    const myErrorMsg = myError.errors[0].message.replace('Image generation failed with the following error: ', '')
+    let myErrorMsg = ''
+    if (myError.errors && myError.errors[0] && myError.errors[0].message)
+      myErrorMsg = myError.errors[0].message.replace('Image generation failed with the following error: ', '')
 
     return {
-      error: myErrorMsg,
+      error: myErrorMsg || 'An unexpected error occurred.',
     }
   }
 }
