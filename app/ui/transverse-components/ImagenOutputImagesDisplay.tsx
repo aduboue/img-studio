@@ -17,7 +17,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 
-import { Edit, FileUpload, VideocamRounded } from '@mui/icons-material'
+import { CreateNewFolderRounded, Download, Edit, VideocamRounded } from '@mui/icons-material'
 
 import Image from 'next/image'
 import {
@@ -36,6 +36,7 @@ import {
 import { ImageI } from '../../api/generate-image-utils'
 import { CustomizedAvatarButton, CustomizedIconButton } from '../ux-components/Button-SX'
 import ExportStepper from './ExportDialog'
+import DownloadDialog from './DownloadDialog'
 
 import theme from '../../theme'
 import { blurDataURL } from '../ux-components/BlurImage'
@@ -53,26 +54,10 @@ export default function OutputImagesDisplay({
   generatedImagesInGCS: ImageI[]
   generatedCount: number
 }) {
-  // Full screen image display
-  const [imageFullScreen, setImageFullScreen] = useState<ImageI>()
-  const handleOpenImageFullScreen = (image: ImageI) => setImageFullScreen(image)
-  const handleCloseImageFullScreen = () => setImageFullScreen(undefined)
-  const handleContextMenu = (event: React.MouseEvent<HTMLImageElement>) => {
-    event.preventDefault()
-  }
-
-  // Export form and handlers
-  const [imageExportOpen, setImageExportOpen] = useState(false)
+  // Full screen, Export & Download states
+  const [imageFullScreen, setImageFullScreen] = useState<ImageI | undefined>()
   const [imageToExport, setImageToExport] = useState<ImageI | undefined>()
-
-  const handleImageExportOpen = (image: ImageI) => {
-    setImageToExport(image)
-    setImageExportOpen(true)
-  }
-  const handleImageExportClose = () => {
-    setImageToExport(undefined)
-    setImageExportOpen(false)
-  }
+  const [imageToDL, setImageToDL] = useState<ImageI | undefined>()
 
   const { setAppContext } = useAppContext()
   const router = useRouter()
@@ -123,7 +108,9 @@ export default function OutputImagesDisplay({
                     blurDataURL={blurDataURL}
                     loading="lazy"
                     quality={80}
-                    onContextMenu={handleContextMenu}
+                    onContextMenu={(event: React.MouseEvent<HTMLImageElement>) => {
+                      event.preventDefault()
+                    }}
                   />
                   <Box
                     sx={{
@@ -143,7 +130,7 @@ export default function OutputImagesDisplay({
                         opacity: 1,
                       },
                     }}
-                    onClick={() => handleOpenImageFullScreen(image)}
+                    onClick={() => setImageFullScreen(image)}
                   >
                     <Typography variant="body1" sx={{ textAlign: 'center' }}>
                       Click to see full screen
@@ -169,7 +156,7 @@ export default function OutputImagesDisplay({
                             <IconButton
                               onClick={() => handleEditClick(image.gcsUri)}
                               aria-label="Edit image"
-                              sx={{ pr: 0.4, zIndex: 10 }}
+                              sx={{ pr: 0.2, zIndex: 10 }}
                             >
                               <Avatar sx={CustomizedAvatarButton}>
                                 <Edit sx={CustomizedIconButton} />
@@ -182,7 +169,7 @@ export default function OutputImagesDisplay({
                             <IconButton
                               onClick={() => handleITVClick(image.gcsUri)}
                               aria-label="Image to video"
-                              sx={{ px: 0, zIndex: 10 }}
+                              sx={{ px: 0.2, zIndex: 10 }}
                             >
                               <Avatar sx={CustomizedAvatarButton}>
                                 <VideocamRounded sx={CustomizedIconButton} />
@@ -190,14 +177,25 @@ export default function OutputImagesDisplay({
                             </IconButton>
                           </CustomWhiteTooltip>
                         )}
-                        <CustomWhiteTooltip title="Export & Download" size="small">
+                        <CustomWhiteTooltip title="Export to library" size="small">
                           <IconButton
-                            onClick={() => handleImageExportOpen(image)}
+                            onClick={() => setImageToExport(image)}
                             aria-label="Export image"
-                            sx={{ pr: 1, pl: 0.5 }}
+                            sx={{ px: 0.2, zIndex: 10 }}
                           >
                             <Avatar sx={CustomizedAvatarButton}>
-                              <FileUpload sx={CustomizedIconButton} />
+                              <CreateNewFolderRounded sx={CustomizedIconButton} />
+                            </Avatar>
+                          </IconButton>
+                        </CustomWhiteTooltip>
+                        <CustomWhiteTooltip title="Download locally" size="small">
+                          <IconButton
+                            onClick={() => setImageToDL(image)}
+                            aria-label="Download image"
+                            sx={{ pr: 1, pl: 0.2, zIndex: 10 }}
+                          >
+                            <Avatar sx={CustomizedAvatarButton}>
+                              <Download sx={CustomizedIconButton} />
                             </Avatar>
                           </IconButton>
                         </CustomWhiteTooltip>
@@ -213,7 +211,7 @@ export default function OutputImagesDisplay({
       {imageFullScreen !== undefined && (
         <Modal
           open={imageFullScreen !== undefined}
-          onClose={handleCloseImageFullScreen}
+          onClose={() => setImageFullScreen(undefined)}
           sx={{
             display: 'flex',
             alignContent: 'center',
@@ -233,16 +231,23 @@ export default function OutputImagesDisplay({
             height={imageFullScreen.height}
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             quality={100}
-            onClick={() => handleCloseImageFullScreen()}
-            onContextMenu={handleContextMenu}
+            onClick={() => setImageFullScreen(undefined)}
+            onContextMenu={(event: React.MouseEvent<HTMLImageElement>) => {
+              event.preventDefault()
+            }}
           />
         </Modal>
       )}
       <ExportStepper
-        open={imageExportOpen}
+        open={imageToExport !== undefined}
         upscaleAvailable={true}
         mediaToExport={imageToExport}
-        handleMediaExportClose={handleImageExportClose}
+        handleMediaExportClose={() => setImageToExport(undefined)}
+      />
+      <DownloadDialog
+        open={imageToDL !== undefined}
+        mediaToDL={imageToDL}
+        handleMediaDLClose={() => setImageToDL(undefined)}
       />
     </>
   )

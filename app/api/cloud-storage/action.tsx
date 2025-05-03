@@ -105,7 +105,7 @@ export async function copyImageToTeamBucket(sourceGcsUri: string, id: string) {
   }
 }
 
-export async function downloadMedia(gcsUri: string): Promise<{ data?: string; error?: string }> {
+export async function downloadMediaFromGcs(gcsUri: string): Promise<{ data?: string; error?: string }> {
   const storage = new Storage()
 
   if (!gcsUri || !gcsUri.startsWith('gs://')) {

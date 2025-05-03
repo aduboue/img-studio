@@ -56,7 +56,7 @@ import { CloseWithoutSubmitWarning, ExportErrorWarning } from '../transverse-com
 import theme from '../../theme'
 import {
   copyImageToTeamBucket,
-  downloadMedia,
+  downloadMediaFromGcs,
   getVideoThumbnailBase64,
   uploadBase64Image,
 } from '../../api/cloud-storage/action'
@@ -114,9 +114,7 @@ export default function ExportStepper({
   })
 
   useEffect(() => {
-    if (mediaToExport) {
-      setValue('mediaToExport', mediaToExport)
-    }
+    if (mediaToExport) setValue('mediaToExport', mediaToExport)
   }, [mediaToExport])
 
   const handleNext = () => {
@@ -255,7 +253,7 @@ export default function ExportStepper({
         if (isDownload) {
           try {
             setExportStatus('Preparing download...')
-            const res = await downloadMedia(media.gcsUri)
+            const res = await downloadMediaFromGcs(media.gcsUri)
             const name = `${media.key}.${media.format.toLowerCase()}`
             downloadBase64Media(res.data, name, media.format)
 
@@ -297,7 +295,6 @@ export default function ExportStepper({
     setIsDownload(false)
     resetField('mediaToExport')
   }
-  const isSquareRatio = mediaToExport ? mediaToExport.ratio === '1:1' : true
 
   function CustomStepIcon(props: StepIconProps) {
     const { active, completed, icon } = props
@@ -330,33 +327,20 @@ export default function ExportStepper({
 
   const ReviewStep = () => {
     return (
-      <>
-        <Box sx={{ pt: 1, pb: 2, width: '90%' }}>
-          {infoToReview.map(({ label, value }) => (
-            <Box key={label} display="flex" flexDirection="row">
-              <ArrowRight sx={{ color: palette.primary.main, fontSize: '1.2rem', p: 0, mt: 0.2 }} />
-              <Box sx={{ pb: 1 }}>
-                <Typography display="inline" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>{`${label}: `}</Typography>
-                <Typography
-                  display="inline"
-                  sx={{ fontSize: '0.9rem', color: palette.text.secondary }}
-                >{`${value}`}</Typography>
-              </Box>
+      <Box sx={{ pt: 1, pb: 2, width: '90%' }}>
+        {infoToReview.map(({ label, value }) => (
+          <Box key={label} display="flex" flexDirection="row">
+            <ArrowRight sx={{ color: palette.primary.main, fontSize: '1.2rem', p: 0, mt: 0.2 }} />
+            <Box sx={{ pb: 1 }}>
+              <Typography display="inline" sx={{ fontSize: '0.9rem', fontWeight: 500 }}>{`${label}: `}</Typography>
+              <Typography
+                display="inline"
+                sx={{ fontSize: '0.9rem', color: palette.text.secondary }}
+              >{`${value}`}</Typography>
             </Box>
-          ))}
-        </Box>
-
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            endIcon={<ArrowForwardIos />}
-            sx={{ ...CustomizedSendButton, ...{ fontSize: '0.85rem' } }}
-          >
-            {'Next'}
-          </Button>
-        </Box>
-      </>
+          </Box>
+        ))}
+      </Box>
     )
   }
 
@@ -369,7 +353,7 @@ export default function ExportStepper({
 
         <Box sx={{ py: 2, width: '90%', flexWrap: 'wrap', justifyContent: 'flex-start' }}>
           {MetadataImproveFields.map((fieldObject) => {
-            const param = Object.keys(fieldObject)[0] // Get the key (param) from the object
+            const param = Object.keys(fieldObject)[0]
             const field = fieldObject[param]
 
             return (
@@ -388,20 +372,6 @@ export default function ExportStepper({
             )
           })}
         </Box>
-
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            endIcon={<ArrowForwardIos />}
-            sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
-          >
-            {'Next'}
-          </Button>
-          <Button onClick={handleBack} sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}>
-            {'Back'}
-          </Button>
-        </Box>
       </>
     )
   }
@@ -416,7 +386,7 @@ export default function ExportStepper({
           name="upscaleFactor"
           control={control}
           render={({ field }) => (
-            <RadioGroup {...field} sx={{ p: 2 }}>
+            <RadioGroup {...field} sx={{ p: 2, pl: 3 }}>
               <CustomRadio
                 label="No upscaling"
                 subLabel={mediaToExport ? `${mediaToExport.width} x ${mediaToExport.height} px` : ''}
@@ -445,25 +415,31 @@ export default function ExportStepper({
             </RadioGroup>
           )}
         />
-
-        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
-          <Button
-            variant="contained"
-            onClick={handleNext}
-            endIcon={<ArrowForwardIos />}
-            sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
-          >
-            {'Next'}
-          </Button>
-          <Button onClick={handleBack} sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}>
-            {'Back'}
-          </Button>
-        </Box>
       </>
     )
   }
 
-  const ExportStep = () => {
+  function NextBackBox({ backAvailable }: { backAvailable: boolean }) {
+    return (
+      <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+        <Button
+          variant="contained"
+          onClick={handleNext}
+          endIcon={<ArrowForwardIos />}
+          sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+        >
+          {'Next'}
+        </Button>
+        {backAvailable && (
+          <Button onClick={handleBack} sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}>
+            {'Back'}
+          </Button>
+        )}
+      </Box>
+    )
+  }
+
+  const SubmitBox = () => {
     return (
       <>
         <FormControlLabel
@@ -473,17 +449,26 @@ export default function ExportStepper({
               checked={isDownload}
               onChange={handleCheckDownload}
               disabled={isExporting}
-              icon={<RadioButtonUncheckedRounded sx={{ fontSize: '1.4rem' }} />}
-              checkedIcon={<DownloadForOfflineRounded sx={{ fontSize: '1.4rem' }} />}
+              icon={<RadioButtonUncheckedRounded sx={{ fontSize: '1.2rem' }} />}
+              checkedIcon={<DownloadForOfflineRounded sx={{ fontSize: '1.2rem' }} />}
               sx={{
                 '&:hover': { backgroundColor: 'transparent' },
                 '&.MuiCheckbox-root:hover': { color: palette.primary.main },
               }}
             />
           }
-          label="Download this media locally as well"
+          label="Download this media locally while exporting"
           disableTypography
-          sx={{ px: 1.5, pt: 1, '&.MuiFormControlLabel-root': { fontSize: '1.1rem', alignContent: 'center' } }}
+          sx={{
+            px: 1.5,
+            pt: 3,
+            '&.MuiFormControlLabel-root': {
+              fontSize: '1.1rem',
+              alignContent: 'center',
+              color: isExporting ? palette.secondary.main : isDownload ? palette.primary.main : palette.text.secondary,
+              fontStyle: isExporting ? 'italic' : 'normal',
+            },
+          }}
         />
 
         <Box sx={{ m: 0, display: 'flex', justifyContent: 'flex-start' }}>
@@ -571,6 +556,7 @@ export default function ExportStepper({
               </StepLabel>
               <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
                 <ReviewStep />
+                <NextBackBox backAvailable={false} />
               </StepContent>
             </Step>
 
@@ -580,8 +566,11 @@ export default function ExportStepper({
               </StepLabel>
               <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
                 <TagStep />
+                {upscaleAvailable && <NextBackBox backAvailable={true} />}
+                {!upscaleAvailable && <SubmitBox />}
               </StepContent>
             </Step>
+
             {upscaleAvailable && (
               <Step key="upscale">
                 <StepLabel StepIconComponent={CustomStepIcon}>
@@ -589,17 +578,10 @@ export default function ExportStepper({
                 </StepLabel>
                 <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
                   <UpscaleStep />
+                  <SubmitBox />
                 </StepContent>
               </Step>
             )}
-            <Step key="export">
-              <StepLabel StepIconComponent={CustomStepIcon}>
-                <CustomStepLabel text="Ready to export!" step={upscaleAvailable ? 3 : 2} />
-              </StepLabel>
-              <StepContent sx={{ px: 0, '&.MuiStepContent-root': { borderColor: 'transparent' } }}>
-                <ExportStep />
-              </StepContent>
-            </Step>
           </Stepper>
         </form>
       </DialogContent>

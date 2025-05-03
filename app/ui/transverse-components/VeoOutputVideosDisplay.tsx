@@ -17,7 +17,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 
-import { FileUpload, PlayArrowRounded } from '@mui/icons-material' // Removed Edit icon
+import { CreateNewFolderRounded, Download, FileUpload, PlayArrowRounded } from '@mui/icons-material' // Removed Edit icon
 
 import {
   Avatar,
@@ -29,14 +29,16 @@ import {
   ImageList,
   ImageListItemBar,
   Stack,
+  CircularProgress,
 } from '@mui/material'
 
 import { VideoI } from '../../api/generate-video-utils'
 import { CustomizedAvatarButton, CustomizedIconButton } from '../ux-components/Button-SX'
-import ExportStepper from './ExportDialog'
+import ExportStepper, { downloadBase64Media } from './ExportDialog'
 
 import theme from '../../theme'
 import { CustomWhiteTooltip } from '../ux-components/Tooltip'
+import { downloadMediaFromGcs } from '@/app/api/cloud-storage/action'
 const { palette } = theme
 
 export default function OutputVideosDisplay({
@@ -66,6 +68,22 @@ export default function OutputVideosDisplay({
   const handleVideoExportClose = () => {
     setVideoToExport(undefined)
     setVideoExportOpen(false)
+  }
+
+  const [isDLloading, setIsDLloading] = useState(false)
+  const handleDLvideo = async (video: VideoI) => {
+    setIsDLloading(true)
+    try {
+      const res = await downloadMediaFromGcs(video.gcsUri)
+      const name = `${video.key}.${video.format.toLowerCase()}`
+      downloadBase64Media(res.data, name, video.format)
+
+      if (typeof res === 'object' && res.error) throw Error(res.error.replaceAll('Error: ', ''))
+    } catch (error: any) {
+      throw Error(error)
+    } finally {
+      setIsDLloading(false)
+    }
   }
 
   return (
@@ -153,7 +171,7 @@ export default function OutputVideosDisplay({
                     position="top"
                     actionIcon={
                       <Stack direction="row" gap={0} pb={3}>
-                        <CustomWhiteTooltip title="Export & Download" size="small">
+                        <CustomWhiteTooltip title="Export to library" size="small">
                           <IconButton
                             onClick={() => handleVideoExportOpen(video)}
                             aria-label="Export video"
@@ -168,7 +186,30 @@ export default function OutputVideosDisplay({
                             }}
                           >
                             <Avatar sx={CustomizedAvatarButton}>
-                              <FileUpload sx={CustomizedIconButton} />
+                              <CreateNewFolderRounded sx={CustomizedIconButton} />
+                            </Avatar>
+                          </IconButton>
+                        </CustomWhiteTooltip>
+                        <CustomWhiteTooltip title="Download locally" size="small">
+                          <IconButton
+                            onClick={() => handleDLvideo(video)}
+                            aria-label="Download video"
+                            sx={{
+                              pr: 1,
+                              pl: 0.5,
+                              '&:hover': {
+                                backgroundColor: 'transparent',
+                                border: 0,
+                                boxShadow: 0,
+                              },
+                            }}
+                          >
+                            <Avatar sx={CustomizedAvatarButton}>
+                              {isDLloading ? (
+                                <CircularProgress size={18} thickness={6} color="primary" />
+                              ) : (
+                                <Download sx={CustomizedIconButton} />
+                              )}
                             </Avatar>
                           </IconButton>
                         </CustomWhiteTooltip>

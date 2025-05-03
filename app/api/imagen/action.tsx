@@ -23,7 +23,7 @@ import {
   ReferenceObjectI,
   imageGenerationUtils,
 } from '../generate-image-utils'
-import { decomposeUri, downloadMedia, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
+import { decomposeUri, downloadMediaFromGcs, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
 import { getFullReferenceDescription, rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
@@ -727,7 +727,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
   // 2 Downloading source image
   let res
   try {
-    res = await downloadMedia(sourceUri)
+    res = await downloadMediaFromGcs(sourceUri)
 
     if (typeof res === 'object' && res['error']) {
       throw Error(res['error'].replaceAll('Error: ', ''))

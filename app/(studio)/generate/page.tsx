@@ -37,7 +37,7 @@ import {
 import { getVideoGenerationStatus } from '@/app/api/veo/action'
 import { ChipGroup } from '@/app/ui/ux-components/InputChipGroup'
 import OutputVideosDisplay from '@/app/ui/transverse-components/VeoOutputVideosDisplay'
-import { downloadMedia } from '@/app/api/cloud-storage/action'
+import { downloadMediaFromGcs } from '@/app/api/cloud-storage/action'
 import { getAspectRatio } from '@/app/ui/edit-components/EditImageDropzone'
 
 // Video Polling Constants
@@ -89,7 +89,7 @@ export default function Page() {
       if (appContext && appContext.imageToVideo) {
         setGenerationMode('Generate a Video')
         try {
-          const { data } = await downloadMedia(appContext.imageToVideo)
+          const { data } = await downloadMediaFromGcs(appContext.imageToVideo)
           const newImage = `data:image/png;base64,${data}`
 
           let { width, height, ratio } = { width: 0, height: 0, ratio: '' }

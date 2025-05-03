@@ -25,7 +25,7 @@ import { useAppContext, appContextDataDefault } from '../../context/app-context'
 import theme from '../../theme'
 import { MediaMetadataI } from '../../api/export-utils'
 import { CustomizedSendButton } from '../ux-components/Button-SX'
-import { downloadMedia } from '../../api/cloud-storage/action'
+import { downloadMediaFromGcs } from '../../api/cloud-storage/action'
 import { useRouter } from 'next/navigation'
 import { downloadBase64Media } from '../transverse-components/ExportDialog'
 const { palette } = theme
@@ -80,7 +80,7 @@ export default function ExploreDialog({
   const handleDownload = async (documentToExplore: MediaMetadataI) => {
     try {
       setDownloadStatus('Preparing download...')
-      const res = await downloadMedia(documentToExplore.gcsURI)
+      const res = await downloadMediaFromGcs(documentToExplore.gcsURI)
       const mediaName = `${documentToExplore.id}.${documentToExplore.format.toLowerCase()}`
       downloadBase64Media(res.data, mediaName, documentToExplore.format)
 

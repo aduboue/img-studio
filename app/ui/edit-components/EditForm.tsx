@@ -41,7 +41,7 @@ import {
 import FormInputEditSettings from './EditSettings'
 import EditModeMenu from './EditModeMenu'
 import SetMaskDialog from './SetMaskDialog'
-import { downloadMedia } from '../../api/cloud-storage/action'
+import { downloadMediaFromGcs } from '../../api/cloud-storage/action'
 const { palette } = theme
 
 const editModeField = EditImageFormFields.editMode
@@ -117,7 +117,7 @@ export default function EditForm({
       handleNewEditMode(defaultEditMode?.value ?? '')
       if (appContext && appContext.imageToEdit) {
         try {
-          const { data } = await downloadMedia(appContext.imageToEdit)
+          const { data } = await downloadMediaFromGcs(appContext.imageToEdit)
           const newImage = `data:image/png;base64,${data}`
           data && setImageToEdit(newImage)
           setMaskImage(null)
