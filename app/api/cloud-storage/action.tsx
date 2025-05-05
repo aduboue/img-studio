@@ -276,3 +276,30 @@ export async function getVideoThumbnailBase64(
     })
   }
 }
+
+export async function deleteMedia(gcsURI: string): Promise<boolean | { error: string }> {
+  const storage = new Storage({ projectId })
+
+  if (!gcsURI || !gcsURI.startsWith('gs://')) return { error: 'Invalid GCS URI. It must start with "gs://".' }
+
+  const { bucketName, fileName: objectName } = await decomposeUri(gcsURI)
+
+  if (!bucketName || !objectName) return { error: 'Invalid GCS URI' }
+
+  try {
+    await storage.bucket(bucketName).file(objectName).delete()
+
+    return true
+  } catch (error: any) {
+    console.error(`Error deleting file ${gcsURI} from GCS:`, error)
+
+    if (error.code === 404)
+      return {
+        error: `File ${gcsURI} not found in Google Cloud Storage.`,
+      }
+
+    return {
+      error: `An error occurred while deleting file ${gcsURI} from Google Cloud Storage.`,
+    }
+  }
+}

@@ -98,8 +98,7 @@
   - `Logs Writer`
   - `Secret Manager Secret Accessor`
   - `Service Account Token Creator`
-  - `Storage Object Creator`
-  - `Storage Object Viewer`
+  - `Storage Object User`
   - `Vertex AI User`
 
 ## 5\\ Deploy **Cloud Run** service

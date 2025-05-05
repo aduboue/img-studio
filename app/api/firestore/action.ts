@@ -16,6 +16,7 @@
 
 import { Timestamp } from '@google-cloud/firestore'
 import { ExportMediaFormI, MediaMetadataI, ExportMediaFormFieldsI } from '../export-utils'
+import { deleteMedia } from '../cloud-storage/action'
 
 const { Firestore, FieldValue } = require('@google-cloud/firestore')
 const firestore = new Firestore()
@@ -151,5 +152,53 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
     return {
       error: 'Error while fetching metadata',
     }
+  }
+}
+
+export async function firestoreDeleteBatch(
+  idsToDelete: string[],
+  currentMedias: MediaMetadataI[]
+): Promise<boolean | { error: string }> {
+  // Ensure firestore is initialized and collection name is correct
+  const collection = firestore.collection('metadata')
+  const batch = firestore.batch()
+
+  const gcsDeletionPromises: Promise<void>[] = []
+
+  if (!idsToDelete || idsToDelete.length === 0) {
+    console.log('No IDs provided for deletion. Exiting.')
+    return true
+  }
+
+  for (const id of idsToDelete) {
+    const mediaItem = currentMedias.find((media) => media.id === id)
+
+    if (mediaItem && mediaItem.gcsURI)
+      gcsDeletionPromises.push(
+        deleteMedia(mediaItem.gcsURI)
+          .then(() => {
+            console.log(`Successfully deleted GCS file: ${mediaItem.gcsURI} for document ID: ${id}`)
+          })
+          .catch((error: any) => {
+            console.error(`Failed to delete GCS file ${mediaItem.gcsURI} for document ID: ${id}. Error:`, error)
+          })
+      )
+
+    // Add the Firestore document deletion to the batch
+    const docRef = collection.doc(id)
+    batch.delete(docRef)
+  }
+
+  // Attempt to delete all GCS files concurrently and wait for all attempts to settle.
+  if (gcsDeletionPromises.length > 0) await Promise.all(gcsDeletionPromises)
+
+  // Commit the batch of Firestore deletions
+  try {
+    await batch.commit()
+    return true
+  } catch (error) {
+    console.error('Firestore batch commit failed:', error)
+
+    return { error: `Firestore batch deletion failed. ` }
   }
 }

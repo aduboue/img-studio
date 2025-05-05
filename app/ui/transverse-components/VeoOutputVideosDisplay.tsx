@@ -176,7 +176,7 @@ export default function OutputVideosDisplay({
                             onClick={() => handleVideoExportOpen(video)}
                             aria-label="Export video"
                             sx={{
-                              pr: 1,
+                              pr: 0.5,
                               pl: 0.5,
                               '&:hover': {
                                 backgroundColor: 'transparent',
@@ -196,7 +196,7 @@ export default function OutputVideosDisplay({
                             aria-label="Download video"
                             sx={{
                               pr: 1,
-                              pl: 0.5,
+                              pl: 0,
                               '&:hover': {
                                 backgroundColor: 'transparent',
                                 border: 0,

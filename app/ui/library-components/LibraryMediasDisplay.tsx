@@ -33,7 +33,14 @@ import {
 import theme from '../../theme'
 import { MediaMetadataI, MediaMetadataWithSignedUrl } from '@/app/api/export-utils'
 import { blurDataURL } from '@/app/ui/ux-components/BlurImage'
-import { ArrowBackIos, ArrowForwardIos, Info, PlayArrowRounded } from '@mui/icons-material'
+import {
+  ArrowBackIos,
+  ArrowForwardIos,
+  Info,
+  PlayArrowRounded,
+  RadioButtonUnchecked,
+  RemoveCircle,
+} from '@mui/icons-material'
 import { CustomizedIconButton } from '../ux-components/Button-SX'
 import ExploreDialog from './ExploreDialog'
 import { CustomWhiteTooltip } from '../ux-components/Tooltip'
@@ -52,19 +59,21 @@ export default function LibraryMediasDisplay({
   fetchedMediasByPage,
   handleLoadMore,
   isMorePageToLoad,
+  isDeleteSelectActive,
+  selectedDocIdsForDelete,
+  onToggleDeleteSelect,
 }: {
   isMediasLoading: boolean
   fetchedMediasByPage: MediaMetadataWithSignedUrl[][]
   handleLoadMore: () => void
   isMorePageToLoad: boolean
+  isDeleteSelectActive: boolean
+  selectedDocIdsForDelete: string[]
+  onToggleDeleteSelect: (docId: string) => void
 }) {
   const [page, setPage] = useState(1)
   const [maxPage, setMaxPage] = useState(0)
   const [currentPageImages, setCurrentPageImages] = useState<MediaMetadataWithSignedUrl[]>([])
-
-  const handleChangePage = (newPage: number) => {
-    setPage(newPage)
-  }
 
   useEffect(() => {
     if (fetchedMediasByPage[page - 1]) setCurrentPageImages(fetchedMediasByPage[page - 1])
@@ -74,55 +83,44 @@ export default function LibraryMediasDisplay({
     setMaxPage(calculatedMaxPage)
   }, [page, fetchedMediasByPage])
 
-  // Full screen media display
+  // Full screen & Explore handlers
   const [mediaFullScreen, setMediaFullScreen] = useState<MediaMetadataWithSignedUrl>()
-  const handleOpenMediaFullScreen = (media: MediaMetadataWithSignedUrl) => setMediaFullScreen(media)
-  const handleCloseMediaFullScreen = () => setMediaFullScreen(undefined)
+  const [mediaToExplore, setMediaToExplore] = useState<MediaMetadataI | undefined>()
 
   const handleContextMenu = (event: React.MouseEvent<HTMLImageElement> | React.MouseEvent<HTMLVideoElement>) => {
     event.preventDefault()
   }
 
-  // Explore handlers
-  const [mediaExploreOpen, setMediaExploreOpen] = useState(false)
-  const [mediaToExplore, setImageToExplore] = useState<MediaMetadataI | undefined>()
-  const handleMediaExploreOpen = (media: MediaMetadataI) => {
-    setImageToExplore(media)
-    setMediaExploreOpen(true)
-  }
-  const handleMediaExploreClose = () => {
-    setImageToExplore(undefined)
-    setMediaExploreOpen(false)
-  }
-
   function ImageDisplay({ doc }: { doc: MediaMetadataWithSignedUrl }) {
     return (
       <>
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            color: 'white',
-            opacity: 0,
-            transition: 'opacity 0.3s ease',
-            '&:hover': {
-              opacity: 1,
-            },
-            cursor: 'pointer',
-          }}
-          onClick={() => handleOpenMediaFullScreen(doc)}
-        >
-          <Typography variant="body1" sx={{ textAlign: 'center' }}>
-            Click to see full screen
-          </Typography>
-        </Box>
+        {!isDeleteSelectActive && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              color: 'white',
+              opacity: 0,
+              transition: 'opacity 0.3s ease',
+              '&:hover': {
+                opacity: 1,
+              },
+              cursor: 'pointer',
+            }}
+            onClick={() => setMediaFullScreen(doc)}
+          >
+            <Typography variant="body1" sx={{ textAlign: 'center' }}>
+              Click to see full screen
+            </Typography>
+          </Box>
+        )}
       </>
     )
   }
@@ -142,26 +140,28 @@ export default function LibraryMediasDisplay({
             pointerEvents: 'none',
           }}
         />
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            color: 'white',
-            opacity: 0,
-            transition: 'opacity 0.3s ease',
-            '&:hover': {
-              opacity: 1,
-            },
-          }}
-          onClick={() => handleOpenMediaFullScreen(doc)}
-        />
+        {!isDeleteSelectActive && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              color: 'white',
+              opacity: 0,
+              transition: 'opacity 0.3s ease',
+              '&:hover': {
+                opacity: 1,
+              },
+            }}
+            onClick={() => setMediaFullScreen(doc)}
+          />
+        )}
       </>
     )
   }
@@ -196,31 +196,7 @@ export default function LibraryMediasDisplay({
           quality={50}
           onContextMenu={handleContextMenu}
         />
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            color: 'white',
-            opacity: 0,
-            transition: 'opacity 0.3s ease',
-            '&:hover': {
-              opacity: 1,
-            },
-            cursor: 'pointer',
-          }}
-          onClick={() => handleOpenMediaFullScreen(doc)}
-        >
-          <Typography variant="body1" sx={{ textAlign: 'center' }}>
-            Click to see full screen
-          </Typography>
-        </Box>
+
         {doc.format === 'MP4' ? <VideoDisplay doc={doc} /> : <ImageDisplay doc={doc} />}
         <ImageListItemBar
           sx={{
@@ -233,18 +209,53 @@ export default function LibraryMediasDisplay({
           }}
           position="top"
           actionIcon={
-            <CustomWhiteTooltip title="Metadata & Download" size="small">
-              <IconButton onClick={() => handleMediaExploreOpen(doc)} aria-label="Explore media" sx={{ px: 0.5 }}>
-                <Info
-                  sx={{ ...CustomizedIconButton, color: 'white', fontSize: '1.3rem', '&:hover': { color: 'white' } }}
-                />
+            isDeleteSelectActive ? (
+              <IconButton
+                onClick={() => onToggleDeleteSelect(doc.id)}
+                aria-label="Explore media"
+                sx={{
+                  px: 0.5,
+                  '&:hover': {
+                    backgroundColor: 'transparent',
+                    border: 0,
+                    boxShadow: 0,
+                  },
+                }}
+              >
+                {selectedDocIdsForDelete.includes(doc.id) ? (
+                  <RemoveCircle
+                    sx={{
+                      ...CustomizedIconButton,
+                      color: palette.error.main,
+                      fontSize: '1.3rem',
+                      '&:hover': { fontSize: '1.4rem' },
+                    }}
+                  />
+                ) : (
+                  <RadioButtonUnchecked
+                    sx={{
+                      ...CustomizedIconButton,
+                      color: 'white',
+                      fontSize: '1.3rem',
+                      '&:hover': { color: palette.error.main, fontSize: '1.4rem' },
+                    }}
+                  />
+                )}
               </IconButton>
-            </CustomWhiteTooltip>
+            ) : (
+              <CustomWhiteTooltip title="Metadata & Download" size="small">
+                <IconButton onClick={() => setMediaToExplore(doc)} aria-label="Explore media" sx={{ px: 0.5 }}>
+                  <Info
+                    sx={{ ...CustomizedIconButton, color: 'white', fontSize: '1.3rem', '&:hover': { color: 'white' } }}
+                  />
+                </IconButton>
+              </CustomWhiteTooltip>
+            )
           }
         />
       </ImageListItem>
     ))
-  }, [currentPageImages])
+  }, [currentPageImages, isDeleteSelectActive, selectedDocIdsForDelete])
 
   return (
     <>
@@ -259,7 +270,7 @@ export default function LibraryMediasDisplay({
                   {mediaListItems}
                 </ImageList>
                 <Button
-                  onClick={() => handleChangePage(page - 1)}
+                  onClick={() => setPage(page - 1)}
                   disabled={page === 1}
                   startIcon={<ArrowBackIos sx={{ '&.MuiSvgIcon-root': { fontSize: '0.95rem' } }} />}
                   sx={CustomizedNavButtons}
@@ -267,7 +278,7 @@ export default function LibraryMediasDisplay({
                   {'Prev.'}
                 </Button>
                 <Button
-                  onClick={() => handleChangePage(page + 1)}
+                  onClick={() => setPage(page + 1)}
                   disabled={maxPage === page && maxPage !== 0}
                   endIcon={<ArrowForwardIos sx={{ '&.MuiSvgIcon-root': { fontSize: '0.95rem' } }} />}
                   sx={CustomizedNavButtons}
@@ -280,10 +291,10 @@ export default function LibraryMediasDisplay({
         )}
       </Box>
 
-      {mediaFullScreen !== undefined && mediaFullScreen.format !== 'MP4' && (
+      {mediaFullScreen !== undefined && mediaFullScreen.format !== 'MP4' && !isDeleteSelectActive && (
         <Modal
           open={mediaFullScreen !== undefined}
-          onClose={handleCloseMediaFullScreen}
+          onClose={() => setMediaFullScreen(undefined)}
           sx={{
             display: 'flex',
             alignContent: 'center',
@@ -303,22 +314,22 @@ export default function LibraryMediasDisplay({
             height={mediaFullScreen.height}
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
             quality={100}
-            onClick={() => handleCloseMediaFullScreen()}
+            onClick={() => setMediaFullScreen(undefined)}
             onContextMenu={handleContextMenu}
           />
         </Modal>
       )}
 
-      {mediaFullScreen !== undefined && mediaFullScreen.format === 'MP4' && (
+      {mediaFullScreen !== undefined && mediaFullScreen.format === 'MP4' && !isDeleteSelectActive && (
         <Modal
           open={mediaFullScreen !== undefined}
-          onClose={handleCloseMediaFullScreen}
+          onClose={() => setMediaFullScreen(undefined)}
           sx={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
-          onClick={handleCloseMediaFullScreen}
+          onClick={() => setMediaFullScreen(undefined)}
           disableAutoFocus={true}
         >
           <Box
@@ -352,9 +363,9 @@ export default function LibraryMediasDisplay({
       )}
 
       <ExploreDialog
-        open={mediaExploreOpen}
+        open={mediaToExplore !== undefined}
         documentToExplore={mediaToExplore}
-        handleMediaExploreClose={handleMediaExploreClose}
+        handleMediaExploreClose={() => setMediaToExplore(undefined)}
       />
     </>
   )
