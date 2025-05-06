@@ -157,8 +157,9 @@ export default function ImageToPromptModal({
             setImage={(base64Image: string) => setImage(base64Image)}
             image={image}
             onNewErrorMsg={setErrorMsg}
-            size="110vw"
-            maxSize={280}
+            size={{ width: '110vw', height: '110vw' }}
+            maxSize={{ width: 280, height: 280 }}
+            object={'contain'}
           />
           <Stack
             direction="column"
