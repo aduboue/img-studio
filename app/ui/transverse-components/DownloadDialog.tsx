@@ -40,8 +40,7 @@ import theme from '../../theme'
 import { downloadMediaFromGcs } from '../../api/cloud-storage/action'
 import { upscaleImage } from '../../api/imagen/action'
 import { useAppContext } from '../../context/app-context'
-import { VideoI } from '@/app/api/generate-video-utils'
-import { ExportErrorWarning } from './ExportAlerts'
+import { ExportAlerts } from './ExportAlerts'
 
 const { palette } = theme
 
@@ -229,8 +228,9 @@ export default function DownloadDialog({
       </DialogContent>
 
       {errorMsg !== '' && (
-        <ExportErrorWarning
-          errorMsg={errorMsg}
+        <ExportAlerts
+          message={errorMsg}
+          style="error"
           onClose={() => {
             setErrorMsg('')
             setStatus('')

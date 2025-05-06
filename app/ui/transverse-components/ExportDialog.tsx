@@ -51,7 +51,7 @@ import { CustomRadio } from '../ux-components/InputRadioButton'
 import { ExportMediaFormFieldsI, ExportMediaFormI } from '../../api/export-utils'
 import { Controller, set, SubmitHandler, useForm } from 'react-hook-form'
 import FormInputChipGroupMultiple from '../ux-components/InputChipGroupMultiple'
-import { CloseWithoutSubmitWarning, ExportErrorWarning } from '../transverse-components/ExportAlerts'
+import { CloseWithoutSubmitWarning, ExportAlerts } from '../transverse-components/ExportAlerts'
 
 import theme from '../../theme'
 import {
@@ -591,8 +591,9 @@ export default function ExportStepper({
       )}
 
       {errorMsg !== '' && (
-        <ExportErrorWarning
-          errorMsg={errorMsg}
+        <ExportAlerts
+          message={errorMsg}
+          style="error"
           onClose={() => {
             setIsExporting(false)
             setErrorMsg('')

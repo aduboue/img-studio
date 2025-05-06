@@ -533,8 +533,9 @@ export default function GenerateForm({
                   sx={CustomizedAccordionSummary}
                 >
                   <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
-                    {`Image(s) to video${
-                      process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? ' / Camera preset' : ''
+                    {`Image(s) to video ${
+                      '' // TODO add back when feature fixed by Veo Team
+                      //process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? ' & Camera preset' : ''
                     }`}
                   </Typography>
                 </AccordionSummary>
@@ -574,7 +575,7 @@ export default function GenerateForm({
                     )}
                   </Stack>
                   {
-                    // TODO add back when working
+                    // TODO add back when feature fixed by Veo Team
                     /* process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && (
                     <Box sx={{ py: 2 }}>
                       <FormInputChipGroup
