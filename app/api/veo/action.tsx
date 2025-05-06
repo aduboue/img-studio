@@ -38,6 +38,8 @@ function cleanResult(inputString: string) {
   return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
 }
 
+const customRateLimitMessage = 'Oops, too many incoming access right now, please try again later!'
+
 async function generatePrompt(formData: any, isGeminiRewrite: boolean) {
   let fullPrompt = formData['prompt']
 
@@ -353,21 +355,72 @@ export async function generateVideo(
       const successResult = { operationName: res.data.name, prompt: fullPrompt as string }
       return successResult
     } else {
-      const errorDetail = res.data?.error?.message || 'Unknown error during video generation initiation.'
-      const errorResult = { error: `Video initiation failed: ${errorDetail}` }
-      return errorResult
+      const apiError = res.data?.error
+      if (apiError) {
+        if (
+          apiError.code === 8 &&
+          typeof apiError.message === 'string' &&
+          apiError.message.toLowerCase().includes('resource exhausted')
+        ) {
+          return { error: customRateLimitMessage }
+        }
+        if (
+          typeof apiError.message === 'string' &&
+          apiError.message.includes("{ code: 8, message: 'Resource exhausted.' }")
+        ) {
+          return { error: customRateLimitMessage }
+        }
+        const errorDetail = apiError.message || 'Unknown error during video generation initiation.'
+        return { error: `Video initiation failed: ${errorDetail}` }
+      } else {
+        return { error: 'Video initiation failed: Unknown error structure in response data.' }
+      }
     }
   } catch (error: any) {
     console.error('Video Generation Request Error:', error.response?.data || error.message)
 
+    if (error.response?.status === 429 || error.response?.status === 503) {
+      return { error: customRateLimitMessage }
+    }
+
+    const nestedError = error.response?.data?.error
+    if (nestedError) {
+      if (
+        nestedError.code === 8 &&
+        typeof nestedError.message === 'string' &&
+        nestedError.message.toLowerCase().includes('resource exhausted')
+      ) {
+        return { error: customRateLimitMessage }
+      }
+      if (
+        typeof nestedError.message === 'string' &&
+        nestedError.message.includes("{ code: 8, message: 'Resource exhausted.' }")
+      )
+        return { error: customRateLimitMessage }
+    }
+
     let errorMessage = 'An unexpected error occurred while initiating video generation.'
 
-    if (error.response?.status === 400) return { error: errorMessage }
+    if (error.response?.status === 400) {
+      errorMessage =
+        nestedError?.message ||
+        error.response?.data?.message ||
+        'Bad request: There was an issue with the request parameters for video generation.'
+      return { error: errorMessage }
+    }
 
-    if (error.response?.data?.error?.message) errorMessage = error.response.data.error.message
-    else if (error.errors && error.errors.length > 0 && error.errors[0].message) errorMessage = error.errors[0].message
-    else if (error instanceof Error) errorMessage = error.message
-
+    if (nestedError?.message) errorMessage = nestedError.message
+    else if (error.errors && error.errors.length > 0 && error.errors[0].message) {
+      errorMessage = error.errors[0].message
+      if (typeof errorMessage === 'string' && errorMessage.includes("{ code: 8, message: 'Resource exhausted.' }"))
+        return { error: customRateLimitMessage }
+    } else if (error instanceof Error && error.message) {
+      errorMessage = error.message
+      // Adjusted to check for "Resource exhausted" more broadly if code: 8 is in a string
+      if (errorMessage.toLowerCase().includes('resource exhausted') && errorMessage.includes('code: 8')) {
+        return { error: customRateLimitMessage }
+      }
+    }
     return { error: errorMessage }
   }
 }
@@ -417,13 +470,27 @@ export async function getVideoGenerationStatus(
   // 3 - Poll for status of video generation operation
   try {
     const res = await client.request(opts)
-    const pollingData: PollingResponse = res.data
+    const pollingData: PollingResponse = res.data // Assuming PollingResponse matches LRO Get response
 
     if (!pollingData.done) {
       return { done: false, name: operationName }
     } else {
       if (pollingData.error) {
         console.error(`Operation ${operationName} failed:`, pollingData.error)
+        // **** ADDED DETAILED CHECK HERE ****
+        if (
+          pollingData.error.code === 8 &&
+          typeof pollingData.error.message === 'string' &&
+          pollingData.error.message.toLowerCase().includes('resource exhausted')
+        ) {
+          return { done: true, error: customRateLimitMessage }
+        }
+        if (
+          typeof pollingData.error.message === 'string' &&
+          pollingData.error.message.includes("{ code: 8, message: 'Resource exhausted.' }")
+        ) {
+          return { done: true, error: customRateLimitMessage }
+        }
         return { done: true, error: pollingData.error.message || 'Video generation failed.' }
       } else if (pollingData.response && pollingData.response.videos) {
         const rawVideoResults = pollingData.response.videos.map((video: any) => ({
@@ -451,20 +518,42 @@ export async function getVideoGenerationStatus(
       }
     }
   } catch (error: any) {
-    // Check specifically for 404 error in case the operation truly doesn't exist anymore
     if (error.response?.status === 404) {
       console.error(`Polling Error 404 for ${operationName}: Operation not found at ${pollingAPIUrl}`)
       return { done: true, error: `Operation ${operationName} not found. It might have expired or never existed.` }
     }
+    if (error.response?.status === 429 || error.response?.status === 503) {
+      return { done: true, error: customRateLimitMessage }
+    }
 
     console.error(`Polling Error for ${operationName}:`, error.response?.data || error.message)
     let errorMessage = 'An error occurred while polling the video generation status.'
-    if (error.response?.data?.error?.message) {
-      errorMessage = error.response.data.error.message
-    } else if (error instanceof Error) {
+    const nestedError = error.response?.data?.error
+    if (nestedError) {
+      if (
+        nestedError.code === 8 &&
+        typeof nestedError.message === 'string' &&
+        nestedError.message.toLowerCase().includes('resource exhausted')
+      ) {
+        return { done: true, error: customRateLimitMessage }
+      }
+      if (
+        typeof nestedError.message === 'string' &&
+        nestedError.message.includes("{ code: 8, message: 'Resource exhausted.' }")
+      ) {
+        return { done: true, error: customRateLimitMessage }
+      }
+      if (nestedError.message) {
+        errorMessage = nestedError.message
+      }
+    } else if (error instanceof Error && error.message) {
+      // Check error.message directly
       errorMessage = error.message
+      // More robust check for resource exhausted in generic error message
+      if (errorMessage.toLowerCase().includes('resource exhausted') && errorMessage.includes('code: 8')) {
+        return { done: true, error: customRateLimitMessage }
+      }
     }
-    // Treat polling errors as 'done' to prevent infinite loops, but report the error.
     return { done: true, error: errorMessage }
   }
 }

@@ -254,7 +254,7 @@ export default function Page() {
 
         if (statusResult.done) {
           if (statusResult.error) {
-            handleNewErrorMsg('Error while generating videos. Please try again.')
+            handleNewErrorMsg(statusResult.error)
           } else if (statusResult.videos && statusResult.videos.length > 0) {
             handleVideoGenerationComplete(statusResult.videos)
             stopPolling(true, false)
@@ -284,13 +284,15 @@ export default function Page() {
           `Error during polling attempt ${pollingAttemptsRef.current} for ${pollingOperationName}:`,
           error.response?.data || error.message || error
         )
-        // If pollingOperationName became null while waiting for error (e.g., user switched mode)
         if (!pollingOperationName) {
+          // Check if polling was stopped externally
           console.log('Polling stopped externally (operation name cleared) during async error handling.')
           stopPolling(false, false)
           return
         }
-        handleNewErrorMsg('An error occurred while checking the video status. Please try again.')
+        // Use error.message if available, otherwise a generic fallback
+        const errorMessage = error.message || 'An unexpected error occurred while checking the video status.'
+        handleNewErrorMsg(errorMessage)
       }
     }
 
