@@ -69,18 +69,21 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Install ffmpeg using Alpine's package manager
-# This ensures that ffmpeg and its required shared libraries are present.
-# It's important for running the ffmpeg binary that @ffmpeg-installer/ffmpeg provides.
 USER root
 RUN apk update && apk add --no-cache ffmpeg
-USER node
 
 # Copy the built application and required files from the builder stage
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next ./.next
+COPY --from=builder --chown=node:node /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+
+# Explicitly create the cache/images directory and ensure node user owns it if
+RUN mkdir -p /app/.next/cache/images && \
+  chown -R node:node /app/.next/cache # Ensure .next/cache and its contents are owned by node
+
+USER node
 
 # Expose the port the app will run on
 EXPOSE 3000
