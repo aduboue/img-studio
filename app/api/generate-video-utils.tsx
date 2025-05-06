@@ -62,7 +62,7 @@ export const GenerateVideoFormFields = {
   sampleCount: {
     label: 'Quantity of outputs',
     type: 'chip-group',
-    default: '4',
+    default: '1',
     options: ['1', '2', '3', '4'],
     isDataResetable: false,
     isFullPromptAdditionalField: false,
