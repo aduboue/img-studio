@@ -164,19 +164,20 @@ export default function OutputImagesDisplay({
                             </IconButton>
                           </CustomWhiteTooltip>
                         )}
-                        {process.env.NEXT_PUBLIC_VEO_ENABLED === 'true' && (
-                          <CustomWhiteTooltip title="Image to video" size="small">
-                            <IconButton
-                              onClick={() => handleITVClick(image.gcsUri)}
-                              aria-label="Image to video"
-                              sx={{ px: 0.2, zIndex: 10 }}
-                            >
-                              <Avatar sx={CustomizedAvatarButton}>
-                                <VideocamRounded sx={CustomizedIconButton} />
-                              </Avatar>
-                            </IconButton>
-                          </CustomWhiteTooltip>
-                        )}
+                        {process.env.NEXT_PUBLIC_VEO_ENABLED === 'true' &&
+                          process.env.NEXT_PUBLIC_VEO_ITV_ENABLED === 'true' && (
+                            <CustomWhiteTooltip title="Image to video" size="small">
+                              <IconButton
+                                onClick={() => handleITVClick(image.gcsUri)}
+                                aria-label="Image to video"
+                                sx={{ px: 0.2, zIndex: 10 }}
+                              >
+                                <Avatar sx={CustomizedAvatarButton}>
+                                  <VideocamRounded sx={CustomizedIconButton} />
+                                </Avatar>
+                              </IconButton>
+                            </CustomWhiteTooltip>
+                          )}
                         <CustomWhiteTooltip title="Export to library" size="small">
                           <IconButton
                             onClick={() => setImageToExport(image)}

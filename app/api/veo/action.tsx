@@ -40,6 +40,31 @@ function cleanResult(inputString: string) {
 
 const customRateLimitMessage = 'Oops, too many incoming access right now, please try again later!'
 
+function isResourceExhaustedError(source: any) {
+  if (!source) return false
+
+  let message = ''
+  let code = null
+
+  if (typeof source === 'string') {
+    message = source.toLowerCase()
+    if (message.includes('code: 8') || message.includes('code === 8')) code = 8
+  } else if (typeof source === 'object' && source !== null) {
+    message = String(source.message || '').toLowerCase()
+    code = source.code
+  } else return false
+
+  if (
+    (code === 8 && message.includes('resource exhausted')) ||
+    message.includes("{ code: 8, message: 'resource exhausted.' }") ||
+    (message.includes('resource exhausted') &&
+      (code === 8 || message.includes('code: 8') || message.includes('code === 8')))
+  )
+    return true
+
+  return false
+}
+
 async function generatePrompt(formData: any, isGeminiRewrite: boolean) {
   let fullPrompt = formData['prompt']
 
@@ -351,77 +376,46 @@ export async function generateVideo(
   try {
     const res = await client.request(opts)
 
-    if (res.data && res.data.name) {
-      const successResult = { operationName: res.data.name, prompt: fullPrompt as string }
-      return successResult
-    } else {
-      const apiError = res.data?.error
-      if (apiError) {
-        if (
-          apiError.code === 8 &&
-          typeof apiError.message === 'string' &&
-          apiError.message.toLowerCase().includes('resource exhausted')
-        ) {
-          return { error: customRateLimitMessage }
-        }
-        if (
-          typeof apiError.message === 'string' &&
-          apiError.message.includes("{ code: 8, message: 'Resource exhausted.' }")
-        ) {
-          return { error: customRateLimitMessage }
-        }
-        const errorDetail = apiError.message || 'Unknown error during video generation initiation.'
-        return { error: `Video initiation failed: ${errorDetail}` }
-      } else {
-        return { error: 'Video initiation failed: Unknown error structure in response data.' }
-      }
+    // a. Handle successful response
+    if (res.data?.name) return { operationName: res.data.name, prompt: fullPrompt as string }
+
+    // b. Handle API-returned error (non-exception, structured error in response body)
+    const apiError = res.data?.error
+    if (apiError) {
+      if (isResourceExhaustedError(apiError)) return { error: customRateLimitMessage }
+
+      // For other API errors not caught by isResourceExhaustedError
+      const errorDetail = apiError.message || 'Unknown error during video generation initiation.'
+      return { error: `Video initiation failed: ${errorDetail}` }
     }
+
+    // c. Fallback for other unexpected response structures from the API call (not an exception)
+    return { error: 'Video initiation failed: Unknown error structure in response data.' }
   } catch (error: any) {
-    console.error('Video Generation Request Error:', error.response?.data || error.message)
-
-    if (error.response?.status === 429 || error.response?.status === 503) {
-      return { error: customRateLimitMessage }
-    }
-
+    // Log the raw error for debugging
+    console.error('Video Generation Request Error:', error.response?.data || error.message || error)
     const nestedError = error.response?.data?.error
-    if (nestedError) {
-      if (
-        nestedError.code === 8 &&
-        typeof nestedError.message === 'string' &&
-        nestedError.message.toLowerCase().includes('resource exhausted')
-      ) {
-        return { error: customRateLimitMessage }
-      }
-      if (
-        typeof nestedError.message === 'string' &&
-        nestedError.message.includes("{ code: 8, message: 'Resource exhausted.' }")
-      )
-        return { error: customRateLimitMessage }
-    }
 
-    let errorMessage = 'An unexpected error occurred while initiating video generation.'
+    // Handle specific HTTP status codes that often mean rate limiting or server overload
+    if (
+      error.response?.status === 429 ||
+      error.response?.status === 503 ||
+      isResourceExhaustedError(error) ||
+      isResourceExhaustedError(nestedError) ||
+      isResourceExhaustedError(error.response?.data) ||
+      (error.errors &&
+        Array.isArray(error.errors) &&
+        error.errors.length > 0 &&
+        isResourceExhaustedError(error.errors[0]))
+    )
+      return { error: customRateLimitMessage }
 
-    if (error.response?.status === 400) {
-      errorMessage =
-        nestedError?.message ||
-        error.response?.data?.message ||
-        'Bad request: There was an issue with the request parameters for video generation.'
-      return { error: errorMessage }
-    }
+    // Handle HTTP 400 (Bad Request) specifically, if not a resource exhaustion error
+    if (error.response?.status === 400)
+      return { error: 'Bad request: There was an issue with the request parameters for video generation.' }
 
-    if (nestedError?.message) errorMessage = nestedError.message
-    else if (error.errors && error.errors.length > 0 && error.errors[0].message) {
-      errorMessage = error.errors[0].message
-      if (typeof errorMessage === 'string' && errorMessage.includes("{ code: 8, message: 'Resource exhausted.' }"))
-        return { error: customRateLimitMessage }
-    } else if (error instanceof Error && error.message) {
-      errorMessage = error.message
-      // Adjusted to check for "Resource exhausted" more broadly if code: 8 is in a string
-      if (errorMessage.toLowerCase().includes('resource exhausted') && errorMessage.includes('code: 8')) {
-        return { error: customRateLimitMessage }
-      }
-    }
-    return { error: errorMessage }
+    // Generic error message if none of the above specific conditions were met
+    return { error: 'An unexpected error occurred while initiating video generation.' }
   }
 }
 
@@ -477,20 +471,19 @@ export async function getVideoGenerationStatus(
     } else {
       if (pollingData.error) {
         console.error(`Operation ${operationName} failed:`, pollingData.error)
-        // **** ADDED DETAILED CHECK HERE ****
         if (
           pollingData.error.code === 8 &&
           typeof pollingData.error.message === 'string' &&
           pollingData.error.message.toLowerCase().includes('resource exhausted')
-        ) {
+        )
           return { done: true, error: customRateLimitMessage }
-        }
+
         if (
           typeof pollingData.error.message === 'string' &&
           pollingData.error.message.includes("{ code: 8, message: 'Resource exhausted.' }")
-        ) {
+        )
           return { done: true, error: customRateLimitMessage }
-        }
+
         return { done: true, error: pollingData.error.message || 'Video generation failed.' }
       } else if (pollingData.response && pollingData.response.videos) {
         const rawVideoResults = pollingData.response.videos.map((video: any) => ({
@@ -522,9 +515,8 @@ export async function getVideoGenerationStatus(
       console.error(`Polling Error 404 for ${operationName}: Operation not found at ${pollingAPIUrl}`)
       return { done: true, error: `Operation ${operationName} not found. It might have expired or never existed.` }
     }
-    if (error.response?.status === 429 || error.response?.status === 503) {
+    if (error.response?.status === 429 || error.response?.status === 503)
       return { done: true, error: customRateLimitMessage }
-    }
 
     console.error(`Polling Error for ${operationName}:`, error.response?.data || error.message)
     let errorMessage = 'An error occurred while polling the video generation status.'

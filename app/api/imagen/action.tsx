@@ -509,12 +509,13 @@ export async function generateImage(
 
     return enhancedImageList
   } catch (error) {
-    console.error(error)
-
     const errorString = error instanceof Error ? error.toString() : String(error)
+    console.error(errorString)
+
     if (
       errorString.includes('safety settings for peopleface generation') ||
-      errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines")
+      errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines") ||
+      errorString.includes('Person Generation')
     )
       return {
         error: errorString.replace(/^Error: /i, ''),

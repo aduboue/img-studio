@@ -78,6 +78,7 @@ import {
   InterpolImageI,
   OperationMetadataI,
   VideoGenerationFieldsI,
+  videoGenerationUtils,
 } from '@/app/api/generate-video-utils'
 import { generateVideo } from '@/app/api/veo/action'
 import { getOrientation, VideoInterpolBox } from './VideoInterpolBox'
@@ -95,7 +96,7 @@ export default function GenerateForm({
   initialPrompt,
   initialITVimage,
 }: {
-  generationType: string
+  generationType: 'Image' | 'Video'
   isLoading: boolean
   onRequestSent: (loading: boolean, count: number) => void
   errorMsg: string
@@ -332,6 +333,11 @@ export default function GenerateForm({
     onRequestSent(true, parseInt(formData.sampleCount))
 
     try {
+      if (formData.interpolImageLast && formData.interpolImageLast.base64Image !== '' && formData.cameraPreset !== '')
+        throw Error(
+          `You can't have both a last frame and a camera preset selected. Please leverage only one of the two feature at once.`
+        )
+
       if (formData.prompt === '') setIsGeminiRewrite(false)
       const result = await generateVideo(formData, isGeminiRewrite, appContext)
 
@@ -534,8 +540,7 @@ export default function GenerateForm({
                 >
                   <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
                     {`Image(s) to video ${
-                      '' // TODO add back when feature fixed by Veo Team
-                      //process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? ' & Camera preset' : ''
+                      process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? ' & Camera presets' : ''
                     }`}
                   </Typography>
                 </AccordionSummary>
@@ -574,9 +579,7 @@ export default function GenerateForm({
                       </>
                     )}
                   </Stack>
-                  {
-                    // TODO add back when feature fixed by Veo Team
-                    /* process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && (
+                  {process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && (
                     <Box sx={{ py: 2 }}>
                       <FormInputChipGroup
                         name="cameraPreset"
@@ -588,8 +591,7 @@ export default function GenerateForm({
                         required={false}
                       />
                     </Box>
-                  )*/
-                  }
+                  )}
                 </AccordionDetails>
               </Accordion>
             )}
@@ -665,6 +667,7 @@ export default function GenerateForm({
         open={imageToPromptOpen}
         setNewPrompt={(string) => setValue('prompt', string)}
         setImageToPromptOpen={setImageToPromptOpen}
+        target={generationType}
       />
     </>
   )

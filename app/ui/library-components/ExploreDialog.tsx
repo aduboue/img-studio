@@ -19,7 +19,7 @@ import { useState } from 'react'
 
 import { Dialog, DialogContent, DialogTitle, IconButton, Slide, Box, Button, Typography, Stack } from '@mui/material'
 import { TransitionProps } from '@mui/material/transitions'
-import { ArrowRight, AutoAwesome, Close, Download, Edit } from '@mui/icons-material'
+import { ArrowRight, AutoAwesome, Close, Download, Edit, VideocamRounded } from '@mui/icons-material'
 import { useAppContext, appContextDataDefault } from '../../context/app-context'
 
 import theme from '../../theme'
@@ -59,6 +59,13 @@ export default function ExploreDialog({
       else return { ...appContextDataDefault, imageToEdit: uri }
     })
     router.push('/edit')
+  }
+  const handleITVClick = (imageGcsURI: string) => {
+    setAppContext((prevContext) => {
+      if (prevContext) return { ...prevContext, imageToVideo: imageGcsURI }
+      else return { ...appContextDataDefault, imageToVideo: imageGcsURI }
+    })
+    router.push('/generate')
   }
 
   const handleRegenerateClick = (prompt: string, format: string) => {
@@ -222,6 +229,20 @@ export default function ExploreDialog({
                     </Button>
                   </Box>
                 )}
+                {process.env.NEXT_PUBLIC_VEO_ENABLED === 'true' &&
+                  process.env.NEXT_PUBLIC_VEO_ITV_ENABLED === 'true' &&
+                  documentToExplore.format !== 'MP4' && (
+                    <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-start' }}>
+                      <Button
+                        variant="contained"
+                        onClick={() => handleITVClick(documentToExplore ? documentToExplore.gcsURI : '')}
+                        endIcon={<VideocamRounded />}
+                        sx={{ ...CustomizedSendButton, ...{ fontSize: '0.8rem' } }}
+                      >
+                        {'Image to video'}
+                      </Button>
+                    </Box>
+                  )}
               </>
             )}
           </Stack>

@@ -92,31 +92,36 @@ export default function Page() {
           const { data } = await downloadMediaFromGcs(appContext.imageToVideo)
           const newImage = `data:image/png;base64,${data}`
 
-          let { width, height, ratio } = { width: 0, height: 0, ratio: '' }
           const img = new window.Image()
+
           img.onload = () => {
-            width = img.width
-            height = img.height
-            ratio = getAspectRatio(img.width, img.height)
+            const width = img.width
+            const height = img.height
+            const ratio = getAspectRatio(img.width, img.height)
+
+            const initialITVimage = {
+              format: 'png',
+              base64Image: newImage,
+              purpose: 'first',
+              ratio: ratio,
+              width: width,
+              height: height,
+            }
+
+            data && setInitialITVimage(initialITVimage as InterpolImageI)
+
+            // Re-initialize parameter in context
+            setAppContext((prevContext) => {
+              if (prevContext) return { ...prevContext, imageToVideo: '' }
+              else return { ...appContextDataDefault, imageToVideo: '' }
+            })
           }
+
+          img.onerror = () => {
+            throw Error('Error loading image for dimension calculation.')
+          }
+
           img.src = newImage
-
-          const initialITVimage = {
-            format: 'png',
-            base64Image: newImage,
-            purpose: 'first',
-            ratio: ratio,
-            width: width,
-            height: height,
-          }
-
-          data && setInitialITVimage(initialITVimage as InterpolImageI)
-
-          // Re-initialize parameter in context
-          setAppContext((prevContext) => {
-            if (prevContext) return { ...prevContext, imageToVideo: '' }
-            else return { ...appContextDataDefault, imageToVideo: '' }
-          })
         } catch (error) {
           console.error('Error fetching image:', error)
         }

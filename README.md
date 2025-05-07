@@ -12,7 +12,9 @@
   - You can fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform) to get access to the Preview feature (name: `imagen-3.0-capability-001`)
   - You will also need the **Vertex Image Segmentation model** when using editing, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSdzIR1EeQGFcMsqd9nPip5e9ovDKSjfWRd58QVjo1zLpfdvEg/viewform?resourcekey=0-Pvqc66u-0Z1QmuzHq4wLKg&pli=1) to get access (name: `image-segmentation-001`)
 - **For Veo > Generation**
-  - Model is now in public GA, **Veo 2 Generate** (`veo-2.0-generate-001`)
+  - Model for text-to-video is now in public GA, **Veo 2 Generate** (`veo-2.0-generate-001`)
+- **For Veo > Advanced**
+  - For **Image-to-video** (`veo-2.0-generate-001`) & advanced features (`veo-2.0-generate-exp`: interpolation, camera preset), you need to fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSciY6O_qGg2J0A8VUcK4egJ3_Tysh-wGTl-l218XtC0e7lM_w/viewform)
 
 ## 1\\ Create **Cloud Storage** buckets
 
@@ -64,7 +66,11 @@
     - **Only mandatory if Edit is enabled**
     - Service name for the Vertex Segmentation model, when you get access to it **(see Step 0\)**
   - `_NEXT_PUBLIC_VEO_ENABLED`
-    - Allow to enable Veo text-to-video generation, **set it to `false` if you do not have access yet**
+    - Allow to enable Veo text-to-video generation
+  - `_NEXT_PUBLIC_VEO_ITV_ENABLED`
+    - Allow to enable Veo image-to-video generation, **set it to `false` if you do not have access yet (see Step 0\)**
+  - `_NEXT_PUBLIC_VEO_ADVANCED_ENABLED`
+    - Allow to enable Veo advanced features (interpolation, camera preset), **set it to `false` if you do not have access yet (see Step 0\)**
 
 - **Service account:** select the **default already existing Cloud Build service account** `PROJECT_NUMBER-compute@developer.gserviceaccount.com`
   - You may want to **check in IAM it has the roles**: `Artifact Registry Writer` and `Logs Writer`

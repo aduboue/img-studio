@@ -371,12 +371,12 @@ export async function getFullReferenceDescription(base64Image: string, type: str
   }
 }
 
-export async function getPromptFromImageFromGemini(base64Image: string) {
+export async function getPromptFromImageFromGemini(base64Image: string, target: 'Image' | 'Video') {
   const generativeModel = vertexAI.getGenerativeModel({
     model: geminiModel,
   })
 
-  const prompt = `Generate a highly detailed text prompt, suitable for a text-to-image model such as Imagen 3, to recreate the uploaded image with maximum accuracy. The prompt should describe these aspects of the image:
+  const imagenPrompt = `Generate a highly detailed text prompt, suitable for a text-to-image model such as Imagen 3, to recreate the uploaded image with maximum accuracy. The prompt should describe these aspects of the image:
   1.  **Subject:**  Main objects/figures, appearance, features, species (if applicable), clothing, pose, actions. Be extremely specific (e.g., "a fluffy ginger cat with emerald green eyes sitting on a windowsill" instead of "a cat").
   2.  **Composition:** Arrangement of subjects (centered, off-center, foreground, background), perspective/camera angle (close-up, wide shot, bird's-eye view).
   3.  **Setting:** Environment, location, time of day, weather. Be specific (e.g., "a dimly lit, ornate library with towering bookshelves" instead of "a library").
@@ -390,6 +390,20 @@ export async function getPromptFromImageFromGemini(base64Image: string) {
   **Example Output (Correct Format): "A photorealistic image of a Ragdoll or Birman cat with light cream and beige long fur, sitting upright on a kitchen counter or appliance with its paws tucked beneath it. The cat has bright blue eyes, a small pink nose, and pointed, tufted ears. Its tail is long and fluffy, draping down behind it. The background is slightly blurred and features a dark horizontal band suggesting an appliance, and a glass partition with black metal frames. The lighting is soft and diffused, illuminating the cat evenly. The dominant colors are light cream, beige, white, blue, and black. The overall style is realistic photography with a focus on detail and natural lighting. The image conveys a sense of calmness and gentle curiosity."
   **Important:** The prompt must be highly descriptive, prioritizing the most visually important elements for accurate recreation. The prompt can be up to 75 tokens.`
 
+  const veoPrompt = `Generate a highly detailed text prompt, suitable for a text-to-video model such as **Veo**, to create a short video clip inspired by the uploaded image, focusing on dynamic action and visual storytelling. The prompt should describe these aspects for the video:
+  1.  **Subject & Action:** Main objects/figures, their appearance, features, species (if applicable), clothing. Crucially, describe their **movements, actions, interactions, and any changes in expression or pose over the duration of the clip**. Be extremely specific (e.g., "a fluffy ginger cat with emerald green eyes slowly blinking, then stretching its front paws forward on a windowsill" instead of "a cat").
+  2.  **Scene Composition & Camera Work:** Initial arrangement of subjects (centered, off-center, foreground, background). Specify the **camera angle and shot type (e.g., close-up, wide shot, POV) and describe any camera movement** (e.g., slow pan right, zoom in, tracking shot following the subject, static shot).
+  3.  **Setting & Environmental Dynamics:** Environment, location, time of day, weather, including any **dynamic environmental elements** (e.g., "leaves blowing in the wind in a sun-dappled forest at golden hour," "rain streaking down a window in a cozy, dimly lit room at night").
+  4.  **Visual Style:** Artistic style of the video (e.g., photorealistic, cinematic, anime, watercolor animation, gritty found footage, pixel art). Mention specific directors or cinematic styles if relevant.
+  5.  **Lighting & Atmosphere:** Lighting conditions (bright sunlight, moody twilight, soft indoor lighting, dramatic shadows), its direction, intensity, and **how it might change or interact with the scene's motion**. This contributes to the overall mood (serene, joyful, mysterious, ominous).
+  6.  **Color Palette:** Dominant colors and overall color scheme of the video (vibrant, desaturated, monochromatic, warm, cool tones), and if they shift.
+  7.  **Key Textures:** Prominent textures of subjects and the environment relevant to the video's look and feel (smooth, rough, furry, metallic, wet, windswept).
+  8.  **Video Clip Focus & Pacing:** Briefly suggest the overall pacing (e.g., slow and graceful, fast-paced action, serene and calm) and what key moment, action, or transformation the short video clip should focus on.
+
+  **Output Format:** I want the prompt to be ONLY a single paragraph of text, directly usable by the text-to-video model **Veo**. **Do not add any conversational filler, preambles, or extra sentences like "Text-to-Video Prompt:". Do not format the output as a list or use any special characters like  .**
+  **Example Output (Correct Format): "A cinematic, photorealistic short video clip of a Ragdoll cat with light cream and beige long fur, initially curled up sleeping on a sunlit wooden floor. The cat slowly awakens, stretches its paws out, and yawns widely, its bright blue eyes blinking open. The camera is at a low angle, close-up on the cat, with a very gentle zoom-out as it stretches. Dust motes drift in the warm sunlight streaming from a nearby window, creating a soft, hazy atmosphere. The background shows a slightly out-of-focus cozy living room. The dominant colors are warm wood tones, light cream, and soft blues. The clip should convey a serene and peaceful morning moment."**
+  **Important:** The prompt must be highly descriptive, prioritizing key visual elements and **essential motion cues** for generating an engaging video clip. The prompt can be up to 75 tokens.`
+
   const imagePart = {
     inline_data: {
       data: base64Image.startsWith('data:') ? base64Image.split(',')[1] : base64Image,
@@ -397,7 +411,7 @@ export async function getPromptFromImageFromGemini(base64Image: string) {
     },
   }
   const textPart = {
-    text: prompt,
+    text: target === 'Image' ? imagenPrompt : veoPrompt,
   }
 
   const reqData = {
