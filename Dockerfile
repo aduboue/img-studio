@@ -81,7 +81,7 @@ COPY --from=builder /app/package.json ./package.json
 
 # Explicitly create the cache/images directory and ensure node user owns it if
 RUN mkdir -p /app/.next/cache/images && \
-  chown -R node:node /app/.next/cache # Ensure .next/cache and its contents are owned by node
+  chown -R node:node /app/.next/cache
 
 USER node
 

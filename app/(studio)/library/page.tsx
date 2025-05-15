@@ -80,6 +80,24 @@ export default function Page() {
 
         const documents = res.thisBatchDocuments || []
 
+        // This is a check to workaround the fact the document structure changed in Firestore when making content more generic:
+        // from image only to medias (images + videos)
+        if (isReplacingExistingData) {
+          const hasOldFormat = documents.some((doc: any) => Object.prototype.hasOwnProperty.call(doc, 'imageID')) // 'imageID' is a old property name
+
+          if (hasOldFormat) {
+            setErrorMsg(
+              "Attention: To ensure compatibility with the new Veo features in ImgStudio, the Firestore metadata database must be updated. Please have your system administrator execute the instructions provided in library-update-script.md, located in the app's code repository."
+            )
+            setIsMediasLoading(false)
+            setFetchedMediasByPage([])
+            setLastVisibleDocument(null)
+            setIsMorePageToLoad(false)
+            return
+          }
+        }
+
+        // Case were no media were fetched
         if (isReplacingExistingData && documents.length === 0) {
           setErrorMsg('Sorry, your search returned no results')
           setFetchedMediasByPage([])
