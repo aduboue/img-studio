@@ -20,6 +20,7 @@ export interface FormTextInputI {
   control: any
   required: boolean
   rows: number
+  promptIndication?: string
 }
 
 export interface FormDropdownInputI {
@@ -59,6 +60,7 @@ export interface GenerateSettingsI {
   setValue?: any
   generalSettingsFields: generalSettingsI
   advancedSettingsFields: advancedSettingsI
+  warningMessage?: string
 }
 
 export interface FormInputRadioButtonI {

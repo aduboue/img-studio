@@ -49,13 +49,23 @@ export const GenerateVideoFormFields = {
   },
   modelVersion: {
     type: 'select',
-    default: 'veo-2.0-generate-001',
+    default: 'veo-3.0-generate-preview',
     options: [
+      {
+        value: 'veo-3.0-generate-preview',
+        label: 'Veo 3',
+      },
       {
         value: 'veo-2.0-generate-001',
         label: 'Veo 2',
       },
     ],
+    isDataResetable: false,
+    isFullPromptAdditionalField: false,
+  },
+  isVideoWithAudio: {
+    type: 'toggleSwitch',
+    default: false,
     isDataResetable: false,
     isFullPromptAdditionalField: false,
   },
@@ -94,16 +104,12 @@ export const GenerateVideoFormFields = {
     default: 'allow_adult',
     options: [
       {
-        value: 'disallow',
-        label: 'No people',
-      },
-      {
         value: 'allow_adult',
         label: 'Adults only',
       },
       {
-        value: 'allow_all',
-        label: 'Adults & Children',
+        value: 'dont_allow',
+        label: 'No people',
       },
     ],
     isDataResetable: false,
@@ -380,10 +386,39 @@ export const videoGenerationUtils: VideoGenerationFieldsI = {
   defaultValues: formDataDefaults,
 }
 
+//TODO temp - remove when Veo 3 is fully released
+export const tempVeo3specificSettings = {
+  sampleCount: {
+    label: 'Quantity of outputs',
+    type: 'chip-group',
+    default: '1',
+    options: ['1', '2'],
+    isDataResetable: false,
+    isFullPromptAdditionalField: false,
+  },
+  aspectRatio: {
+    label: 'Aspect ratio',
+    type: 'chip-group',
+    default: '16:9',
+    options: ['16:9'],
+    isDataResetable: false,
+    isFullPromptAdditionalField: false,
+  },
+  durationSeconds: {
+    label: 'Video duration (seconds)',
+    type: 'chip-group',
+    default: '8',
+    options: ['8'],
+    isDataResetable: true,
+    isFullPromptAdditionalField: false,
+  },
+}
+
 // Interface of Generate form fields
 export interface GenerateVideoFormI {
   prompt: string
   modelVersion: string
+  isVideoWithAudio: boolean
   sampleCount: string
   negativePrompt: string
   aspectRatio: string
@@ -444,6 +479,7 @@ export interface PollingResponse {
   done: boolean
   error?: { code: number; message: string; details: any[] }
   response?: {
+    raiMediaFilteredReasons: boolean
     '@type': string
     videos?: VideoSample[]
   }

@@ -45,6 +45,7 @@ export default function GenerateSettings({
   setValue,
   generalSettingsFields,
   advancedSettingsFields,
+  warningMessage,
 }: GenerateSettingsI) {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
@@ -86,6 +87,14 @@ export default function GenerateSettings({
         onClose={handleClose}
         sx={CustomizedMenu}
       >
+        {warningMessage !== '' && (
+          <Typography
+            color={palette.warning.main}
+            sx={{ m: 1, fontSize: '0.7rem', fontWeight: 400, fontStyle: 'italic', px: 1 }}
+          >
+            {warningMessage}
+          </Typography>
+        )}
         {Object.entries(generalSettingsFields).map(function ([param, field]) {
           return (
             <MenuItem key={param}>

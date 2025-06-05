@@ -15,7 +15,7 @@
 'use client'
 
 import * as React from 'react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 
 import { CreateNewFolderRounded, Download, FileUpload, PlayArrowRounded } from '@mui/icons-material' // Removed Edit icon
 
@@ -53,10 +53,19 @@ export default function OutputVideosDisplay({
   // State for full screen video display
   const [videoFullScreen, setVideoFullScreen] = useState<VideoI | undefined>()
   const handleOpenVideoFullScreen = (video: VideoI) => setVideoFullScreen(video)
-  const handleCloseVideoFullScreen = () => setVideoFullScreen(undefined)
+  const handleCloseVideoFullScreen = () => {
+    if (fullScreenVideoRef.current) {
+      fullScreenVideoRef.current.pause()
+      fullScreenVideoRef.current.currentTime = 0
+    }
+    setVideoFullScreen(undefined)
+  }
   const handleContextMenuVideo = (event: React.MouseEvent<HTMLVideoElement>) => {
     event.preventDefault()
   }
+
+  // Create a ref for the full-screen video element
+  const fullScreenVideoRef = useRef<HTMLVideoElement>(null)
 
   // State for export form and handlers
   const [videoExportOpen, setVideoExportOpen] = useState(false)
@@ -118,8 +127,8 @@ export default function OutputVideosDisplay({
                     width={video.width}
                     height={video.height}
                     style={{ width: '100%', height: 'auto', display: 'block' }}
-                    muted
                     playsInline
+                    muted
                     onContextMenu={handleContextMenuVideo}
                     preload="metadata"
                   />
@@ -247,10 +256,10 @@ export default function OutputVideosDisplay({
           >
             <video
               key={'displayed-video'}
+              ref={fullScreenVideoRef}
               src={videoFullScreen.src}
               controls
               controlsList="nodownload noplaybackrate nopictureinpicture"
-              autoPlay
               preload="metadata"
               style={{
                 width: '100%',

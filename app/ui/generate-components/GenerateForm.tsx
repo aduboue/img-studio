@@ -45,7 +45,7 @@ import {
 
 import { CustomizedAccordion, CustomizedAccordionSummary } from '../ux-components/Accordion-SX'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
-import FormInputChipGroup, { ChipGroup } from '../ux-components/InputChipGroup'
+import FormInputChipGroup from '../ux-components/InputChipGroup'
 import FormInputDropdown from '../ux-components/InputDropdown'
 import { FormInputText } from '../ux-components/InputText'
 import { GeminiSwitch } from '../ux-components/GeminiButton'
@@ -77,11 +77,13 @@ import {
   GenerateVideoFormI,
   InterpolImageI,
   OperationMetadataI,
+  tempVeo3specificSettings,
   VideoGenerationFieldsI,
   videoGenerationUtils,
 } from '@/app/api/generate-video-utils'
 import { generateVideo } from '@/app/api/veo/action'
 import { getOrientation, VideoInterpolBox } from './VideoInterpolBox'
+import { AudioSwitch } from '../ux-components/AudioButton'
 
 export default function GenerateForm({
   generationType,
@@ -95,6 +97,7 @@ export default function GenerateForm({
   onVideoPollingStart,
   initialPrompt,
   initialITVimage,
+  promptIndication,
 }: {
   generationType: 'Image' | 'Video'
   isLoading: boolean
@@ -107,6 +110,7 @@ export default function GenerateForm({
   onVideoPollingStart?: (operationName: string, metadata: OperationMetadataI) => void
   initialPrompt?: string
   initialITVimage?: InterpolImageI
+  promptIndication?: string
 }) {
   const { handleSubmit, resetField, control, setValue, getValues, watch } = useForm<
     GenerateVideoFormI | GenerateImageFormI
@@ -131,6 +135,12 @@ export default function GenerateForm({
   const [isGeminiRewrite, setIsGeminiRewrite] = useState(true)
   const handleGeminiRewrite = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIsGeminiRewrite(event.target.checked)
+  }
+
+  // Veo 3: manage audio in output
+  const isVideoWithAudio = watch('isVideoWithAudio')
+  const handleVideoAudioCheck = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue('isVideoWithAudio', event.target.checked)
   }
 
   // Imagen reference management logic
@@ -241,6 +251,34 @@ export default function GenerateForm({
     else if (orientation === 'vertical') setValue('aspectRatio', '9:16')
   }, [orientation])
 
+  //TODO temp - remove when Veo 3 is fully released
+  const currentModel = watch('modelVersion')
+
+  //TODO temp - remove when models are GA
+  // Transforms a "Publisher Model not found" error message into a user-friendly message.
+  interface ModelOption {
+    value: string
+    label: string
+    indication?: string
+    type?: string
+  }
+  function manageModelNotFoundError(errorMessage: string, modelOptions: ModelOption[]): string {
+    const modelNotFoundRegex =
+      /Publisher Model `projects\/[^/]+\/locations\/[^/]+\/publishers\/google\/models\/([^`]+)` not found\./
+    const match = errorMessage.match(modelNotFoundRegex)
+
+    if (match && match[1]) {
+      const modelValue = match[1]
+      const correspondingModel = modelOptions.find((model) => model.value === modelValue)
+
+      const modelLabel = correspondingModel ? correspondingModel.label : modelValue
+
+      return `You don't have access to the model '${modelLabel}', please select another one in the top dropdown menu for now, and reach out to your IT Admin to request access to '${modelLabel}'.`
+    }
+
+    return errorMessage
+  }
+
   // Image to prompt generator logic
   const [imageToPromptOpen, setImageToPromptOpen] = useState(false)
 
@@ -315,7 +353,10 @@ export default function GenerateForm({
       const newGeneratedImages = await generateImage(formData, areAllRefValid, isGeminiRewrite, appContext)
 
       if (newGeneratedImages !== undefined && typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {
-        const errorMsg = newGeneratedImages['error'].replaceAll('Error: ', '')
+        let errorMsg = newGeneratedImages['error'].replaceAll('Error: ', '')
+
+        errorMsg = manageModelNotFoundError(errorMsg, generationFields.model.options as ModelOption[])
+
         throw Error(errorMsg)
       } else {
         newGeneratedImages.map((image) => {
@@ -341,8 +382,12 @@ export default function GenerateForm({
       if (formData.prompt === '') setIsGeminiRewrite(false)
       const result = await generateVideo(formData, isGeminiRewrite, appContext)
 
-      if ('error' in result) throw new Error(result.error.replace('Error: ', ''))
-      else if ('operationName' in result && 'prompt' in result)
+      if ('error' in result) {
+        let errorMsg = result.error.replace('Error: ', '')
+        errorMsg = manageModelNotFoundError(errorMsg, generationFields.model.options as ModelOption[])
+
+        throw new Error(errorMsg)
+      } else if ('operationName' in result && 'prompt' in result)
         onVideoPollingStart && onVideoPollingStart(result.operationName, { formData: formData, prompt: result.prompt })
       else throw new Error('Failed to initiate video generation: Invalid response from server.')
     } catch (error: any) {
@@ -406,6 +451,11 @@ export default function GenerateForm({
             label={`${optionalVeoPrompt ? '(Optional)' : ''} Prompt - What would you like to generate?`}
             required={!optionalVeoPrompt}
             rows={7}
+            promptIndication={`${promptIndication}${
+              currentModel === 'veo-3.0-generate-preview'
+                ? ', audio (dialogue/ sound effects/ music/ ambiant sounds)'
+                : ''
+            }`}
           />
 
           <Stack justifyContent="flex-end" direction="row" gap={0} pb={3}>
@@ -449,9 +499,21 @@ export default function GenerateForm({
             <GenerateSettings
               control={control}
               setValue={setValue}
-              generalSettingsFields={generationFields.settings}
+              generalSettingsFields={
+                currentModel === 'veo-3.0-generate-preview' ? tempVeo3specificSettings : generationFields.settings
+              }
               advancedSettingsFields={generationFields.advancedSettings}
+              warningMessage={
+                currentModel === 'veo-3.0-generate-preview'
+                  ? 'NB: for now, Veo 3 has fewer setting options than Veo 2!'
+                  : ''
+              }
             />
+            {currentModel === 'veo-3.0-generate-preview' && (
+              <CustomTooltip title="Add audio to your video" size="small">
+                <AudioSwitch checked={isVideoWithAudio} onChange={handleVideoAudioCheck} />
+              </CustomTooltip>
+            )}
             <CustomTooltip title="Have Gemini enhance your prompt" size="small">
               <GeminiSwitch checked={isGeminiRewrite} onChange={handleGeminiRewrite} />
             </CustomTooltip>

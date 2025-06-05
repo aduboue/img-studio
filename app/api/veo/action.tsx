@@ -273,13 +273,14 @@ export async function generateVideo(
   const generationGcsURI = `${appContext.gcsURI}/${appContext.userID}/generated-videos`
 
   // 4 - Build Veo request body parameters based on documentation
-  const parameters: Record<string, any> = {
+  const parameters = {
     sampleCount: parseInt(formData.sampleCount, 10),
     aspectRatio: formData.aspectRatio,
     durationSeconds: parseInt(formData.durationSeconds, 10),
     storageUri: generationGcsURI,
     negativePrompt: formData.negativePrompt,
     personGeneration: formData.personGeneration,
+    generateAudio: formData.modelVersion === 'veo-3.0-generate-preview' && formData.isVideoWithAudio,
   }
 
   const reqData: any = {
@@ -526,18 +527,16 @@ export async function getVideoGenerationStatus(
         nestedError.code === 8 &&
         typeof nestedError.message === 'string' &&
         nestedError.message.toLowerCase().includes('resource exhausted')
-      ) {
+      )
         return { done: true, error: customRateLimitMessage }
-      }
+
       if (
         typeof nestedError.message === 'string' &&
         nestedError.message.includes("{ code: 8, message: 'Resource exhausted.' }")
-      ) {
+      )
         return { done: true, error: customRateLimitMessage }
-      }
-      if (nestedError.message) {
-        errorMessage = nestedError.message
-      }
+
+      if (nestedError.message) errorMessage = nestedError.message
     } else if (error instanceof Error && error.message) {
       // Check error.message directly
       errorMessage = error.message

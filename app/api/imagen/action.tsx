@@ -360,9 +360,10 @@ export async function generateImage(
   let references = formData['referenceObjects']
 
   if (!areAllRefValid) references = []
-  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
-  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const modelVersion = formData['modelVersion']
+  const location =
+    modelVersion === 'imagen-4.0-generate-preview-05-20' ? 'us-central1' : process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO update when not in Preview anymore
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
   // 2 - Building the prompt and rewrite it if needed with Gemini

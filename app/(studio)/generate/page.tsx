@@ -367,6 +367,9 @@ export default function Page() {
               randomPrompts={ImageRandomPrompts}
               generationFields={imageGenerationUtils}
               initialPrompt={initialPrompt ?? ''}
+              promptIndication={
+                'Describe your image: subjects, visual looks, actions, arrangement, setting (time/ place/ weather), style, lighting, colors, mood'
+              }
             />
           )}
 
@@ -383,6 +386,9 @@ export default function Page() {
               generationFields={videoGenerationUtils}
               initialPrompt={initialPrompt ?? ''}
               initialITVimage={initialITVimage ?? undefined}
+              promptIndication={
+                'Describe your video: subjects, visual looks, actions, arrangement, movements, camera motion, setting (time/ place/ weather), style, lighting, colors, mood'
+              }
             />
           )}
         </Grid>

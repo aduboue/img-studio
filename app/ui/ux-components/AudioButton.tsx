@@ -19,8 +19,8 @@ import { Box, Icon, Switch } from '@mui/material'
 import theme from '../../theme'
 const { palette } = theme
 
-export const sparkIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark/default/20px.svg'
-const sparkOffIcon = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/spark_off/default/20px.svg'
+const volumeOff = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/volume_off/default/20px.svg'
+const volumeOn = 'https://fonts.gstatic.com/s/i/short-term/release/googlesymbols/volume_up/default/20px.svg'
 
 const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   width: 50,
@@ -38,17 +38,16 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
     padding: 1,
     transform: 'translateX(4px)',
     '&.Mui-checked': {
-      color: '#fff',
       transform: 'translateX(15px)',
       '& .MuiSwitch-thumb': {
         border: 0,
-        background: 'linear-gradient(130deg, rgba(33,123,254,0.9) 10%, rgba(172,135,235,0.9) 70%)',
-
+        background: 'rgba(33,123,254,0.8)',
         '&:before': {
-          backgroundImage: `url('${sparkIcon}')`,
+          backgroundImage: `url('${volumeOn}')`,
           backgroundRepeat: 'no-repeat',
           backgroundPosition: 'center',
           content: '""',
+          filter: 'invert(100%)',
         },
       },
       '& + .MuiSwitch-track': {
@@ -58,7 +57,6 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
     },
   },
   '& .MuiSwitch-thumb': {
-    background: 'rgba(255,255,255,0.9)',
     border: `1px solid rgba(0, 0, 0, 0.3)`,
     boxShadow:
       '0px 2px 1px -1px rgba(0, 0, 0, 0.5), 0px 1px 1px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 0px rgba(0, 0, 0, 0.2)',
@@ -75,7 +73,7 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
       height: '100%',
       left: 0,
       top: 0,
-      backgroundImage: `url('${sparkOffIcon}')`,
+      backgroundImage: `url('${volumeOff}')`,
       backgroundRepeat: 'no-repeat',
       backgroundPosition: 'center',
     },
@@ -88,7 +86,7 @@ const MaterialUISwitch = styled(Switch)(({ theme }) => ({
   },
 }))
 
-export const GeminiSwitch = ({
+export const AudioSwitch = ({
   checked,
   onChange,
 }: {
@@ -96,40 +94,4 @@ export const GeminiSwitch = ({
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void
 }) => {
   return <MaterialUISwitch sx={{ mt: 2 }} checked={checked} onChange={onChange} />
-}
-
-export const GeminiButton = ({ onClick }: { onClick: () => void }) => {
-  return (
-    <IconButton
-      aria-label="close"
-      color="inherit"
-      size="small"
-      disableRipple={true}
-      onClick={onClick}
-      sx={{
-        p: 0,
-        m: 0,
-        width: 19,
-        height: 19,
-        backgroundImage: 'linear-gradient(90deg, rgba(33,123,254,0.9) 10%,  rgba(172,135,235,0.9) 90%)',
-        '&:hover': {
-          boxShadow:
-            '0px 3px 2px -2px rgba(0, 0, 0, 0.5), 0px 1px 1px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 0px rgba(0, 0, 0, 0.2)',
-        },
-      }}
-    >
-      <Icon
-        color="primary"
-        sx={{
-          p: 0,
-          m: 0,
-          mb: 0.5,
-          alignContent: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <img src={sparkIcon} />
-      </Icon>
-    </IconButton>
-  )
 }
