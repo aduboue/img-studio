@@ -83,6 +83,7 @@ export default function Page() {
               isLoading={isEditLoading}
               generatedImagesInGCS={editedImagesInGCS}
               generatedCount={editedCount}
+              isPromptReplayAvailable={false}
             />
           </Grid>
         </Grid>

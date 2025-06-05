@@ -241,10 +241,10 @@ export async function generateVideo(
     return { error: 'Unable to authenticate your account to access video generation.' }
   }
 
-  const location = 'us-central1' //TODO update when not in Preview anymore
+  const location = 'us-central1' //TODO temp - update when not in Preview anymore
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   let modelVersion = formData.modelVersion || GenerateVideoFormFields.modelVersion.default
-  if (isInterpolation || isCameraPreset) modelVersion = 'veo-2.0-generate-exp' //TODO update when not in Preview anymore
+  if (isInterpolation || isCameraPreset) modelVersion = 'veo-2.0-generate-exp' //TODO temp - update when not in Preview anymore
 
   // Construct the API URL for initiating long-running video generation
   const videoAPIUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predictLongRunning`

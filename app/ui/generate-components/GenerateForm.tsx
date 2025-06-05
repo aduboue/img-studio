@@ -350,6 +350,8 @@ export default function GenerateForm({
       if (hasReferences && !areAllRefValid)
         throw Error('Incomplete reference(s) information provided, either image type or description missing.')
 
+      if (hasReferences && areAllRefValid) setIsGeminiRewrite(false)
+
       const newGeneratedImages = await generateImage(formData, areAllRefValid, isGeminiRewrite, appContext)
 
       if (newGeneratedImages !== undefined && typeof newGeneratedImages === 'object' && 'error' in newGeneratedImages) {

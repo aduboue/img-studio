@@ -496,6 +496,7 @@ export interface ImagenModelResultI {
   gcsUri?: string
   bytesBase64Encoded?: string
   mimeType: string
+  prompt?: string
 }
 
 // Interface of Image object created after image generation

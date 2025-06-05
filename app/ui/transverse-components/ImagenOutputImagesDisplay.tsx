@@ -17,7 +17,7 @@
 import * as React from 'react'
 import { useState } from 'react'
 
-import { CreateNewFolderRounded, Download, Edit, VideocamRounded } from '@mui/icons-material'
+import { AutoAwesome, CreateNewFolderRounded, Download, Edit, Favorite, VideocamRounded } from '@mui/icons-material'
 
 import Image from 'next/image'
 import {
@@ -49,10 +49,12 @@ export default function OutputImagesDisplay({
   isLoading,
   generatedImagesInGCS,
   generatedCount,
+  isPromptReplayAvailable,
 }: {
   isLoading: boolean
   generatedImagesInGCS: ImageI[]
   generatedCount: number
+  isPromptReplayAvailable: boolean
 }) {
   // Full screen, Export & Download states
   const [imageFullScreen, setImageFullScreen] = useState<ImageI | undefined>()
@@ -62,6 +64,12 @@ export default function OutputImagesDisplay({
   const { setAppContext } = useAppContext()
   const router = useRouter()
 
+  const handleMoreLikeThisClick = (prompt: string) => {
+    setAppContext((prevContext) => {
+      if (prevContext) return { ...prevContext, promptToGenerateImage: prompt, promptToGenerateVideo: '' }
+      else return { ...appContextDataDefault, promptToGenerateImage: prompt, promptToGenerateVideo: '' }
+    })
+  }
   const handleEditClick = (imageGcsURI: string) => {
     setAppContext((prevContext) => {
       if (prevContext) return { ...prevContext, imageToEdit: imageGcsURI }
@@ -151,12 +159,30 @@ export default function OutputImagesDisplay({
                     position="top"
                     actionIcon={
                       <Stack direction="row" gap={0} pb={3}>
+                        {
+                          //  If there is a replayable prompt, display the "More like this" button
+                          isPromptReplayAvailable && !image.prompt.includes('[1]') && (
+                            <CustomWhiteTooltip title="More like this!" size="small">
+                              <IconButton
+                                onClick={() => handleMoreLikeThisClick(image.prompt)}
+                                aria-label="More like this!"
+                                sx={{ pr: 0.2, zIndex: 10 }}
+                                disableRipple
+                              >
+                                <Avatar sx={CustomizedAvatarButton}>
+                                  <Favorite sx={CustomizedIconButton} />
+                                </Avatar>
+                              </IconButton>
+                            </CustomWhiteTooltip>
+                          )
+                        }
                         {process.env.NEXT_PUBLIC_EDIT_ENABLED === 'true' && (
                           <CustomWhiteTooltip title="Edit this image" size="small">
                             <IconButton
                               onClick={() => handleEditClick(image.gcsUri)}
                               aria-label="Edit image"
-                              sx={{ pr: 0.2, zIndex: 10 }}
+                              sx={{ px: 0.2, zIndex: 10 }}
+                              disableRipple
                             >
                               <Avatar sx={CustomizedAvatarButton}>
                                 <Edit sx={CustomizedIconButton} />
@@ -171,6 +197,7 @@ export default function OutputImagesDisplay({
                                 onClick={() => handleITVClick(image.gcsUri)}
                                 aria-label="Image to video"
                                 sx={{ px: 0.2, zIndex: 10 }}
+                                disableRipple
                               >
                                 <Avatar sx={CustomizedAvatarButton}>
                                   <VideocamRounded sx={CustomizedIconButton} />
@@ -183,6 +210,7 @@ export default function OutputImagesDisplay({
                             onClick={() => setImageToExport(image)}
                             aria-label="Export image"
                             sx={{ px: 0.2, zIndex: 10 }}
+                            disableRipple
                           >
                             <Avatar sx={CustomizedAvatarButton}>
                               <CreateNewFolderRounded sx={CustomizedIconButton} />
@@ -194,6 +222,7 @@ export default function OutputImagesDisplay({
                             onClick={() => setImageToDL(image)}
                             aria-label="Download image"
                             sx={{ pr: 1, pl: 0.2, zIndex: 10 }}
+                            disableRipple
                           >
                             <Avatar sx={CustomizedAvatarButton}>
                               <Download sx={CustomizedIconButton} />

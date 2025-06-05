@@ -101,8 +101,9 @@ async function generatePrompt(formData: any, isGeminiRewrite: boolean, reference
 
   fullPrompt = fullPrompt + quality_modifiers
 
+  // Old, now directly handled my model
   // Rewrite the content of the prompt
-  if (isGeminiRewrite) {
+  /*if (isGeminiRewrite) {
     try {
       const isStyleRefProvided = references && references.some((ref) => ref.referenceType === 'Style')
       const isPersonRefProvided = references && references.some((ref) => ref.referenceType === 'Person')
@@ -126,7 +127,7 @@ async function generatePrompt(formData: any, isGeminiRewrite: boolean, reference
       console.error(error)
       return { error: 'Error while rewriting prompt with Gemini .' }
     }
-  }
+  }*/
 
   // Add references to the prompt
   if (references !== undefined && references.length > 0) {
@@ -215,7 +216,7 @@ export async function buildImageListFromURI({
             src: signedURL,
             gcsUri: image.gcsUri,
             format: format,
-            prompt: usedPrompt,
+            prompt: image.prompt && image.prompt != '' ? image.prompt : usedPrompt,
             altText: `Generated image ${fileName}`,
             key: ID,
             width: width,
@@ -309,7 +310,7 @@ export async function buildImageListFromBase64({
             src: signedURL,
             gcsUri: imageGcsUri,
             format: format,
-            prompt: usedPrompt,
+            prompt: image.prompt && image.prompt != '' ? image.prompt : usedPrompt,
             altText: `Generated image ${fileName}`,
             key: ID,
             width: width,
@@ -362,7 +363,7 @@ export async function generateImage(
   if (!areAllRefValid) references = []
   const modelVersion = formData['modelVersion']
   const location =
-    modelVersion === 'imagen-4.0-generate-preview-05-20' ? 'us-central1' : process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO update when not in Preview anymore
+    modelVersion === 'imagen-4.0-generate-preview-05-20' ? 'us-central1' : process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO temp - update when not in Preview anymore
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
@@ -411,6 +412,7 @@ export async function generateImage(
       includeRaiReason: true,
       personGeneration: formData['personGeneration'],
       storageUri: generationGcsURI,
+      enhancePrompt: isGeminiRewrite,
     },
   }
 

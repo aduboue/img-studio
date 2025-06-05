@@ -181,6 +181,7 @@ export default function Page() {
   }
 
   // Handler for successful IMAGE generation completion
+  const [isPromptReplayAvailable, setIsPromptReplayAvailable] = useState(true)
   const handleImageGeneration = (newImages: ImageI[]) => {
     setGeneratedImages(newImages)
     setIsLoading(false)
@@ -398,6 +399,7 @@ export default function Page() {
               isLoading={isLoading}
               generatedImagesInGCS={generatedImages}
               generatedCount={generatedCount}
+              isPromptReplayAvailable={true}
             />
           ) : (
             <OutputVideosDisplay
