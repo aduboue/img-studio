@@ -145,6 +145,7 @@ export default function Page() {
       setGenerationErrorMsg('')
       setGeneratedImages([])
       setGeneratedVideos([])
+      setInitialPrompt(null)
       // Ensure polling state is reset if switching mode
       if (timeoutIdRef.current) {
         clearTimeout(timeoutIdRef.current)
