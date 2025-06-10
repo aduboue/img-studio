@@ -1,20 +1,33 @@
 # Infrastructure setup guide for ImgStudio
 
-## 0\\ Get access to **Imagen models**
+## 0\\ Setup **Vertex** & Request access to **required models**
 
-- **In general, for Vertex** in the console
-  - Go to `Vertex AI` \> `Enable all recommended APIs` (they should include: **Vertex AI API, Cloud Storage API)**
-  - Make sure the Vertex Service Account exists in your project `service-PROJECT_NUMBER@gcp-sa-aiplatform.iam.gserviceaccount.com`
-- **For Imagen > Generation**
-  - Models are now in public GA, **Imagen 3 Generate** (`imagen-3.0-generate-001`) and **Imagen 3 Generate Fast** (`imagen-3.0-fast-generate-001`)
-  - **For people generation** (adult and/ or children), you now need to fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSduBp9w84qgim6vLriQ9p7sdz62bMJaL-nNmIVoyiOwd84SMw/viewform) to get access.
-- **For Imagen > Editing & Customization**
-  - You can fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform) to get access to the Preview feature (name: `imagen-3.0-capability-001`)
-  - You will also need the **Vertex Image Segmentation model** when using editing, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSdzIR1EeQGFcMsqd9nPip5e9ovDKSjfWRd58QVjo1zLpfdvEg/viewform?resourcekey=0-Pvqc66u-0Z1QmuzHq4wLKg&pli=1) to get access (name: `image-segmentation-001`)
-- **For Veo > Generation**
-  - Model for text-to-video is now in public GA, **Veo 2 Generate** (`veo-2.0-generate-001`)
-- **For Veo > Advanced**
-  - For **Image-to-video** (`veo-2.0-generate-001`) & advanced features (`veo-2.0-generate-exp`: interpolation, camera preset), you need to fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSciY6O_qGg2J0A8VUcK4egJ3_Tysh-wGTl-l218XtC0e7lM_w/viewform)
+- **General Vertex AI Setup**
+
+  - Go to `Vertex AI` \> `Enable all recommended APIs`. This typically includes:
+    - `Vertex AI API`
+    - `Cloud Storage API`
+  - Confirm that the Vertex Service Account exists in your project. It should look like this:`service-PROJECT_NUMBER@gcp-sa-aiplatform.iam.gserviceaccount.com`
+
+- **Imagen Models**
+
+  - **Children (minors) generation**: contact your commercial team to ask for access
+  - **Imagen 4** Generation
+    - **Public Preview:** `imagen-4.0-generate-preview-05-20` (Standard)
+    - **Public Experimental Preview:** `imagen-4.0-ultra-generate-exp-05-20` (Ultra)
+  - **Imagen 3** Generation
+    - **Public GA:** `imagen-3.0-generate-002` (Standard)
+    - **Public GA:** `imagen-3.0-fast-generate-001` (Fast)
+  - **Imagen 3** Editing & Customization
+    - **Private GA:** `imagen-3.0-capability-001` (Standard) \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform)
+  - **Image Segmentation model** (required for image editing in app)
+    - **Private GA:** `image-segmentation-001` (Standard) \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSdzIR1EeQGFcMsqd9nPip5e9ovDKSjfWRd58QVjo1zLpfdvEg/viewform?resourcekey=0-Pvqc66u-0Z1QmuzHq4wLKg&pli=1)
+
+- **Veo Models**
+  - **Veo 2** Generation (Text to Video, Image to Video)
+    - **Public GA:** `veo-2.0-generate-001` (Standard)
+  - **Veo 2** Advanced features (Interpolation, Camera Preset Controls, Video Extend), & **Veo 3** Generation (Text to Video \+ Audio, Image to Video \+ Audio)
+    - **Private GA:** `veo-2.0-generate-exp` & `veo-3.0-generate-preview` \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSciY6O_qGg2J0A8VUcK4egJ3_Tysh-wGTl-l218XtC0e7lM_w/viewform)
 
 ## 1\\ Create **Cloud Storage** buckets
 
