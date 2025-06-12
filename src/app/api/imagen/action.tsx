@@ -15,19 +15,19 @@
 'use server'
 
 import {
-  fullPromptAdditionalFields,
   GenerateImageFormI,
-  VisionGenerativeModelResultI,
+  ImagenModelResultI,
   ImageI,
   RatioToPixel,
   referenceTypeMatching,
   ReferenceObjectI,
-} from '../generate-utils'
-import { decomposeUri, downloadImage, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
-import { rewriteWithGemini, truncateLog } from '../gemini/action'
+  imageGenerationUtils,
+} from '../generate-image-utils'
+import { decomposeUri, downloadMediaFromGcs, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
+import { getFullReferenceDescription, rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
-const { GoogleAuth, APIError } = require('google-auth-library')
+const { GoogleAuth } = require('google-auth-library')
 
 function cleanResult(inputString: string) {
   return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
@@ -39,7 +39,7 @@ function generateUniqueFolderId() {
   return number
 }
 
-function normalizeSentence(sentence: string) {
+export async function normalizeSentence(sentence: string) {
   // Split the sentence into individual words
   const words = sentence.toLowerCase().split(' ')
 
@@ -70,37 +70,22 @@ function normalizeSentence(sentence: string) {
   return normalizedSentence
 }
 
-async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boolean, references: ReferenceObjectI[]) {
+async function generatePrompt(formData: any, isGeminiRewrite: boolean, references?: ReferenceObjectI[]) {
   let fullPrompt = formData['prompt']
-
-  // Rewrite the content of the prompt
-  if (isGeminiRewrite) {
-    try {
-      const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt)
-
-      if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
-        const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
-        throw Error(errorMsg)
-      } else fullPrompt = geminiReturnedPrompt as string
-    } catch (error) {
-      console.error(error)
-      return { error: 'Error while rewriting prompt with Gemini .' }
-    }
-  }
 
   // Add the photo/ art/ digital style to the prompt
   fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of ` + fullPrompt
 
   // Add additional parameters to the prompt
   let parameters = ''
-  fullPromptAdditionalFields.forEach((additionalField) => {
+  imageGenerationUtils.fullPromptFields.forEach((additionalField) => {
     if (formData[additionalField] !== '')
       parameters += ` ${formData[additionalField]} ${additionalField.replaceAll('_', ' ')}, `
   })
   if (parameters !== '') fullPrompt = `${fullPrompt}, ${parameters}`
 
-  // Add quality modifiers to the prompt
-  let quality_modifiers = ', high-quality, beautiful, stylized'
+  // Add quality modifiers to the prompt for Image Generation
+  let quality_modifiers = ''
   if (formData['style'] === 'photo') {
     quality_modifiers = quality_modifiers + ', 4K'
   } else quality_modifiers = quality_modifiers + ', by a professional, detailed'
@@ -116,8 +101,36 @@ async function generatePrompt(formData: GenerateImageFormI, isGeminiRewrite: boo
 
   fullPrompt = fullPrompt + quality_modifiers
 
+  // Old, now directly handled my model
+  // Rewrite the content of the prompt
+  /*if (isGeminiRewrite) {
+    try {
+      const isStyleRefProvided = references && references.some((ref) => ref.referenceType === 'Style')
+      const isPersonRefProvided = references && references.some((ref) => ref.referenceType === 'Person')
+      const isAnimalRefProvided = references && references.some((ref) => ref.referenceType === 'Animal')
+      const isObjectRefProvided = references && references.some((ref) => ref.referenceType === 'Product')
+
+      const geminiReturnedPrompt = await rewriteWithGemini(
+        fullPrompt,
+        'Image',
+        isPersonRefProvided,
+        isAnimalRefProvided,
+        isObjectRefProvided,
+        isStyleRefProvided
+      )
+
+      if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
+        const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
+        throw Error(errorMsg)
+      } else fullPrompt = geminiReturnedPrompt as string
+    } catch (error) {
+      console.error(error)
+      return { error: 'Error while rewriting prompt with Gemini .' }
+    }
+  }*/
+
   // Add references to the prompt
-  if (references.length > 0) {
+  if (references !== undefined && references.length > 0) {
     let reference = 'Generate an image '
     let subjects: string[] = []
     let subjectsID: number[] = []
@@ -162,7 +175,7 @@ export async function buildImageListFromURI({
   modelVersion,
   mode,
 }: {
-  imagesInGCS: VisionGenerativeModelResultI[]
+  imagesInGCS: ImagenModelResultI[]
   aspectRatio: string
   width: number
   height: number
@@ -197,13 +210,13 @@ export async function buildImageListFromURI({
         const signedURL: string | { error: string } = await getSignedURL(image.gcsUri ?? '')
 
         if (typeof signedURL === 'object' && 'error' in signedURL) {
-          throw Error(cleanResult(signedURL.error))
+          throw Error(cleanResult(signedURL['error']))
         } else {
           return {
             src: signedURL,
             gcsUri: image.gcsUri,
             format: format,
-            prompt: usedPrompt,
+            prompt: image.prompt && image.prompt != '' ? image.prompt : usedPrompt,
             altText: `Generated image ${fileName}`,
             key: ID,
             width: width,
@@ -242,7 +255,7 @@ export async function buildImageListFromBase64({
   modelVersion,
   mode,
 }: {
-  imagesBase64: VisionGenerativeModelResultI[]
+  imagesBase64: ImagenModelResultI[]
   targetGcsURI: string
   aspectRatio: string
   width: number
@@ -291,13 +304,13 @@ export async function buildImageListFromBase64({
         const signedURL: string | { error: string } = await getSignedURL(imageGcsUri)
 
         if (typeof signedURL === 'object' && 'error' in signedURL) {
-          throw Error(cleanResult(signedURL.error))
+          throw Error(cleanResult(signedURL['error']))
         } else {
           return {
             src: signedURL,
             gcsUri: imageGcsUri,
             format: format,
-            prompt: usedPrompt,
+            prompt: image.prompt && image.prompt != '' ? image.prompt : usedPrompt,
             altText: `Generated image ${fileName}`,
             key: ID,
             width: width,
@@ -332,20 +345,11 @@ export async function generateImage(
   appContext: appContextDataI | null
 ) {
   // 1 - Atempting to authent to Google Cloud & fetch project informations
-  let client, auth
+  let client
   try {
-    const APIKey = process.env.VERTEX_API_KEY
-    const isAPIKey = APIKey !== undefined && APIKey !== ''
-    if (isAPIKey) {
-      auth = new GoogleAuth({
-        apiKey: APIKey,
-      })
-    } else {
-      auth = new GoogleAuth({
-        scopes: 'https://www.googleapis.com/auth/cloud-platform',
-      })
-    }
-
+    const auth = new GoogleAuth({
+      scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    })
     client = await auth.getClient()
   } catch (error) {
     console.error(error)
@@ -354,13 +358,13 @@ export async function generateImage(
     }
   }
 
-
   let references = formData['referenceObjects']
 
   if (!areAllRefValid) references = []
-  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
-  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const modelVersion = formData['modelVersion']
+  const location =
+    modelVersion === 'imagen-4.0-generate-preview-05-20' ? 'us-central1' : process.env.NEXT_PUBLIC_VERTEX_API_LOCATION //TODO temp - update when not in Preview anymore
+  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
 
   // 2 - Building the prompt and rewrite it if needed with Gemini
@@ -408,6 +412,7 @@ export async function generateImage(
       includeRaiReason: true,
       personGeneration: formData['personGeneration'],
       storageUri: generationGcsURI,
+      enhancePrompt: isGeminiRewrite,
     },
   }
 
@@ -416,7 +421,7 @@ export async function generateImage(
     reqData.parameters.editMode = 'EDIT_MODE_DEFAULT'
 
     reqData.instances[0].referenceImages = []
-
+    let fullRefDescriptionDone: number[] = []
     for (const [index, reference] of references.entries()) {
       const params = referenceTypeMatching[reference.referenceType as keyof typeof referenceTypeMatching]
 
@@ -447,10 +452,18 @@ export async function generateImage(
           },
         }
 
+      // Adding new reference to the API request data
       reqData.instances[0].referenceImages[index] = newReference
+
+      // Fetching for each reference a full description to add to the prompt for more performant results
+      if (!fullRefDescriptionDone.includes(reference.refId)) {
+        fullRefDescriptionDone.push(reference.refId)
+        const fullAIrefDescription = await getFullReferenceDescription(reference.base64Image, reference.referenceType)
+        reqData.instances[0].prompt = reqData.instances[0].prompt + `\n\n[${reference.refId}] ` + fullAIrefDescription
+      }
     }
   }
-    const opts = {
+  const opts = {
     url: imagenAPIurl,
     method: 'POST',
     data: reqData,
@@ -466,11 +479,9 @@ export async function generateImage(
     if ('raiFilteredReason' in res.data.predictions[0])
       throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
 
-    console.log('Image generated with success')
-
     const usedRatio = RatioToPixel.find((item) => item.ratio === opts.data.parameters.aspectRatio)
 
-    const resultImages: VisionGenerativeModelResultI[] = res.data.predictions
+    const resultImages: ImagenModelResultI[] = res.data.predictions
 
     const isResultBase64Images: boolean = resultImages.every((image) => image.hasOwnProperty('bytesBase64Encoded'))
 
@@ -501,46 +512,36 @@ export async function generateImage(
 
     return enhancedImageList
   } catch (error) {
-    console.error(error)
+    const errorString = error instanceof Error ? error.toString() : String(error)
+    console.error(errorString)
 
-    const errorString = error instanceof Error ? error.toString() : ''
     if (
       errorString.includes('safety settings for peopleface generation') ||
-      errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines")
-    ) {
+      errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines") ||
+      errorString.includes('Person Generation')
+    )
       return {
-        error: errorString.replace('Error: ', ''),
+        error: errorString.replace(/^Error: /i, ''),
       }
-    }
 
     const myError = error as Error & { errors: any[] }
-    const myErrorMsg = myError.errors[0].message.replace('Image generation failed with the following error: ', '')
+    let myErrorMsg = ''
+    if (myError.errors && myError.errors[0] && myError.errors[0].message)
+      myErrorMsg = myError.errors[0].message.replace('Image generation failed with the following error: ', '')
 
     return {
-      error: myErrorMsg,
+      error: myErrorMsg || 'An unexpected error occurred.',
     }
   }
 }
 
-export async function editImageV3(formData: EditImageFormI, appContext: appContextDataI | null) {
+export async function editImage(formData: EditImageFormI, appContext: appContextDataI | null) {
   // 1 - Atempting to authent to Google Cloud & fetch project informations
-  let client, auth
-
+  let client
   try {
-    const APIKey = process.env.VERTEX_API_KEY
-    const isAPIKey = APIKey !== undefined && APIKey !== ''
-    if (isAPIKey) {
-      auth = new GoogleAuth({
-        apiKey: APIKey,
-      })
-      console.log("API Key Mode")
-    } else {
-      auth = new GoogleAuth({
-        scopes: 'https://www.googleapis.com/auth/cloud-platform',
-      })
-      console.log("Client Auth Mode")
-    }
-
+    const auth = new GoogleAuth({
+      scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    })
     client = await auth.getClient()
   } catch (error) {
     console.error(error)
@@ -582,8 +583,6 @@ export async function editImageV3(formData: EditImageFormI, appContext: appConte
     instances: [
       {
         prompt: formData.prompt as string,
-        //FIXME : This part needs to be changed to work with Imagen2 Edit
-        //Reference API Doc : 
         referenceImages: [
           {
             referenceType: 'REFERENCE_TYPE_RAW',
@@ -650,8 +649,6 @@ export async function editImageV3(formData: EditImageFormI, appContext: appConte
     if ('raiFilteredReason' in res.data.predictions[0]) {
       throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
     }
-
-    console.log('Image generated with success')
   } catch (error) {
     console.error(error)
 
@@ -675,178 +672,7 @@ export async function editImageV3(formData: EditImageFormI, appContext: appConte
 
   // 4 - Creating output image list
   try {
-    const resultImages: VisionGenerativeModelResultI[] = res.data.predictions
-
-    const isResultBase64Images: boolean = resultImages.every((image) => image.hasOwnProperty('bytesBase64Encoded'))
-
-    let enhancedImageList
-    if (isResultBase64Images)
-      enhancedImageList = await buildImageListFromBase64({
-        imagesBase64: resultImages,
-        targetGcsURI: editGcsURI,
-        aspectRatio: formData['ratio'],
-        width: formData['width'],
-        height: formData['height'],
-        usedPrompt: opts.data.instances[0].prompt,
-        userID: appContext?.userID ? appContext?.userID : '',
-        modelVersion: modelVersion,
-        mode: 'Generated',
-      })
-    else
-      enhancedImageList = await buildImageListFromURI({
-        imagesInGCS: resultImages,
-        aspectRatio: formData['ratio'],
-        width: formData['width'],
-        height: formData['height'],
-        usedPrompt: opts.data.instances[0].prompt,
-        userID: appContext?.userID ? appContext?.userID : '',
-        modelVersion: modelVersion,
-        mode: 'Edited',
-      })
-
-    return enhancedImageList
-  } catch (error) {
-    console.error(error)
-    return {
-      error: 'Issue while editing image.',
-    }
-  }
-}
-
-
-export async function editImageV2(formData: EditImageFormI, appContext: appContextDataI | null) {
-  // 1 - Atempting to authent to Google Cloud & fetch project informations
-  let client, auth
-
-  try {
-    const APIKey = process.env.VERTEX_API_KEY
-    const isAPIKey = APIKey !== undefined && APIKey !== ''
-    if (isAPIKey) {
-      auth = new GoogleAuth({
-        apiKey: APIKey,
-      })
-      console.log("API Key Mode")
-    } else {
-      auth = new GoogleAuth({
-        scopes: 'https://www.googleapis.com/auth/cloud-platform',
-      })
-      console.log("Client Auth Mode")
-    }
-
-    client = await auth.getClient()
-  } catch (error) {
-    console.error(error)
-    return {
-      error: 'Unable to authenticate your account to access images',
-    }
-  }
-
-  const location = process.env.NEXT_PUBLIC_VERTEX_API_LOCATION
-  const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
-  const modelVersion = formData['modelVersion']
-  const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predict`
-
-  if (appContext === undefined) throw Error('No provided app context')
-
-  // 2 - Building Imagen request body
-  let editGcsURI = ''
-  if (
-    appContext === undefined ||
-    appContext === null ||
-    appContext.gcsURI === undefined ||
-    appContext.userID === undefined
-  )
-    throw Error('No provided app context')
-  else {
-    editGcsURI = `${appContext.gcsURI}/${appContext.userID}/edited-images`
-  }
-
-  const refInputImage = formData['inputImage'].startsWith('data:')
-    ? formData['inputImage'].split(',')[1]
-    : formData['inputImage']
-  const refInputMask = formData['inputMask'].startsWith('data:')
-    ? formData['inputMask'].split(',')[1]
-    : formData['inputMask']
-
-  const editMode = formData['editMode']
-
-  const reqData = {
-    instances: [
-      {
-        prompt: formData.prompt as string,
-        image : {
-          bytesBase64Encoded: refInputImage,
-        },
-        mask : {
-          image:{
-            bytesBase64Encoded: refInputMask,
-          }
-        }
-      }
-    ],
-    parameters: {
-      negativePrompt: formData['negativePrompt'],
-      promptLanguage: 'en',
-      seed: 1,
-      editConfig: {
-        baseSteps: parseInt(formData['baseSteps']),
-        editMode: editMode
-      },
-      
-      sampleCount: parseInt(formData['sampleCount']),
-      outputOptions: {
-        mimeType: formData['outputOptions'],
-      },
-      includeRaiReason: true,
-      personGeneration: formData['personGeneration'],
-      storageUri: editGcsURI,
-    },
-  }
-
-  const opts = {
-    url: imagenAPIurl,
-    method: 'POST',
-    data: reqData,
-  }
-
-  // 3 - Editing image
-  let res
-  try {
-    res = await client.request(opts)
-
-    if (res.data.predictions === undefined) {
-      throw Error('There were an issue, no images were generated')
-    }
-    // NO images at all were generated out of all samples
-    if ('raiFilteredReason' in res.data.predictions[0]) {
-      throw Error(cleanResult(res.data.predictions[0].raiFilteredReason))
-    }
-
-    console.log('Image generated with success')
-  } catch (error) {
-    console.error(error)
-
-    const errorString = error instanceof Error ? error.toString() : ''
-    if (
-      errorString.includes('safety settings for peopleface generation') ||
-      errorString.includes("All images were filtered out because they violated Vertex AI's usage guidelines")
-    ) {
-      return {
-        error: errorString.replace('Error: ', ''),
-      }
-    }
-
-    const myError = error as Error & { errors: any[] }
-    const myErrorMsg = myError.errors[0].message
-
-    return {
-      error: myErrorMsg,
-    }
-  }
-
-  // 4 - Creating output image list
-  try {
-    const resultImages: VisionGenerativeModelResultI[] = res.data.predictions
+    const resultImages: ImagenModelResultI[] = res.data.predictions
 
     const isResultBase64Images: boolean = resultImages.every((image) => image.hasOwnProperty('bytesBase64Encoded'))
 
@@ -886,21 +712,11 @@ export async function editImageV2(formData: EditImageFormI, appContext: appConte
 
 export async function upscaleImage(sourceUri: string, upscaleFactor: string, appContext: appContextDataI | null) {
   // 1 - Atempting to authent to Google Cloud & fetch project informations
-  let client, auth
-
+  let client
   try {
-    const APIKey = process.env.VERTEX_API_KEY
-    const isAPIKey = APIKey !== undefined && APIKey !== ''
-    if (isAPIKey) {
-      auth = new GoogleAuth({
-        apiKey: APIKey,
-      })
-    } else {
-      auth = new GoogleAuth({
-        scopes: 'https://www.googleapis.com/auth/cloud-platform',
-      })
-    }
-
+    const auth = new GoogleAuth({
+      scopes: 'https://www.googleapis.com/auth/cloud-platform',
+    })
     client = await auth.getClient()
   } catch (error) {
     console.error(error)
@@ -915,7 +731,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
   // 2 Downloading source image
   let res
   try {
-    res = await downloadImage(sourceUri)
+    res = await downloadMediaFromGcs(sourceUri)
 
     if (typeof res === 'object' && res['error']) {
       throw Error(res['error'].replaceAll('Error: ', ''))
@@ -923,7 +739,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
   } catch (error: any) {
     throw Error(error)
   }
-  const { image } = res
+  const { data } = res
 
   // 3 - Building Imagen request body
   let targetGCSuri = ''
@@ -942,7 +758,7 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
       {
         prompt: '',
         image: {
-          bytesBase64Encoded: image,
+          bytesBase64Encoded: data,
         },
       },
     ],

@@ -19,7 +19,7 @@ import Image from 'next/image'
 
 import theme from '../../theme'
 import { fileToBase64 } from '../edit-components/EditForm'
-import { Add, ControlPointDuplicate } from '@mui/icons-material'
+import { Add, AddPhotoAlternate, ControlPointDuplicate } from '@mui/icons-material'
 import { getAspectRatio } from '../edit-components/EditImageDropzone'
 const { palette } = theme
 
@@ -29,16 +29,23 @@ export default function ImageDropzone({
   onNewErrorMsg,
   size,
   maxSize,
+  object,
   setValue,
   addAdditionalRefObject,
   isNewImagePossible,
-  refPosition,
 }: {
   setImage: (base64Image: string) => void
   image: string | null
   onNewErrorMsg: (msg: string) => void
-  size: string
-  maxSize: number
+  size: {
+    width: string
+    height: string
+  }
+  maxSize: {
+    width: number
+    height: number
+  }
+  object: string
   setValue?: any
   addAdditionalRefObject?: () => void
   isNewImagePossible?: boolean
@@ -62,9 +69,9 @@ export default function ImageDropzone({
     if (setValue) {
       const img = new window.Image()
       img.onload = () => {
-        setValue(`referenceObjects.${refPosition}.width`, img.width)
-        setValue(`referenceObjects.${refPosition}.height`, img.height)
-        setValue(`referenceObjects.${refPosition}.ratio`, getAspectRatio(img.width, img.height))
+        setValue(`${object}.width`, img.width)
+        setValue(`${object}.height`, img.height)
+        setValue(`${object}.ratio`, getAspectRatio(img.width, img.height))
       }
       img.src = newImage
     }
@@ -77,10 +84,10 @@ export default function ImageDropzone({
       <Box
         id="DropzoneContainer"
         sx={{
-          width: size,
-          maxWidth: maxSize,
-          height: size,
-          maxHeight: maxSize,
+          width: size.width,
+          maxWidth: maxSize.width,
+          height: size.height,
+          maxHeight: maxSize.height,
           position: 'relative',
           m: 0,
           p: 0,
@@ -113,7 +120,7 @@ export default function ImageDropzone({
             {...getRootProps()}
           >
             <input {...getInputProps()} />
-            <Add />
+            <AddPhotoAlternate sx={{ ml: 0.5, fontSize: '1.7rem' }} />
           </Box>
         )}
         {image && (
@@ -137,8 +144,8 @@ export default function ImageDropzone({
                 objectFit: 'cover',
                 objectPosition: 'center',
               }}
-              width={20}
-              height={20}
+              width={0}
+              height={0}
               quality={50}
             />
             {isNewImagePossible && addAdditionalRefObject && (

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-interface GenerateImagFieldI1 {
+export interface GenerateFieldI1 {
   label?: string
   type?: string
   default?: string
@@ -27,7 +27,7 @@ interface GenerateImagFieldI1 {
   isDataResetable: boolean
   isFullPromptAdditionalField: boolean
 }
-interface GenerateImagFieldStyleI {
+export interface GenerateFieldStyleI {
   type: string
   default: string
   defaultSub: string
@@ -40,7 +40,7 @@ interface GenerateImagFieldStyleI {
   isFullPromptAdditionalField: boolean
 }
 
-interface GenerateImagFieldSecondartStyleI {
+export interface GenerateFieldSecondartStyleI {
   type: string
   options: {
     label: string
@@ -54,21 +54,21 @@ interface GenerateImagFieldSecondartStyleI {
 }
 
 export interface GenerateImageFormFieldsI {
-  prompt: GenerateImagFieldI1
-  modelVersion: GenerateImagFieldI1
-  sampleCount: GenerateImagFieldI1
-  negativePrompt: GenerateImagFieldI1
-  aspectRatio: GenerateImagFieldI1
-  personGeneration: GenerateImagFieldI1
-  outputOptions: GenerateImagFieldI1
-  style: GenerateImagFieldStyleI
-  secondary_style: GenerateImagFieldSecondartStyleI
-  light: GenerateImagFieldI1
-  light_coming_from: GenerateImagFieldI1
-  shot_from: GenerateImagFieldI1
-  perspective: GenerateImagFieldI1
-  image_colors: GenerateImagFieldI1
-  use_case: GenerateImagFieldI1
+  prompt: GenerateFieldI1
+  modelVersion: GenerateFieldI1
+  sampleCount: GenerateFieldI1
+  negativePrompt: GenerateFieldI1
+  aspectRatio: GenerateFieldI1
+  personGeneration: GenerateFieldI1
+  outputOptions: GenerateFieldI1
+  style: GenerateFieldStyleI
+  secondary_style: GenerateFieldSecondartStyleI
+  light: GenerateFieldI1
+  light_coming_from: GenerateFieldI1
+  shot_from: GenerateFieldI1
+  perspective: GenerateFieldI1
+  image_colors: GenerateFieldI1
+  use_case: GenerateFieldI1
 }
 
 export const GenerateImageFormFields = {
@@ -79,12 +79,17 @@ export const GenerateImageFormFields = {
   },
   modelVersion: {
     type: 'select',
-    default: 'imagen-3.0-generate-002',
+    default: 'imagen-4.0-generate-preview-05-20',
     options: [
+      {
+        value: 'imagen-4.0-generate-preview-05-20',
+        label: 'Imagen 4',
+        indication: 'High performance latest model version',
+      },
       {
         value: 'imagen-3.0-generate-002',
         label: 'Imagen 3',
-        indication: 'High performance model version',
+        indication: 'Standard performance model version',
       },
       {
         value: 'imagen-3.0-fast-generate-001',
@@ -318,53 +323,6 @@ export const GenerateImageFormFields = {
   },
 }
 
-export interface chipGroupFieldsI {
-  label: string
-  subID?: string
-  default?: string | number
-  options: string[]
-}
-
-export interface selectFieldsI {
-  label?: string
-  default: string
-  options: {
-    value: string
-    label: string
-    indication?: string
-  }[]
-}
-
-export interface generalSettingsI {
-  aspectRatio: chipGroupFieldsI
-  sampleCount: chipGroupFieldsI
-}
-export interface advancedSettingsI {
-  personGeneration: selectFieldsI
-  outputOptions: selectFieldsI
-}
-
-// Sort out Generate fields depending on purpose
-export const modelField = GenerateImageFormFields.modelVersion
-export const generalSettingsFields = {
-  aspectRatio: GenerateImageFormFields.aspectRatio,
-  sampleCount: GenerateImageFormFields.sampleCount,
-}
-export const advancedSettingsFields = {
-  personGeneration: GenerateImageFormFields.personGeneration,
-  outputOptions: GenerateImageFormFields.outputOptions,
-}
-export const imgStyleField = GenerateImageFormFields.style
-export const subImgStyleFields = GenerateImageFormFields.secondary_style
-export const compositionFields = {
-  light: GenerateImageFormFields.light,
-  perspective: GenerateImageFormFields.perspective,
-  image_colors: GenerateImageFormFields.image_colors,
-  use_case: GenerateImageFormFields.use_case,
-  light_coming_from: GenerateImageFormFields.light_coming_from,
-  shot_from: GenerateImageFormFields.shot_from,
-}
-
 // Reference utils for Few Shots Customization in Image Generation
 
 export const referenceTypeField = {
@@ -448,30 +406,97 @@ export interface GenerateImageFormI {
 const generateFieldList: [keyof GenerateImageFormFieldsI] = Object.keys(GenerateImageFormFields) as [
   keyof GenerateImageFormFieldsI
 ]
-export var formDataDefaults: any
+var formDataDefaults: any
 generateFieldList.forEach((field) => {
-  const fieldParams: GenerateImagFieldI1 | GenerateImagFieldStyleI | GenerateImagFieldSecondartStyleI =
+  const fieldParams: GenerateFieldI1 | GenerateFieldStyleI | GenerateFieldSecondartStyleI =
     GenerateImageFormFields[field]
   const defaultValue = 'default' in fieldParams ? fieldParams.default : ''
   formDataDefaults = { ...formDataDefaults, [field]: defaultValue }
 })
 formDataDefaults.referenceObjects = ReferenceObjectInit
 
-// Set fields that can be reseted by the user
-export const formDataResetableFields = generateFieldList.filter(
-  (field) => GenerateImageFormFields[field].isDataResetable == true
-)
+export interface chipGroupFieldsI {
+  label: string
+  subID?: string
+  default?: string | number
+  options: string[]
+}
 
-// Set fields that are used to complete the prompt written by the user
-export const fullPromptAdditionalFields = generateFieldList.filter(
-  (field) => GenerateImageFormFields[field].isFullPromptAdditionalField == true
-)
+export interface selectFieldsI {
+  label?: string
+  default: string
+  options: {
+    value: string
+    label: string
+    indication?: string
+  }[]
+}
 
-// Interface of result sent back by Imagen within GCS
-export interface VisionGenerativeModelResultI {
+export interface generalSettingsI {
+  aspectRatio: chipGroupFieldsI
+  durationSeconds?: chipGroupFieldsI
+  sampleCount: chipGroupFieldsI
+}
+export interface advancedSettingsI {
+  personGeneration: selectFieldsI
+  outputOptions?: selectFieldsI
+}
+
+interface CompositionFieldsI {
+  light: GenerateFieldI1
+  perspective: GenerateFieldI1
+  image_colors: GenerateFieldI1
+  use_case: GenerateFieldI1
+  light_coming_from: GenerateFieldI1
+  shot_from: GenerateFieldI1
+}
+
+export interface ImageGenerationFieldsI {
+  model: GenerateFieldI1
+  settings: generalSettingsI
+  advancedSettings: advancedSettingsI
+  styleOptions: GenerateFieldStyleI
+  subStyleOptions: GenerateFieldSecondartStyleI
+  compositionOptions: CompositionFieldsI
+  resetableFields: (keyof GenerateImageFormFieldsI)[]
+  fullPromptFields: (keyof GenerateImageFormFieldsI)[]
+  defaultValues: any
+}
+
+// Sort out Generate fields depending on purpose
+export const imageGenerationUtils: ImageGenerationFieldsI = {
+  model: GenerateImageFormFields.modelVersion,
+  settings: {
+    aspectRatio: GenerateImageFormFields.aspectRatio,
+    sampleCount: GenerateImageFormFields.sampleCount,
+  },
+  advancedSettings: {
+    personGeneration: GenerateImageFormFields.personGeneration,
+    outputOptions: GenerateImageFormFields.outputOptions,
+  },
+  styleOptions: GenerateImageFormFields.style,
+  subStyleOptions: GenerateImageFormFields.secondary_style,
+  compositionOptions: {
+    light: GenerateImageFormFields.light,
+    perspective: GenerateImageFormFields.perspective,
+    image_colors: GenerateImageFormFields.image_colors,
+    use_case: GenerateImageFormFields.use_case,
+    light_coming_from: GenerateImageFormFields.light_coming_from,
+    shot_from: GenerateImageFormFields.shot_from,
+  },
+  resetableFields: generateFieldList.filter((field) => GenerateImageFormFields[field].isDataResetable == true),
+  fullPromptFields: generateFieldList.filter(
+    (field) => GenerateImageFormFields[field].isFullPromptAdditionalField == true
+  ),
+  defaultValues: formDataDefaults,
+}
+
+// Interface of result sent back by Imagen within GCS or as base64
+export interface ImagenModelResultI {
   gcsUri?: string
   bytesBase64Encoded?: string
   mimeType: string
+  prompt?: string
 }
 
 // Interface of Image object created after image generation
@@ -501,7 +526,7 @@ export const RatioToPixel = [
 ]
 
 // Random prompt list the user can use if they lack prompt ideas
-export const RandomPrompts = [
+export const ImageRandomPrompts = [
   'A woman hiking, close of her boots reflected in a puddle, large mountains in the background, in the style of an advertisement, dramatic angles',
   'Three women stand together laughing, with one woman slightly out of focus in the foreground. The sun is setting behind the women, creating a lens flare and a warm glow that highlights their hair and creates a bokeh effect in the background. The photography style is candid and captures a genuine moment of connection and happiness between friends. The warm light of golden hour lends a nostalgic and intimate feel to the image',
   'A weathered, wooden mech robot covered in flowering vines stands peacefully in a field of tall wildflowers, with a small bluebird resting on its outstretched hand. Digital cartoon, with warm colors and soft lines. A large cliff with a waterfall looms behind',

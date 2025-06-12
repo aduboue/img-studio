@@ -14,6 +14,15 @@
 
 'use server'
 
+const ffmpegInstaller = require('@ffmpeg-installer/ffmpeg')
+const ffprobeInstaller = require('@ffprobe-installer/ffprobe')
+import ffmpeg from 'fluent-ffmpeg'
+import fs from 'fs/promises'
+import path from 'path'
+import os from 'os'
+ffmpeg.setFfmpegPath(ffmpegInstaller.path)
+ffmpeg.setFfprobePath(ffprobeInstaller.path)
+
 const { Storage } = require('@google-cloud/storage')
 
 interface optionsI {
@@ -56,58 +65,95 @@ export async function getSignedURL(gcsURI: string) {
   }
 }
 
-export async function copyImageToTeamBucket(actualGcsUri: string, imageID: string) {
+export async function copyImageToTeamBucket(sourceGcsUri: string, id: string) {
   const storage = new Storage({ projectId })
 
   try {
-    const { bucketName, fileName } = await decomposeUri(actualGcsUri)
+    if (!sourceGcsUri || !sourceGcsUri.startsWith('gs://')) {
+      console.error('Invalid source GCS URI provided:', sourceGcsUri)
+      return {
+        error: 'Invalid source GCS URI format. It must start with gs://',
+      }
+    }
+    if (!id) {
+      console.error('Invalid id provided:', id)
+      return {
+        error: 'Invalid id. It cannot be empty.',
+      }
+    }
+
+    const { bucketName, fileName } = await decomposeUri(sourceGcsUri)
 
     const destinationBucketName = process.env.NEXT_PUBLIC_TEAM_BUCKET
 
-    if (!bucketName || !fileName || !destinationBucketName) {
-      throw new Error('Invalid source or destination URI.')
-    }
+    if (!bucketName || !fileName || !destinationBucketName) throw new Error('Invalid source or destination URI.')
 
     const sourceObject = storage.bucket(bucketName).file(fileName)
     const destinationBucket = storage.bucket(destinationBucketName)
-    const destinationFile = destinationBucket.file(imageID)
+    const destinationFile = destinationBucket.file(id)
 
-    // Check if file already exists in destination bucket
+    // Check if file already exists in destination bucket, if not copy it
     const [exists] = await destinationFile.exists()
+    if (!exists) await sourceObject.copy(destinationFile)
 
-    if (!exists) {
-      // File doesn't exist, proceed with copy
-      await sourceObject.copy(destinationFile)
-    }
-
-    return `gs://${destinationBucketName}/${imageID}`
+    return `gs://${destinationBucketName}/${id}`
   } catch (error) {
     console.error(error)
     return {
-      error: 'Error while moving image to team Library',
+      error: 'Error while moving media to team Library',
     }
   }
 }
 
-export async function downloadImage(gcsUri: string) {
-  const storage = new Storage({ projectId })
+export async function downloadMediaFromGcs(gcsUri: string): Promise<{ data?: string; error?: string }> {
+  const storage = new Storage()
+
+  if (!gcsUri || !gcsUri.startsWith('gs://')) {
+    console.error('Invalid GCS URI provided:', gcsUri)
+    return {
+      error: 'Invalid GCS URI format. It must start with gs://',
+    }
+  }
+
+  try {
+    const { bucketName, fileName } = await decomposeUri(gcsUri)
+
+    if (!bucketName || !fileName) {
+      console.error('Could not determine bucket name or file name from URI:', gcsUri)
+      return {
+        error: 'Invalid GCS URI, could not extract bucket or file name.',
+      }
+    }
+
+    const [fileBuffer] = await storage.bucket(bucketName).file(fileName).download()
+    const base64Data = fileBuffer.toString('base64')
+
+    return {
+      data: base64Data,
+    }
+  } catch (error: any) {
+    console.error('Error during GCS file download:', error)
+
+    const errorMessage = error.message || 'Error while downloading the media'
+    return {
+      error: errorMessage,
+    }
+  }
+}
+
+export async function downloadTempVideo(gcsUri: string): Promise<string> {
+  const storage = new Storage()
 
   const { bucketName, fileName } = await decomposeUri(gcsUri)
 
-  try {
-    const [res] = await storage.bucket(bucketName).file(fileName).download()
+  const tempFileName = `video_${Date.now()}_${path.basename(fileName)}`
+  const tempFilePath = path.join(os.tmpdir(), tempFileName)
 
-    const base64Image = Buffer.from(res).toString('base64')
+  await storage.bucket(bucketName).file(fileName).download({
+    destination: tempFilePath,
+  })
 
-    return {
-      image: base64Image,
-    }
-  } catch (error) {
-    console.error(error)
-    return {
-      error: 'Error while downloading the image',
-    }
-  }
+  return tempFilePath
 }
 
 export async function fetchJsonFromStorage(gcsUri: string) {
@@ -164,6 +210,96 @@ export async function uploadBase64Image(
     console.error('Error uploading file:', error)
     return {
       error: 'Error uploading file to Google Cloud Storage.',
+    }
+  }
+}
+
+export async function getVideoThumbnailBase64(
+  videoSourceGcsUri: string,
+  ratio: string
+): Promise<{ thumbnailBase64Data?: string; mimeType?: string; error?: string }> {
+  const outputMimeType = 'image/png'
+  const tempThumbnailFileName = `thumbnail_${Date.now()}.png`
+  const tempThumbnailPath = path.join(os.tmpdir(), tempThumbnailFileName)
+
+  let localVideoPath: string | null = null
+
+  try {
+    // 1. Ensure video is locally accessible
+    localVideoPath = await downloadTempVideo(videoSourceGcsUri)
+
+    if (!localVideoPath) throw Error('Failed to download video')
+
+    // 2. Use FFmpeg to extract the thumbnail
+    await new Promise<void>((resolve, reject) => {
+      let command = ffmpeg(localVideoPath!).seekInput('00:00:01').frames(1) // Extract a single frame
+
+      const size = ratio === '16:9' ? '320x180' : '180x320'
+      command = command.size(size)
+      command = command.outputFormat('image2')
+
+      command
+        .output(tempThumbnailPath)
+        .on('end', () => {
+          resolve()
+        })
+        .on('error', (err: { message: any }) => {
+          console.error('FFmpeg Error:', err.message)
+          reject(new Error(`FFmpeg failed to extract thumbnail: ${err.message}`))
+        })
+        .run()
+    })
+
+    // 3. Read the generated thumbnail file into a buffer
+    const thumbnailBuffer = await fs.readFile(tempThumbnailPath)
+
+    // 4. Convert buffer to base64 string
+    const thumbnailBase64Data = thumbnailBuffer.toString('base64')
+
+    return {
+      thumbnailBase64Data,
+      mimeType: outputMimeType,
+    }
+  } catch (error: any) {
+    console.error('Error in getVideoThumbnailBase64:', error)
+    return { error: error.message || 'An unexpected error occurred while generating thumbnail.' }
+  } finally {
+    // 5. Cleanup temporary files
+    if (localVideoPath)
+      await fs
+        .unlink(localVideoPath)
+        .catch((err: any) => console.error(`Failed to delete temp video file: ${localVideoPath}`, err))
+
+    // Attempt to delete the temp thumbnail even if an error occurred earlier
+    await fs.unlink(tempThumbnailPath).catch((err: { code: string }) => {
+      if (err.code !== 'ENOENT') console.error(`Failed to delete temp thumbnail file: ${tempThumbnailPath}`, err)
+    })
+  }
+}
+
+export async function deleteMedia(gcsURI: string): Promise<boolean | { error: string }> {
+  const storage = new Storage({ projectId })
+
+  if (!gcsURI || !gcsURI.startsWith('gs://')) return { error: 'Invalid GCS URI. It must start with "gs://".' }
+
+  const { bucketName, fileName: objectName } = await decomposeUri(gcsURI)
+
+  if (!bucketName || !objectName) return { error: 'Invalid GCS URI' }
+
+  try {
+    await storage.bucket(bucketName).file(objectName).delete()
+
+    return true
+  } catch (error: any) {
+    console.error(`Error deleting file ${gcsURI} from GCS:`, error)
+
+    if (error.code === 404)
+      return {
+        error: `File ${gcsURI} not found in Google Cloud Storage.`,
+      }
+
+    return {
+      error: `An error occurred while deleting file ${gcsURI} from Google Cloud Storage.`,
     }
   }
 }

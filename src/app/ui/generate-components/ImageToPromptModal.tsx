@@ -51,10 +51,12 @@ export default function ImageToPromptModal({
   open,
   setNewPrompt,
   setImageToPromptOpen,
+  target,
 }: {
   open: boolean
   setNewPrompt: (newPormpt: string) => void
   setImageToPromptOpen: (state: boolean) => void
+  target: 'Image' | 'Video'
 }) {
   const [image, setImage] = useState<string | null>(null)
   const [prompt, setPrompt] = useState('')
@@ -70,7 +72,7 @@ export default function ImageToPromptModal({
   const getPromptFromImage = async () => {
     setIsGeneratingPrompt(true)
     try {
-      const geminiReturnedPrompt = await getPromptFromImageFromGemini(image as string)
+      const geminiReturnedPrompt = await getPromptFromImageFromGemini(image as string, target)
 
       if (!(typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt))
         setPrompt(geminiReturnedPrompt as string)
@@ -157,8 +159,9 @@ export default function ImageToPromptModal({
             setImage={(base64Image: string) => setImage(base64Image)}
             image={image}
             onNewErrorMsg={setErrorMsg}
-            size="110vw"
-            maxSize={280}
+            size={{ width: '110vw', height: '110vw' }}
+            maxSize={{ width: 280, height: 280 }}
+            object={'contain'}
           />
           <Stack
             direction="column"

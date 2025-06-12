@@ -73,10 +73,18 @@ export const CloseWithoutSubmitWarning = ({ onClose, onKeepOpen }: { onClose: an
   )
 }
 
-export const ExportErrorWarning = ({ onClose, errorMsg }: { onClose: any; errorMsg: string }) => {
+export const ExportAlerts = ({
+  onClose,
+  message,
+  style,
+}: {
+  onClose: any
+  message: string
+  style: 'error' | 'success'
+}) => {
   return (
     <Alert
-      severity="error"
+      severity={style}
       action={
         <IconButton aria-label="close" color="inherit" size="small" onClick={onClose} sx={{ pt: 0.2 }}>
           <Close fontSize="inherit" />
@@ -84,7 +92,7 @@ export const ExportErrorWarning = ({ onClose, errorMsg }: { onClose: any; errorM
       }
       sx={{ height: 'auto', mb: 2, fontSize: 16, fontWeight: 500, pt: 1, color: palette.text.secondary }}
     >
-      {errorMsg}
+      {message}
     </Alert>
   )
 }

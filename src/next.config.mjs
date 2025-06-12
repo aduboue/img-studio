@@ -22,6 +22,10 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'storage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'storage.mtls.cloud.google.com',
       }
     ],
 
@@ -31,8 +35,28 @@ const nextConfig = {
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '30mb', // Add this line
+      bodySizeLimit: '30mb',
     },
+  },
+  webpack: (config, { isServer, webpack }) => {
+    if (isServer) {
+      if (!config.externals) {
+        config.externals = [];
+      }
+      const externalsToAdd = ['@ffmpeg-installer/ffmpeg', '@ffprobe-installer/ffprobe'];
+      for (const ext of externalsToAdd)
+        if (!config.externals.includes(ext))
+          config.externals.push(ext);
+
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp: /^(.\/README\.md|.\/types\/.*\.d\.ts|.\/tsconfig\.json)$/,
+          contextRegExp: /@ffprobe-installer[\\/]ffprobe$/,
+        })
+      );
+    }
+
+    return config;
   },
 }
 

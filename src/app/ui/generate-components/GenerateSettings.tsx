@@ -21,7 +21,7 @@ const { palette } = theme
 
 import FormInputDropdown from '../ux-components/InputDropdown'
 import FormInputChipGroup from '../ux-components/InputChipGroup'
-import { FormInputGenerateSettingsI } from '../ux-components/InputInterface'
+import { GenerateSettingsI } from '../ux-components/InputInterface'
 import { FormInputTextSmall } from '../ux-components/InputTextSmall'
 import { Settings } from '@mui/icons-material'
 import CustomTooltip from '../ux-components/Tooltip'
@@ -40,12 +40,13 @@ const CustomizedMenu = {
   },
 }
 
-export default function FormInputGenerateSettings({
+export default function GenerateSettings({
   control,
   setValue,
   generalSettingsFields,
   advancedSettingsFields,
-}: FormInputGenerateSettingsI) {
+  warningMessage,
+}: GenerateSettingsI) {
   const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null)
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -86,6 +87,14 @@ export default function FormInputGenerateSettings({
         onClose={handleClose}
         sx={CustomizedMenu}
       >
+        {warningMessage !== '' && (
+          <Typography
+            color={palette.warning.main}
+            sx={{ m: 1, fontSize: '0.7rem', fontWeight: 400, fontStyle: 'italic', px: 1 }}
+          >
+            {warningMessage}
+          </Typography>
+        )}
         {Object.entries(generalSettingsFields).map(function ([param, field]) {
           return (
             <MenuItem key={param}>

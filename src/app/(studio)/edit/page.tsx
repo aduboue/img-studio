@@ -18,7 +18,7 @@ import * as React from 'react'
 import Grid from '@mui/material/Grid2'
 import Box from '@mui/material/Box'
 import { useCallback, useEffect, useState } from 'react'
-import { ImageI } from '../../api/generate-utils'
+import { ImageI } from '../../api/generate-image-utils'
 import OutputImagesDisplay from '../../ui/transverse-components/ImagenOutputImagesDisplay'
 import { useAppContext } from '../../context/app-context'
 import { Typography } from '@mui/material'
@@ -33,20 +33,17 @@ export default function Page() {
   const [isEditLoading, setIsEditLoading] = useState(false)
   const [editErrorMsg, setEditErrorMsg] = useState('')
   const { appContext, error } = useAppContext()
+  const [editedCount, setEditedCount] = useState<number>(0)
 
   const handleImageGeneration = (newImages: ImageI[]) => {
     setEditedImagesInGCS(newImages)
     setIsEditLoading(false)
   }
 
-  const handleResetForm = () => {
-    setEditedImagesInGCS([])
-    setIsEditLoading(false)
-  }
-
-  const handleRequestSent = (valid: boolean) => {
+  const handleRequestSent = (valid: boolean, count: number) => {
     editErrorMsg !== '' && valid && setEditErrorMsg('')
     setIsEditLoading(valid)
+    setEditedCount(count)
   }
   const handleNewErrorMsg = useCallback((newErrorMsg: string) => {
     setEditErrorMsg(newErrorMsg)
@@ -82,7 +79,12 @@ export default function Page() {
             />
           </Grid>
           <Grid size={0.9} flex={1} sx={{ pt: 11, maxWidth: 850, minWidth: 400 }}>
-            <OutputImagesDisplay isLoading={isEditLoading} generatedImagesInGCS={editedImagesInGCS} />
+            <OutputImagesDisplay
+              isLoading={isEditLoading}
+              generatedImagesInGCS={editedImagesInGCS}
+              generatedCount={editedCount}
+              isPromptReplayAvailable={false}
+            />
           </Grid>
         </Grid>
       </Box>

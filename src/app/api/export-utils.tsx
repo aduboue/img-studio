@@ -12,9 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { ImageI } from './generate-utils'
+import { ImageI } from './generate-image-utils'
+import { VideoI } from './generate-video-utils'
 
-export interface ExportImageFieldI {
+export interface ExportMediaFieldI {
   label: string
   name?: string
   type: string
@@ -29,39 +30,41 @@ export interface ExportImageFieldI {
   }[]
 }
 
-export interface ExportImageFormFieldsI {
-  imageID: ExportImageFieldI
-  imageGcsURI: ExportImageFieldI
-  imageGenerationDate: ExportImageFieldI
-  imageLeveragedModel: ExportImageFieldI
-  imageAuthor: ExportImageFieldI
-  imagePrompt: ExportImageFieldI
-  imageFormat: ExportImageFieldI
-  imageRatio: ExportImageFieldI
-  imageUpscaleFactor: ExportImageFieldI
-  imageWidth: ExportImageFieldI
-  imageHeight: ExportImageFieldI
-  [key: string]: ExportImageFieldI
+export interface ExportMediaFormFieldsI {
+  id: ExportMediaFieldI
+  gcsURI: ExportMediaFieldI
+  creationDate: ExportMediaFieldI
+  leveragedModel: ExportMediaFieldI
+  author: ExportMediaFieldI
+  prompt: ExportMediaFieldI
+  format: ExportMediaFieldI
+  videoDuration: ExportMediaFieldI
+  videoThumbnailGcsUri: ExportMediaFieldI
+  aspectRatio: ExportMediaFieldI
+  upscaleFactor: ExportMediaFieldI
+  width: ExportMediaFieldI
+  height: ExportMediaFieldI
+  [key: string]: ExportMediaFieldI
 }
 
-export const ExportImageFormFieldsFixed: any = {
-  imageID: {
-    label: 'Image ID',
+export const exportStandardFields: ExportMediaFormFieldsI = {
+  id: {
+    label: 'Media ID',
     type: 'text-info',
     prop: 'key',
     isUpdatable: false,
     isExportVisible: false,
     isExploreVisible: false,
   },
-  imageGcsURI: {
-    label: 'Image GCS URI',
+  gcsURI: {
+    label: 'Media GCS URI',
     type: 'text-info',
     prop: 'gcsUri',
     isUpdatable: false,
     isExportVisible: false,
     isExploreVisible: false,
   },
-  imageGenerationDate: {
+  creationDate: {
     label: 'Generation date',
     type: 'text-info',
     prop: 'date',
@@ -69,7 +72,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: false,
     isExploreVisible: true,
   },
-  imageLeveragedModel: {
+  leveragedModel: {
     label: 'Leveraged model',
     type: 'text-info',
     prop: 'modelVersion',
@@ -77,7 +80,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: false,
     isExploreVisible: true,
   },
-  imageCreationMode: {
+  mediaCreationMode: {
     label: 'Creation mode',
     type: 'text-info',
     prop: 'mode',
@@ -85,7 +88,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: false,
     isExploreVisible: true,
   },
-  imageAuthor: {
+  author: {
     label: 'Author',
     type: 'text-info',
     prop: 'author',
@@ -93,7 +96,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: false,
     isExploreVisible: true,
   },
-  imagePrompt: {
+  prompt: {
     label: 'Prompt',
     type: 'text-info',
     prop: 'prompt',
@@ -101,7 +104,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: true,
     isExploreVisible: true,
   },
-  imageFormat: {
+  format: {
     label: 'Format',
     type: 'text-info',
     prop: 'format',
@@ -109,7 +112,23 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: true,
     isExploreVisible: true,
   },
-  imageRatio: {
+  videoDuration: {
+    label: 'Duration (sec)',
+    type: 'text-info',
+    prop: 'duration',
+    isUpdatable: false,
+    isExportVisible: true,
+    isExploreVisible: true,
+  },
+  videoThumbnailGcsUri: {
+    label: 'Video Thumbnail GCS URI',
+    type: 'text-info',
+    prop: 'videoThumbnailGcsUri',
+    isUpdatable: false,
+    isExportVisible: false,
+    isExploreVisible: false,
+  },
+  aspectRatio: {
     label: 'Ratio',
     type: 'text-info',
     prop: 'ratio',
@@ -117,7 +136,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: true,
     isExploreVisible: true,
   },
-  imageUpscaleFactor: {
+  upscaleFactor: {
     label: 'Scale factor',
     type: 'radio-button',
     prop: 'upscaleFactor',
@@ -125,7 +144,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: true,
     isExploreVisible: true,
   },
-  imageWidth: {
+  width: {
     label: 'Width (px)',
     type: 'text-info',
     prop: 'width',
@@ -133,7 +152,7 @@ export const ExportImageFormFieldsFixed: any = {
     isExportVisible: true,
     isExploreVisible: true,
   },
-  imageHeight: {
+  height: {
     label: 'Height (px)',
     type: 'text-info',
     prop: 'height',
@@ -143,29 +162,31 @@ export const ExportImageFormFieldsFixed: any = {
   },
 }
 
-export interface ExportImageFormI {
-  imageToExport: ImageI
+export interface ExportMediaFormI {
+  mediaToExport: ImageI | VideoI
   upscaleFactor: string
   [key: string]: any
 }
 
-export interface FilterImageFormI {
+export interface FilterMediaFormI {
   [key: string]: any
 }
 
-export interface ImageMetadataI {
-  imageID: string
-  imageGcsURI: string
-  imageGenerationDate: any
-  imageLeveragedModel: string
-  imageAuthor: string
-  imagePrompt: string
-  imageFormat: string
-  imageRatio: string
-  imageUpscaleFactor: string
-  imageWidth: number
-  imageHeight: number
+export interface MediaMetadataI {
+  id: string
+  gcsURI: string
+  creationDate: any
+  leveragedModel: string
+  author: string
+  prompt: string
+  format: string
+  videoDuration?: number
+  videoThumbnailGcsUri?: string
+  aspectRatio: string
+  upscaleFactor?: string
+  width: number
+  height: number
   [key: string]: any
 }
 
-export type ImageMetadataWithSignedUrl = ImageMetadataI & { signedUrl: string }
+export type MediaMetadataWithSignedUrl = MediaMetadataI & { signedUrl: string; videoThumbnailSignedUrl?: string }

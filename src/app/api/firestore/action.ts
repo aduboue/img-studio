@@ -15,7 +15,8 @@
 'use server'
 
 import { Timestamp } from '@google-cloud/firestore'
-import { ExportImageFormI, ImageMetadataI, ExportImageFormFieldsI } from '../export-utils'
+import { ExportMediaFormI, MediaMetadataI, ExportMediaFormFieldsI } from '../export-utils'
+import { deleteMedia } from '../cloud-storage/action'
 
 const { Firestore, FieldValue } = require('@google-cloud/firestore')
 const firestore = new Firestore()
@@ -23,19 +24,19 @@ firestore.settings({ ignoreUndefinedProperties: true })
 
 export async function addNewFirestoreEntry(
   entryID: string,
-  data: ExportImageFormI,
-  ExportImageFormFields: ExportImageFormFieldsI
+  data: ExportMediaFormI,
+  ExportImageFormFields: ExportMediaFormFieldsI
 ) {
   const document = firestore.collection('metadata').doc(entryID)
 
-  let cleanData: ImageMetadataI = {} as ImageMetadataI
-  data = { ...data.imageToExport, ...data }
+  let cleanData: MediaMetadataI = {} as MediaMetadataI
+  data = { ...data.mediaToExport, ...data }
   let combinedFilters: string[] = []
 
   if (ExportImageFormFields) {
     Object.entries(ExportImageFormFields).forEach(([name, field]) => {
       const sourceProp = field.prop || name
-      const valueFromData = data[sourceProp as keyof ExportImageFormI]
+      const valueFromData = data[sourceProp as keyof ExportMediaFormI]
       let transformedValue = valueFromData
 
       if (Array.isArray(valueFromData) && valueFromData.every((item) => typeof item === 'string')) {
@@ -43,7 +44,7 @@ export async function addNewFirestoreEntry(
         valueFromData.forEach((item) => combinedFilters.push(`${name}_${item}`))
       }
 
-      cleanData[name as keyof ImageMetadataI] = transformedValue ?? null
+      cleanData[name as keyof MediaMetadataI] = transformedValue ?? null
     })
   }
 
@@ -68,7 +69,7 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
   const batchSize = 24
 
   const collection = firestore.collection('metadata')
-  let thisBatchDocuments: ImageMetadataI[] = []
+  let thisBatchDocuments: MediaMetadataI[] = []
 
   let query = collection
 
@@ -106,7 +107,7 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
       const data = doc.data()
       delete data.timestamp
       delete data.combinedFilters
-      return data as ImageMetadataI
+      return data as MediaMetadataI
     })
 
     const newLastVisibleDocument = {
@@ -151,5 +152,53 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
     return {
       error: 'Error while fetching metadata',
     }
+  }
+}
+
+export async function firestoreDeleteBatch(
+  idsToDelete: string[],
+  currentMedias: MediaMetadataI[]
+): Promise<boolean | { error: string }> {
+  // Ensure firestore is initialized and collection name is correct
+  const collection = firestore.collection('metadata')
+  const batch = firestore.batch()
+
+  const gcsDeletionPromises: Promise<void>[] = []
+
+  if (!idsToDelete || idsToDelete.length === 0) {
+    console.log('No IDs provided for deletion. Exiting.')
+    return true
+  }
+
+  for (const id of idsToDelete) {
+    const mediaItem = currentMedias.find((media) => media.id === id)
+
+    if (mediaItem && mediaItem.gcsURI)
+      gcsDeletionPromises.push(
+        deleteMedia(mediaItem.gcsURI)
+          .then(() => {
+            console.log(`Successfully deleted GCS file: ${mediaItem.gcsURI} for document ID: ${id}`)
+          })
+          .catch((error: any) => {
+            console.error(`Failed to delete GCS file ${mediaItem.gcsURI} for document ID: ${id}. Error:`, error)
+          })
+      )
+
+    // Add the Firestore document deletion to the batch
+    const docRef = collection.doc(id)
+    batch.delete(docRef)
+  }
+
+  // Attempt to delete all GCS files concurrently and wait for all attempts to settle.
+  if (gcsDeletionPromises.length > 0) await Promise.all(gcsDeletionPromises)
+
+  // Commit the batch of Firestore deletions
+  try {
+    await batch.commit()
+    return true
+  } catch (error) {
+    console.error('Firestore batch commit failed:', error)
+
+    return { error: `Firestore batch deletion failed. ` }
   }
 }

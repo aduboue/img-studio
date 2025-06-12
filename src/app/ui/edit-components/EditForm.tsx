@@ -23,10 +23,10 @@ import { Send as SendIcon, WatchLater as WatchLaterIcon, Close as CloseIcon, Aut
 import { FormInputText } from '../ux-components/InputText'
 import FormInputDropdown from '../ux-components/InputDropdown'
 
-import { ImageI } from '../../api/generate-utils'
+import { ImageI } from '../../api/generate-image-utils'
 
 import theme from '../../theme'
-import { editImageV2,editImageV3 } from '../../api/imagen/action'
+import { editImage } from '../../api/imagen/action'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
 import CustomTooltip from '../ux-components/Tooltip'
 import { appContextDataDefault, useAppContext } from '../../context/app-context'
@@ -41,7 +41,7 @@ import {
 import FormInputEditSettings from './EditSettings'
 import EditModeMenu from './EditModeMenu'
 import SetMaskDialog from './SetMaskDialog'
-import { downloadImage } from '../../api/cloud-storage/action'
+import { downloadMediaFromGcs } from '../../api/cloud-storage/action'
 const { palette } = theme
 
 const editModeField = EditImageFormFields.editMode
@@ -67,7 +67,7 @@ export default function EditForm({
   onNewErrorMsg,
 }: {
   isLoading: boolean
-  onRequestSent: (valid: boolean) => void
+  onRequestSent: (valid: boolean, count: number) => void
   onImageGeneration: (newImages: ImageI[]) => void
   errorMsg: string
   onNewErrorMsg: (newErrorMsg: string) => void
@@ -117,9 +117,9 @@ export default function EditForm({
       handleNewEditMode(defaultEditMode?.value ?? '')
       if (appContext && appContext.imageToEdit) {
         try {
-          const { image } = await downloadImage(appContext.imageToEdit)
-          const newImage = `data:image/png;base64,${image}`
-          image && setImageToEdit(newImage)
+          const { data } = await downloadMediaFromGcs(appContext.imageToEdit)
+          const newImage = `data:image/png;base64,${data}`
+          data && setImageToEdit(newImage)
           setMaskImage(null)
 
           // Re-initialize parameter in context
@@ -170,7 +170,7 @@ export default function EditForm({
   }, [imageToEdit, maskImage, outpaintedImage])
 
   const onSubmit: SubmitHandler<EditImageFormI> = async (formData: EditImageFormI) => {
-    onRequestSent(true)
+    onRequestSent(true, parseInt(formData.sampleCount))
 
     try {
       if (
@@ -180,12 +180,7 @@ export default function EditForm({
       )
         throw Error('Missing either image, prompt or mask')
 
-      // Add logic to distinguish Imagen2 or Imagen3
-      const modelVersion = formData['modelVersion']
-      const newEditedImage = (modelVersion.includes("imagen-3") ? 
-        await editImageV3(formData, appContext):
-        await editImageV2(formData, appContext)
-      )
+      const newEditedImage = await editImage(formData, appContext)
 
       if (newEditedImage !== undefined && typeof newEditedImage === 'object' && 'error' in newEditedImage) {
         const errorMsg = newEditedImage['error'].replaceAll('Error: ', '')
@@ -199,8 +194,6 @@ export default function EditForm({
       }
     } catch (error: any) {
       onNewErrorMsg(error.toString())
-    } finally {
-      onRequestSent(false)
     }
   }
 

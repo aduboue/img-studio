@@ -15,16 +15,18 @@
 'use client'
 
 import { createContext, useState, useEffect, useContext } from 'react'
-import { ExportImageFormFieldsFixed, ExportImageFormFieldsI } from '../api/export-utils'
+import { exportStandardFields, ExportMediaFormFieldsI } from '../api/export-utils'
 import { fetchJsonFromStorage } from '../api/cloud-storage/action'
 
 export interface appContextDataI {
   gcsURI?: string
   userID?: string
-  exportFields?: ExportImageFormFieldsI
+  exportMetaOptions?: ExportMediaFormFieldsI
   isLoading: boolean
   imageToEdit?: string
-  promptToGenerate?: string
+  imageToVideo?: string
+  promptToGenerateImage?: string
+  promptToGenerateVideo?: string
 }
 
 interface AppContextType {
@@ -37,10 +39,12 @@ interface AppContextType {
 export const appContextDataDefault = {
   gcsURI: '',
   userID: '',
-  exportFields: undefined,
+  exportMetaOptions: undefined,
   isLoading: true,
   imageToEdit: '',
-  promptToGenerate: '',
+  imageToVideo: '',
+  promptToGenerateImage: '',
+  promptToGenerateVideo: '',
 }
 
 const AppContext = createContext<AppContextType>({
@@ -110,22 +114,22 @@ export function ContextProvider({ children }: { children: React.ReactNode }) {
         // 2. Set GCS URI for all edited/ generated images
         let gcsURI = `gs://${process.env.NEXT_PUBLIC_OUTPUT_BUCKET}`
 
-        // 3. Check if export fields options file exists
-        let exportFields: any = {}
-        const exportFieldsURI = process.env.NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI
+        // 3. Check if export metadata options file exists
+        let exportMetaOptions: any = {}
+        const exportMetaOptionsURI = process.env.NEXT_PUBLIC_EXPORT_FIELDS_OPTIONS_URI
         try {
-          exportFields = await fetchJsonFromStorage(exportFieldsURI)
-          if (!exportFields) throw Error('Not found')
+          exportMetaOptions = await fetchJsonFromStorage(exportMetaOptionsURI)
+          if (!exportMetaOptions) throw Error('Not found')
         } catch (error) {
-          throw Error('Could not fetch export fields options')
+          throw Error('Could not fetch export metadata options')
         }
-        const ExportImageFormFields: ExportImageFormFieldsI = { ...ExportImageFormFieldsFixed, ...exportFields }
+        const ExportImageFormFields: ExportMediaFormFieldsI = { ...exportStandardFields, ...exportMetaOptions }
 
         // 4. Update Context with all fetched data
         setAppContext({
           userID: fetchedUserID,
           gcsURI: gcsURI?.toString(),
-          exportFields: ExportImageFormFields,
+          exportMetaOptions: ExportImageFormFields,
           isLoading: false,
         })
         setRetries(0)

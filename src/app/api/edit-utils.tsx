@@ -52,18 +52,13 @@ export const EditImageFormFields = {
   modelVersion: {
     type: 'select',
     label: 'Model version',
-    default: 'imagegeneration@006',
+    default: 'imagen-3.0-capability-001',
     options: [
       {
-        value: 'imagegeneration@006',
-        label: 'Imagen 2',
+        value: 'imagen-3.0-capability-001',
+        label: 'Imagen 3',
         indication: '',
       },
-      {
-        value: 'imagen-3.0-capability-001',
-        label: 'Imagen 3 Edit',
-        indication: '',
-      }
     ],
     isDataResetable: false,
   },
@@ -97,37 +92,8 @@ export const EditImageFormFields = {
   editMode: {
     type: 'in-place-menu',
     label: 'What do you want to do with your image?',
-    default: 'inpainting-insert',
+    default: 'EDIT_MODE_INPAINT_INSERTION',
     options: [
-      {
-        value: 'inpainting-insert',
-        label: 'Edit (Imagen2)',
-        description: 'Change selected object(s)',
-        icon: 'Insert',
-        mandatoryPrompt: true,
-        promptIndication: 'Prompt - Describe what you want to insert or update to the selected zone',
-        mandatoryMask: true,
-        maskButtonLabel: 'Select object(s)',
-        maskButtonIcon: 'category',
-        maskDialogTitle: 'Select object(s) to Edit',
-        maskDialogIndication: 'Only selected pixels within can and will be edited',
-        maskType: ['manual', 'background', 'foreground', 'semantic', 'interactive', 'prompt'],
-        enabled: true,
-        defaultMaskDilation: 0.01,
-        defaultBaseSteps: 12,
-      },
-      {
-        value: 'product-image',
-        label: 'Product showcase(Imagen2)',
-        description: 'Place product in a new scene',
-        icon: 'store',
-        mandatoryPrompt: true,
-        promptIndication: 'Prompt - Describe in what situation you want to put the product',
-        mandatoryMask: false,
-        enabled: true,
-        defaultMaskDilation: 0.0,
-        defaultBaseSteps: 75,
-      },
       {
         value: 'EDIT_MODE_INPAINT_INSERTION',
         label: 'Insert',
@@ -181,7 +147,7 @@ export const EditImageFormFields = {
       {
         value: 'EDIT_MODE_BGSWAP',
         label: 'Product showcase',
-        description: 'Place product in a new scene',
+        description: 'Swap image background',
         icon: 'store',
         mandatoryPrompt: true,
         promptIndication: 'Prompt - Describe in what situation you want to put the product',

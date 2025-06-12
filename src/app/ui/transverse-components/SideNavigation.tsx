@@ -161,7 +161,6 @@ export default function SideNav() {
           >
             @Agathe
           </a>
-          
         </Typography>
       )}
       <IconButton

@@ -19,6 +19,7 @@ const onHover = {
   bgcolor: palette.primary.main,
   color: 'white',
   border: `0.5px solid rgba(0, 0, 0, 0)`,
+  boxShadow: 0,
 }
 
 export const CustomizedIconButton = {
