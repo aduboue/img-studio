@@ -187,7 +187,6 @@ export default function GenerateForm({
     if (updatedReferenceObjects.length === 0) setValue('referenceObjects', ReferenceObjectInit)
     else setValue('referenceObjects', updatedReferenceObjects)
   }
-
   const addNewRefObject = () => {
     if (referenceObjects.length >= maxReferences) return
 
@@ -207,7 +206,6 @@ export default function GenerateForm({
 
     setValue('referenceObjects', updatedReferenceObjects)
   }
-
   const addAdditionalRefObject = (objectKey: string) => {
     if (referenceObjects.length >= maxReferences) return
 
@@ -253,8 +251,6 @@ export default function GenerateForm({
 
   //TODO temp - remove when Veo 3 is fully released
   const currentModel = watch('modelVersion')
-
-  //TODO temp - remove when models are GA
   // Transforms a "Publisher Model not found" error message into a user-friendly message.
   interface ModelOption {
     value: string

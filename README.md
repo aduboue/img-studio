@@ -19,15 +19,17 @@
     - **Public GA:** `imagen-3.0-generate-002` (Standard)
     - **Public GA:** `imagen-3.0-fast-generate-001` (Fast)
   - **Imagen 3** Editing & Customization
-    - **Private GA:** `imagen-3.0-capability-001` (Standard) \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform)
+    - **Private Access:** `imagen-3.0-capability-001` \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform)
   - **Image Segmentation model** (required for image editing in app)
-    - **Private GA:** `image-segmentation-001` (Standard) \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSdzIR1EeQGFcMsqd9nPip5e9ovDKSjfWRd58QVjo1zLpfdvEg/viewform?resourcekey=0-Pvqc66u-0Z1QmuzHq4wLKg&pli=1)
+    - **Private Access:** `image-segmentation-001` \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSdzIR1EeQGFcMsqd9nPip5e9ovDKSjfWRd58QVjo1zLpfdvEg/viewform?resourcekey=0-Pvqc66u-0Z1QmuzHq4wLKg&pli=1)
 
 - **Veo Models**
   - **Veo 2** Generation (Text to Video, Image to Video)
     - **Public GA:** `veo-2.0-generate-001` (Standard)
-  - **Veo 2** Advanced features (Interpolation, Camera Preset Controls, Video Extend), & **Veo 3** Generation (Text to Video \+ Audio, Image to Video \+ Audio)
-    - **Private GA:** `veo-2.0-generate-exp` & `veo-3.0-generate-preview` \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSciY6O_qGg2J0A8VUcK4egJ3_Tysh-wGTl-l218XtC0e7lM_w/viewform)
+  - **Veo 3** Generation (Text to Video\+Audio)
+    - **Public Preview:** `veo-3.0-generate-preview` (Standard)
+  - **Veo 3** ITV Generation (Image to Video \+ Audio) & **Veo 2** Advanced features (Interpolation, Camera Preset Controls, Video Extend)
+    - **Private Access:** `veo-3.0-generate-preview` & `veo-2.0-generate-exp` \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSciY6O_qGg2J0A8VUcK4egJ3_Tysh-wGTl-l218XtC0e7lM_w/viewform)
 
 ## 1\\ Create **Cloud Storage** buckets
 
