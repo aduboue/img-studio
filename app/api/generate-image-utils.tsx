@@ -272,7 +272,7 @@ export const GenerateImageFormFields = {
     isFullPromptAdditionalField: false,
   },
   light: {
-    label: 'Lightning',
+    label: 'Lighting',
     type: 'chip-group',
     options: ['Natural', 'Bright Sun', 'Golden Hour', 'Night time', 'Dramatic', 'Warm', 'Cold'],
     isDataResetable: true,
