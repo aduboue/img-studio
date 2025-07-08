@@ -86,9 +86,6 @@ function generatePrompt(formData: any, references?: ReferenceObjectI[]) {
 
   // Add quality modifiers to the prompt for Image Generation
   let quality_modifiers = ''
-  if (formData['style'] === 'photo') {
-    quality_modifiers = quality_modifiers + ', 4K'
-  } else quality_modifiers = quality_modifiers + ', by a professional, detailed'
 
   if (formData['use_case'] === 'Food, insects, plants (still life)')
     quality_modifiers = quality_modifiers + ', High detail, precise focusing, controlled lighting'
