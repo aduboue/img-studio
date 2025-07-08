@@ -377,8 +377,7 @@ export default function GenerateForm({
           `You can't have both a last frame and a camera preset selected. Please leverage only one of the two feature at once.`
         )
 
-      if (formData.prompt === '') setIsGeminiRewrite(false)
-      const result = await generateVideo(formData, isGeminiRewrite, appContext)
+      const result = await generateVideo(formData, appContext)
 
       if ('error' in result) {
         let errorMsg = result.error.replace('Error: ', '')
@@ -507,14 +506,16 @@ export default function GenerateForm({
                   : ''
               }
             />
-            {currentModel === 'veo-3.0-generate-preview' && (
+            {currentModel.includes('veo-3.0') && (
               <CustomTooltip title="Add audio to your video" size="small">
                 <AudioSwitch checked={isVideoWithAudio} onChange={handleVideoAudioCheck} />
               </CustomTooltip>
             )}
-            <CustomTooltip title="Have Gemini enhance your prompt" size="small">
-              <GeminiSwitch checked={isGeminiRewrite} onChange={handleGeminiRewrite} />
-            </CustomTooltip>
+            {currentModel.includes('imagen') && !hasReferences && (
+              <CustomTooltip title="Have Gemini enhance your prompt" size="small">
+                <GeminiSwitch checked={isGeminiRewrite} onChange={handleGeminiRewrite} />
+              </CustomTooltip>
+            )}
             <Button
               type="submit"
               variant="contained"

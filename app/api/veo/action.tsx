@@ -15,7 +15,6 @@
 'use server'
 
 import { decomposeUri, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
-import { rewriteWithGemini } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import {
   GenerateVideoFormI,
@@ -31,8 +30,38 @@ import {
   ProcessedVideoResult,
   cameraPresetsOptions,
 } from '../generate-video-utils'
-import { normalizeSentence } from '../imagen/action'
 const { GoogleAuth } = require('google-auth-library')
+
+function normalizeSentence(sentence: string) {
+  // Split the sentence into individual words
+  const words = sentence.toLowerCase().split(' ')
+
+  // Capitalize the first letter of each sentence
+  let normalizedSentence = ''
+  let newSentence = true
+  for (let i = 0; i < words.length; i++) {
+    let word = words[i]
+    if (newSentence) {
+      word = word.charAt(0).toUpperCase() + word.slice(1)
+      newSentence = false
+    }
+    if (word.endsWith('.') || word.endsWith('!') || word.endsWith('?')) {
+      newSentence = true
+    }
+    normalizedSentence += word + ' '
+  }
+
+  // Replace multiple spaces with single spaces
+  normalizedSentence = normalizedSentence.replace(/  +/g, ' ')
+
+  // Remove any trailing punctuation and spaces
+  normalizedSentence = normalizedSentence.trim()
+
+  // Remove double commas
+  normalizedSentence = normalizedSentence.replace(/, ,/g, ',')
+
+  return normalizedSentence
+}
 
 function cleanResult(inputString: string) {
   return inputString.toString().replaceAll('\n', '').replaceAll(/\//g, '').replaceAll('*', '')
@@ -65,23 +94,8 @@ function isResourceExhaustedError(source: any) {
   return false
 }
 
-async function generatePrompt(formData: any, isGeminiRewrite: boolean) {
+function generatePrompt(formData: any) {
   let fullPrompt = formData['prompt']
-
-  // Rewrite the content of the prompt
-  if (isGeminiRewrite) {
-    try {
-      const geminiReturnedPrompt = await rewriteWithGemini(fullPrompt, 'Video')
-
-      if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
-        const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
-        throw Error(errorMsg)
-      } else fullPrompt = geminiReturnedPrompt as string
-    } catch (error) {
-      console.error(error)
-      return { error: 'Error while rewriting prompt with Gemini .' }
-    }
-  }
 
   // Add the photo/ art/ digital style to the prompt
   fullPrompt = `A ${formData['secondary_style']} ${formData['style']} of ` + fullPrompt
@@ -212,7 +226,6 @@ export async function buildVideoListFromURI({
 // Initiates Video generation request, returns long-running operation name needed for polling
 export async function generateVideo(
   formData: GenerateVideoFormI,
-  isGeminiRewrite: boolean,
   appContext: appContextDataI | null
 ): Promise<GenerateVideoInitiationResult | ErrorResult> {
   // 0 - Check requested features
@@ -249,21 +262,11 @@ export async function generateVideo(
   // Construct the API URL for initiating long-running video generation
   const videoAPIUrl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/${modelVersion}:predictLongRunning`
 
-  // 2 - Build the prompt, potentially rewriting with Gemini
+  // 2 - Build the prompt
   let fullPrompt: string | ErrorResult
-  if (formData.prompt !== '') {
-    try {
-      fullPrompt = await generatePrompt(formData, isGeminiRewrite)
-
-      if (typeof fullPrompt === 'object' && 'error' in fullPrompt) {
-        throw new Error(fullPrompt.error)
-      }
-    } catch (error) {
-      console.error('Prompt Generation Error:', error)
-      const errorMessage = error instanceof Error ? error.message : 'An error occurred while generating the prompt.'
-      return { error: errorMessage }
-    }
-  } else fullPrompt = ''
+  if (formData.prompt !== '') fullPrompt = generatePrompt(formData)
+  else fullPrompt = ''
+  fullPrompt = generatePrompt(formData)
 
   // 3 - Validate App Context and determine GCS URI
   if (!appContext?.gcsURI || !appContext?.userID) {
@@ -280,7 +283,7 @@ export async function generateVideo(
     storageUri: generationGcsURI,
     negativePrompt: formData.negativePrompt,
     personGeneration: formData.personGeneration,
-    generateAudio: formData.modelVersion === 'veo-3.0-generate-preview' && formData.isVideoWithAudio,
+    generateAudio: formData.modelVersion.includes('veo-3.0') && formData.isVideoWithAudio,
   }
 
   const reqData: any = {
@@ -465,11 +468,11 @@ export async function getVideoGenerationStatus(
   // 3 - Poll for status of video generation operation
   try {
     const res = await client.request(opts)
+
     const pollingData: PollingResponse = res.data // Assuming PollingResponse matches LRO Get response
 
-    if (!pollingData.done) {
-      return { done: false, name: operationName }
-    } else {
+    if (!pollingData.done) return { done: false, name: operationName }
+    else {
       if (pollingData.error) {
         console.error(`Operation ${operationName} failed:`, pollingData.error)
         if (
@@ -487,6 +490,9 @@ export async function getVideoGenerationStatus(
 
         return { done: true, error: pollingData.error.message || 'Video generation failed.' }
       } else if (pollingData.response && pollingData.response.videos) {
+        // TODO remove
+        console.log('Polling Response:', pollingData.response)
+
         const rawVideoResults = pollingData.response.videos.map((video: any) => ({
           gcsUri: video.gcsUri,
           mimeType: video.mimeType,

@@ -24,7 +24,7 @@ import {
   imageGenerationUtils,
 } from '../generate-image-utils'
 import { decomposeUri, downloadMediaFromGcs, getSignedURL, uploadBase64Image } from '../cloud-storage/action'
-import { getFullReferenceDescription, rewriteWithGemini } from '../gemini/action'
+import { getFullReferenceDescription } from '../gemini/action'
 import { appContextDataI } from '../../context/app-context'
 import { EditImageFormI } from '../edit-utils'
 const { GoogleAuth } = require('google-auth-library')
@@ -39,7 +39,7 @@ function generateUniqueFolderId() {
   return number
 }
 
-export async function normalizeSentence(sentence: string) {
+function normalizeSentence(sentence: string) {
   // Split the sentence into individual words
   const words = sentence.toLowerCase().split(' ')
 
@@ -70,7 +70,7 @@ export async function normalizeSentence(sentence: string) {
   return normalizedSentence
 }
 
-async function generatePrompt(formData: any, isGeminiRewrite: boolean, references?: ReferenceObjectI[]) {
+function generatePrompt(formData: any, references?: ReferenceObjectI[]) {
   let fullPrompt = formData['prompt']
 
   // Add the photo/ art/ digital style to the prompt
@@ -100,34 +100,6 @@ async function generatePrompt(formData: any, isGeminiRewrite: boolean, reference
     quality_modifiers = quality_modifiers + ', Long exposure times, sharp focus, long exposure, smooth water or clouds'
 
   fullPrompt = fullPrompt + quality_modifiers
-
-  // Old, now directly handled my model
-  // Rewrite the content of the prompt
-  /*if (isGeminiRewrite) {
-    try {
-      const isStyleRefProvided = references && references.some((ref) => ref.referenceType === 'Style')
-      const isPersonRefProvided = references && references.some((ref) => ref.referenceType === 'Person')
-      const isAnimalRefProvided = references && references.some((ref) => ref.referenceType === 'Animal')
-      const isObjectRefProvided = references && references.some((ref) => ref.referenceType === 'Product')
-
-      const geminiReturnedPrompt = await rewriteWithGemini(
-        fullPrompt,
-        'Image',
-        isPersonRefProvided,
-        isAnimalRefProvided,
-        isObjectRefProvided,
-        isStyleRefProvided
-      )
-
-      if (typeof geminiReturnedPrompt === 'object' && 'error' in geminiReturnedPrompt) {
-        const errorMsg = cleanResult(JSON.stringify(geminiReturnedPrompt['error']).replaceAll('Error: ', ''))
-        throw Error(errorMsg)
-      } else fullPrompt = geminiReturnedPrompt as string
-    } catch (error) {
-      console.error(error)
-      return { error: 'Error while rewriting prompt with Gemini .' }
-    }
-  }*/
 
   // Add references to the prompt
   if (references !== undefined && references.length > 0) {
@@ -369,7 +341,7 @@ export async function generateImage(
   // 2 - Building the prompt and rewrite it if needed with Gemini
   let fullPrompt
   try {
-    fullPrompt = await generatePrompt(formData, isGeminiRewrite, references)
+    fullPrompt = generatePrompt(formData, references)
 
     if (typeof fullPrompt === 'object' && 'error' in fullPrompt) {
       throw Error(fullPrompt.error)
