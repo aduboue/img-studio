@@ -13,11 +13,9 @@
 
   - **Children (minors) generation**: contact your commercial team to ask for access
   - **Imagen 4** Generation
-    - **Public Preview:** `imagen-4.0-generate-preview-05-20` (Standard)
-    - **Public Experimental Preview:** `imagen-4.0-ultra-generate-exp-05-20` (Ultra)
-  - **Imagen 3** Generation
-    - **Public GA:** `imagen-3.0-generate-002` (Standard)
-    - **Public GA:** `imagen-3.0-fast-generate-001` (Fast)
+    - **Public Preview:** `imagen-4.0-generate-preview-06-06` (Standard)
+    - **Public Preview:** `imagen-4.0-fast-generate-preview-06-06` (Fast)
+    - **Public Preview:** `imagen-4.0-ultra-generate-preview-06-06` (Ultra)
   - **Imagen 3** Editing & Customization
     - **Private Access:** `imagen-3.0-capability-001` \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLScN9KOtbuwnEh6pV7xjxib5up5kG_uPqnBtJ8GcubZ6M3i5Cw/viewform)
   - **Image Segmentation model** (required for image editing in app)

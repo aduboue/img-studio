@@ -79,21 +79,21 @@ export const GenerateImageFormFields = {
   },
   modelVersion: {
     type: 'select',
-    default: 'imagen-4.0-generate-preview-05-20',
+    default: 'imagen-4.0-generate-preview-06-06',
     options: [
       {
-        value: 'imagen-4.0-generate-preview-05-20',
+        value: 'imagen-4.0-generate-preview-06-06',
         label: 'Imagen 4',
-        indication: 'High performance latest model version',
+        indication: 'Standard model version',
       },
       {
-        value: 'imagen-3.0-generate-002',
-        label: 'Imagen 3',
-        indication: 'Standard performance model version',
+        value: 'imagen-4.0-ultra-generate-preview-06-06',
+        label: 'Imagen 4 - Ultra',
+        indication: 'Ultra high performance model version',
       },
       {
-        value: 'imagen-3.0-fast-generate-001',
-        label: 'Imagen 3 - Fast',
+        value: 'imagen-4.0-fast-generate-preview-06-06',
+        label: 'Imagen 4 - Fast',
         indication: 'Low latency model version',
       },
     ],
