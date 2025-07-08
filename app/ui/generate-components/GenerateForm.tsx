@@ -600,33 +600,33 @@ export default function GenerateForm({
                   sx={CustomizedAccordionSummary}
                 >
                   <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
-                    {`Image(s) to video ${
-                      process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? ' & Camera presets' : ''
-                    }`}
+                    {process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && !currentModel.includes('veo-3.0')
+                      ? 'Image(s) to video & Camera presets'
+                      : 'Image to video'}
                   </Typography>
                 </AccordionSummary>
-                <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
-                  <Stack
-                    direction="row"
-                    flexWrap="wrap"
-                    justifyContent="flex-start"
-                    alignItems="flex-start"
-                    spacing={0.5}
-                    sx={{ pt: 1, pb: 1 }}
-                  >
-                    <VideoInterpolBox
-                      label="Base image"
-                      sublabel={
-                        process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' ? '(or first frame)' : '(input)'
-                      }
-                      objectKey="interpolImageFirst"
-                      onNewErrorMsg={onNewErrorMsg}
-                      setValue={setValue}
-                      interpolImage={interpolImageFirst}
-                      orientation={orientation}
-                    />
-                    {process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && (
-                      <>
+                {
+                  // Advanced features (interpolation, camera preset) are only available for Veo 2 for now!
+                  process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && !currentModel.includes('veo-3.0') && (
+                    <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
+                      <Stack
+                        direction="row"
+                        flexWrap="wrap"
+                        justifyContent="flex-start"
+                        alignItems="flex-start"
+                        spacing={0.5}
+                        sx={{ pt: 1, pb: 1 }}
+                      >
+                        <VideoInterpolBox
+                          label="Base image"
+                          sublabel={'(or first frame)'}
+                          objectKey="interpolImageFirst"
+                          onNewErrorMsg={onNewErrorMsg}
+                          setValue={setValue}
+                          interpolImage={interpolImageFirst}
+                          orientation={orientation}
+                        />
+
                         <ArrowRight color={interpolImageLast.base64Image === '' ? 'secondary' : 'primary'} />
                         <VideoInterpolBox
                           label="Last frame"
@@ -637,23 +637,54 @@ export default function GenerateForm({
                           interpolImage={interpolImageLast}
                           orientation={orientation}
                         />
-                      </>
-                    )}
-                  </Stack>
-                  {process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && (
-                    <Box sx={{ py: 2 }}>
-                      <FormInputChipGroup
-                        name="cameraPreset"
-                        label={videoGenerationUtils.cameraPreset.label ?? ''}
-                        control={control}
-                        setValue={setValue}
-                        width="450px"
-                        field={videoGenerationUtils.cameraPreset as chipGroupFieldsI}
-                        required={false}
-                      />
-                    </Box>
-                  )}
-                </AccordionDetails>
+                      </Stack>
+                      <Box sx={{ py: 2 }}>
+                        <FormInputChipGroup
+                          name="cameraPreset"
+                          label={videoGenerationUtils.cameraPreset.label ?? ''}
+                          control={control}
+                          setValue={setValue}
+                          width="450px"
+                          field={videoGenerationUtils.cameraPreset as chipGroupFieldsI}
+                          required={false}
+                        />
+                      </Box>
+                    </AccordionDetails>
+                  )
+                }
+                {
+                  // Advanced features (interpolation, camera preset) are only available for Veo 2 for now!
+                  !(process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && !currentModel.includes('veo-3.0')) && (
+                    <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
+                      <Stack
+                        direction="row"
+                        flexWrap="wrap"
+                        justifyContent="flex-start"
+                        alignItems="flex-start"
+                        spacing={0.5}
+                        sx={{ pt: 1, pb: 1 }}
+                      >
+                        <VideoInterpolBox
+                          label="Base image"
+                          sublabel={'(input)'}
+                          objectKey="interpolImageFirst"
+                          onNewErrorMsg={onNewErrorMsg}
+                          setValue={setValue}
+                          interpolImage={interpolImageFirst}
+                          orientation={orientation}
+                        />
+                        <Typography
+                          color={palette.warning.main}
+                          sx={{ fontSize: '0.85rem', fontWeight: 400, pt: 2, width: '70%' }}
+                        >
+                          {
+                            'For now, Veo 3 does not support Image Interpolation and Camera Presets, switch to Veo 2 to use them!'
+                          }
+                        </Typography>
+                      </Stack>
+                    </AccordionDetails>
+                  )
+                }
               </Accordion>
             )}
           <Accordion
