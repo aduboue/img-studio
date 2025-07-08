@@ -112,9 +112,15 @@ export default function GenerateForm({
   initialITVimage?: InterpolImageI
   promptIndication?: string
 }) {
-  const { handleSubmit, resetField, control, setValue, getValues, watch } = useForm<
-    GenerateVideoFormI | GenerateImageFormI
-  >({
+  const {
+    handleSubmit,
+    resetField,
+    control,
+    setValue,
+    getValues,
+    watch,
+    formState: { touchedFields },
+  } = useForm<GenerateVideoFormI | GenerateImageFormI>({
     defaultValues: generationFields.defaultValues,
   })
   const { appContext } = useAppContext()
@@ -228,26 +234,42 @@ export default function GenerateForm({
     setValue('referenceObjects', updatedReferenceObjects)
   }
 
-  // Veo interpolation image management logic
+  // Logic to decide if prompt is optional: in case of image-to-video
   const interpolImageFirst = watch('interpolImageFirst')
   const interpolImageLast = watch('interpolImageLast')
-  const optionalVeoPrompt = // Prompt optional if either only first frame, OR if both first and last frame
+  const optionalVeoPrompt =
     (interpolImageFirst && interpolImageFirst.base64Image !== '') ||
     (interpolImageFirst &&
       interpolImageFirst.base64Image !== '' &&
       interpolImageLast &&
       interpolImageLast.base64Image !== '')
-  let orientation = 'horizontal'
-  orientation =
-    interpolImageFirst && interpolImageFirst.base64Image !== ''
-      ? getOrientation(interpolImageFirst.ratio)
-      : interpolImageLast && interpolImageLast.base64Image !== ''
-      ? getOrientation(interpolImageLast.ratio)
-      : ''
+
+  // Input image(s) orientation logic for image-to-video
+  const [orientation, setOrientation] = useState('horizontal')
+  const selectedRatio = watch('aspectRatio')
+  const firstImageRatio = watch('interpolImageFirst.ratio')
+  const lastImageRatio = watch('interpolImageLast.ratio')
+
+  // Effect 1: Automatically set aspect ratio from the image, but ONLY if the
+  // user hasn't already made a manual selection.
   useEffect(() => {
-    if (orientation === 'horizontal') setValue('aspectRatio', '16:9')
-    else if (orientation === 'vertical') setValue('aspectRatio', '9:16')
-  }, [orientation])
+    if (touchedFields.aspectRatio) return
+
+    const imageRatioString = firstImageRatio || lastImageRatio
+
+    if (imageRatioString) {
+      const imageOrientation = getOrientation(imageRatioString)
+      const suggestedRatio = imageOrientation === 'horizontal' ? '16:9' : '9:16'
+
+      setValue('aspectRatio', suggestedRatio)
+    }
+  }, [firstImageRatio, lastImageRatio, touchedFields.aspectRatio, setValue])
+
+  // Effect 2: This effect correctly updates the UI orientation whenever the
+  // aspect ratio changes, for any reason. No changes are needed here.
+  useEffect(() => {
+    if (selectedRatio) setOrientation(getOrientation(selectedRatio))
+  }, [selectedRatio])
 
   //TODO temp - remove when Veo 3 is fully released
   const currentModel = watch('modelVersion')
@@ -329,6 +351,7 @@ export default function GenerateForm({
       setValue('interpolImageLast', generationFields.defaultValues.interpolImageLast)
     }
 
+    setOrientation('horizontal')
     onNewErrorMsg('')
   }
 

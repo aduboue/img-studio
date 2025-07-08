@@ -21,12 +21,15 @@ import { InterpolImageI } from '@/app/api/generate-video-utils'
 const { palette } = theme
 
 export function getOrientation(aspectRatio: string): 'horizontal' | 'vertical' {
+  if (!aspectRatio || !aspectRatio.includes(':')) return 'horizontal'
+
   const parts = aspectRatio.split(':')
   const width = parseFloat(parts[0])
   const height = parseFloat(parts[1])
 
-  if (width >= height) return 'horizontal'
-  else return 'vertical'
+  if (isNaN(width) || isNaN(height)) return 'horizontal'
+
+  return width >= height ? 'horizontal' : 'vertical'
 }
 
 export const VideoInterpolBox = ({
