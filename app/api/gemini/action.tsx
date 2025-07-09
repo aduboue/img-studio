@@ -118,7 +118,7 @@ export async function getFullReferenceDescription(base64Image: string, type: str
   // This is the set of common instructions for most types (Person, Animal, Product, Default)
   const generalCommonDetailedInstructions =
     " Your primary goal is to generate an exceptionally detailed, meticulous, and comprehensive description of the primary subject's visual attributes. " +
-    '**The entire description should be concise, ideally around 100-120 words, and must not exceed 130 words.** ' + // New length constraint
+    '**The entire description should be concise, ideally around 100-120 words, and must not exceed 130 words.** ' +
     'While achieving this, strictly adhere to the following rules: ' +
     "1. Begin the description directly with the subject's characteristics, without any introductory phrases like 'This image shows...' or 'The subject is...'. " +
     '2. The description must focus exclusively on the visual attributes of the primary subject itself. ' +
@@ -129,22 +129,21 @@ export async function getFullReferenceDescription(base64Image: string, type: str
   // These are the tailored common instructions specifically for the 'Style' type
   const styleCommonDetailedInstructions =
     " Your primary goal is to generate an exceptionally detailed, meticulous, and comprehensive analysis of the image's overall artistic and visual style. " +
-    '**The entire description should be concise, ideally around 100-120 words, and must not exceed 130 words.** ' + // New length constraint
+    '**The entire description should be concise, ideally around 100-120 words, and must not exceed 130 words.** ' +
     'While achieving this, strictly adhere to the following rules: ' +
     "1. Begin the description directly with the style's characteristics, without any introductory phrases like 'This image shows...'. " +
     "2. Focus on how visual elements collectively create the style. When discussing composition, color, lighting, and texture as they contribute to the style, you may refer to how these apply to the general forms, shapes, and atmosphere of the depicted scene. However, do NOT provide an inventory of discrete objects as if describing a scene's content, nor describe any narrative actions or specific, identifiable real-world locations. The emphasis is on the *how* of the style, not the *what* of the scene's literal content. " +
     '3. Ensure the description paints a clear and vivid visual picture of the style itself, focusing on objective visual analysis of its components. ' +
-    "If a meaningful and detailed analysis of the image's style cannot be generated according to these exacting rules, or if the image is too ambiguous, respond with the single word 'error'." // Changed 'Error' to 'error'
+    "If a meaningful and detailed analysis of the image's style cannot be generated according to these exacting rules, or if the image is too ambiguous, respond with the single word 'error'."
 
   if (type === 'Person') {
     activeCommonDetailedInstructions = generalCommonDetailedInstructions
     specificPromptInstructions =
-      'Provide an exceptionally detailed and meticulous description of the primary person in this image, focusing strictly on their physical appearance and attire. Break down their appearance into specific regions and features, describing each with precision. ' +
+      'Provide an exceptionally detailed and meticulous description of the primary person in this image, focusing strictly on their physical appearance. Break down their appearance into specific regions and features, describing each with precision. ' +
       'Detail their apparent age range and gender. For their hair, describe its color nuances, style from roots to ends, length, texture (e.g., fine, coarse, wavy, straight, coily), and any specific characteristics like parting, layers, or highlights. ' +
       'For their face, provide granular details about eye color, iris patterns if visible, eye shape, eyelashes, eyebrows (shape, thickness, color), nose (shape of bridge, nostrils, tip), mouth and lip characteristics (shape, fullness, color, texture), chin, jawline, and skin (tone, texture, any visible pores or fine lines if clear). Describe any static facial expression (e.g., a gentle smile, a neutral look) by detailing the muscle positioning. ' +
       'Describe their build or physique (e.g., slender, muscular, average) if discernible. Enumerate and describe any unique identifying features like glasses (detailing frame style, material, color, lens appearance), tattoos (location, colors, subject matter if clear), scars, or birthmarks with precision. ' +
-      'For their attire, describe each visible garment (e.g., shirt, pants, dress, jacket) in exhaustive detail: its type, specific color(s) and shades, fabric type (e.g., cotton, silk, denim, knit) and weave if apparent, pattern (name it if possible, e.g., plaid, floral, pinstripe, and describe its scale and colors), fit (e.g., loose, fitted, oversized), and all specific features like collar type, neckline, sleeve style and length, cuffs, buttons (type, material, number), zippers (type, puller details), seams, hems, and any embellishments or logos. ' +
-      'Also, describe any visible accessories like jewelry (earrings, necklaces, rings – specifying type, material, gemstones, clasp, and intricate design details), hats (style, material, brim, crown), belts (buckle, material, width), or bags with similar exhaustive detail. '
+      '**The description must NOT mention any clothing, attire, or accessories other than the specified glasses.**'
   } else if (type === 'Animal') {
     activeCommonDetailedInstructions = generalCommonDetailedInstructions
     specificPromptInstructions =
