@@ -116,7 +116,7 @@ export const GenerateImageFormFields = {
   },
   seedNumber: {
     type: 'numberInput',
-    default: '1',
+    default: '',
     isDataResetable: false,
     isFullPromptAdditionalField: false,
   },

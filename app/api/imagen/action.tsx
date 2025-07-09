@@ -373,8 +373,6 @@ export async function generateImage(
     parameters: {
       sampleCount: parseInt(formData['sampleCount']),
       negativePrompt: formData['negativePrompt'],
-      seed: parseInt(formData['seedNumber']) ?? 1,
-      addWatermark: formData['seedNumber'] && formData['seedNumber'] !== '1' ? false : true,
       aspectRatio: formData['aspectRatio'],
       outputOptions: {
         mimeType: formData['outputOptions'],
@@ -388,8 +386,10 @@ export async function generateImage(
 
   // Only if there are no references, only text-to-image
   if (!areAllRefValid) {
-    reqData.instances[0].seed = parseInt(formData['seedNumber']) ?? 1
-    reqData.instances[0].addWatermark = formData['seedNumber'] && formData['seedNumber'] !== '1' ? false : true
+    if (formData['seedNumber']) {
+      reqData.parameters.seed = parseInt(formData['seedNumber'])
+      reqData.parameters.addWatermark = false
+    } else reqData.parameters.addWatermark = true
   }
 
   // Adding references if necessary

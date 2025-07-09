@@ -276,17 +276,17 @@ export async function generateVideo(
   const generationGcsURI = `${appContext.gcsURI}/${appContext.userID}/generated-videos`
 
   // 4 - Build Veo request body parameters based on documentation
-  const parameters = {
+  let parameters: any = {
     sampleCount: parseInt(formData.sampleCount, 10),
     aspectRatio: formData.aspectRatio,
     durationSeconds: parseInt(formData.durationSeconds, 10),
     storageUri: generationGcsURI,
     negativePrompt: formData.negativePrompt,
-    seed: parseInt(formData.seedNumber, 10) ?? 1,
-
     personGeneration: formData.personGeneration,
     generateAudio: formData.modelVersion.includes('veo-3.0') && formData.isVideoWithAudio,
   }
+
+  if (formData['seedNumber']) parameters['seed'] = parseInt(formData['seedNumber'], 10)
 
   const reqData: any = {
     instances: [
