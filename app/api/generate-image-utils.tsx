@@ -58,6 +58,7 @@ export interface GenerateImageFormFieldsI {
   modelVersion: GenerateFieldI1
   sampleCount: GenerateFieldI1
   negativePrompt: GenerateFieldI1
+  seedNumber: GenerateFieldI1
   aspectRatio: GenerateFieldI1
   personGeneration: GenerateFieldI1
   outputOptions: GenerateFieldI1
@@ -111,6 +112,12 @@ export const GenerateImageFormFields = {
   negativePrompt: {
     type: 'textInput',
     isDataResetable: true,
+    isFullPromptAdditionalField: false,
+  },
+  seedNumber: {
+    type: 'numberInput',
+    default: '1',
+    isDataResetable: false,
     isFullPromptAdditionalField: false,
   },
   aspectRatio: {
@@ -388,6 +395,7 @@ export interface GenerateImageFormI {
   modelVersion: string
   sampleCount: string
   negativePrompt: string
+  seedNumber: string
   aspectRatio: string
   personGeneration: string
   outputOptions: string

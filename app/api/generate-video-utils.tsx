@@ -26,6 +26,7 @@ export interface GenerateVideoFormFieldsI {
   modelVersion: GenerateFieldI1
   sampleCount: GenerateFieldI1
   negativePrompt: GenerateFieldI1
+  seedNumber: GenerateFieldI1
   aspectRatio: GenerateFieldI1
   durationSeconds: GenerateFieldI1
   personGeneration: GenerateFieldI1
@@ -80,6 +81,12 @@ export const GenerateVideoFormFields = {
   negativePrompt: {
     type: 'textInput',
     isDataResetable: true,
+    isFullPromptAdditionalField: false,
+  },
+  seedNumber: {
+    type: 'numberInput',
+    default: '1',
+    isDataResetable: false,
     isFullPromptAdditionalField: false,
   },
   aspectRatio: {
@@ -421,6 +428,7 @@ export interface GenerateVideoFormI {
   isVideoWithAudio: boolean
   sampleCount: string
   negativePrompt: string
+  seedNumber: string
   aspectRatio: string
   durationSeconds: string
   personGeneration: string

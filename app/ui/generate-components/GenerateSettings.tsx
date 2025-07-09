@@ -25,6 +25,7 @@ import { GenerateSettingsI } from '../ux-components/InputInterface'
 import { FormInputTextSmall } from '../ux-components/InputTextSmall'
 import { Settings } from '@mui/icons-material'
 import CustomTooltip from '../ux-components/Tooltip'
+import { FormInputNumberSmall } from '../ux-components/FormInputNumberSmall'
 
 const CustomizedMenu = {
   '& .MuiPaper-root': {
@@ -158,6 +159,51 @@ export default function GenerateSettings({
               control={control}
               required={false}
             />
+          </Box>
+        </MenuItem>
+        <MenuItem
+          key={'seedNumber'}
+          sx={{
+            lineHeight: 0.8,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignContent: 'flex-start',
+              width: '100%',
+            }}
+          >
+            <Typography
+              variant="caption"
+              sx={{
+                color: palette.text.primary,
+                fontSize: '0.75rem',
+                fontWeight: 500,
+                lineHeight: '1em',
+                pb: 0,
+              }}
+            >
+              {'Seed number (optional)'}
+            </Typography>
+            <Box sx={{ width: '90%', pb: 1 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: palette.text.secondary,
+                  fontSize: '0.75rem',
+                  fontWeight: 400,
+                  lineHeight: 0,
+
+                  whiteSpace: 'normal',
+                }}
+              >
+                {'A specific seed and prompt will always produce the same output'}
+              </Typography>
+            </Box>
+            <FormInputNumberSmall name="seedNumber" control={control} min={1} max={2147483647} />
           </Box>
         </MenuItem>
       </Menu>

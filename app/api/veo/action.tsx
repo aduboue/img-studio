@@ -282,6 +282,8 @@ export async function generateVideo(
     durationSeconds: parseInt(formData.durationSeconds, 10),
     storageUri: generationGcsURI,
     negativePrompt: formData.negativePrompt,
+    seed: parseInt(formData.seedNumber, 10) ?? 1,
+
     personGeneration: formData.personGeneration,
     generateAudio: formData.modelVersion.includes('veo-3.0') && formData.isVideoWithAudio,
   }
@@ -490,9 +492,6 @@ export async function getVideoGenerationStatus(
 
         return { done: true, error: pollingData.error.message || 'Video generation failed.' }
       } else if (pollingData.response && pollingData.response.videos) {
-        // TODO remove
-        console.log('Polling Response:', pollingData.response)
-
         const rawVideoResults = pollingData.response.videos.map((video: any) => ({
           gcsUri: video.gcsUri,
           mimeType: video.mimeType,

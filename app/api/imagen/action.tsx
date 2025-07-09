@@ -373,6 +373,8 @@ export async function generateImage(
     parameters: {
       sampleCount: parseInt(formData['sampleCount']),
       negativePrompt: formData['negativePrompt'],
+      seed: parseInt(formData['seedNumber']) ?? 1,
+      addWatermark: formData['seedNumber'] && formData['seedNumber'] !== '1' ? false : true,
       aspectRatio: formData['aspectRatio'],
       outputOptions: {
         mimeType: formData['outputOptions'],
@@ -382,6 +384,12 @@ export async function generateImage(
       storageUri: generationGcsURI,
       enhancePrompt: isGeminiRewrite,
     },
+  }
+
+  // Only if there are no references, only text-to-image
+  if (!areAllRefValid) {
+    reqData.instances[0].seed = parseInt(formData['seedNumber']) ?? 1
+    reqData.instances[0].addWatermark = formData['seedNumber'] && formData['seedNumber'] !== '1' ? false : true
   }
 
   // Adding references if necessary
@@ -575,8 +583,6 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
     ],
     parameters: {
       negativePrompt: formData['negativePrompt'],
-      promptLanguage: 'en',
-      seed: 1,
       editConfig: {
         baseSteps: parseInt(formData['baseSteps']),
       },
