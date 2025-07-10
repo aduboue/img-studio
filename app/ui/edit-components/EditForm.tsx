@@ -26,7 +26,7 @@ import FormInputDropdown from '../ux-components/InputDropdown'
 import { ImageI } from '../../api/generate-image-utils'
 
 import theme from '../../theme'
-import { editImage } from '../../api/imagen/action'
+import { buildImageListFromURI, editImage, upscaleImage } from '../../api/imagen/action'
 import { CustomizedAvatarButton, CustomizedIconButton, CustomizedSendButton } from '../ux-components/Button-SX'
 import CustomTooltip from '../ux-components/Tooltip'
 import { appContextDataDefault, useAppContext } from '../../context/app-context'
@@ -42,6 +42,7 @@ import FormInputEditSettings from './EditSettings'
 import EditModeMenu from './EditModeMenu'
 import SetMaskDialog from './SetMaskDialog'
 import { downloadMediaFromGcs } from '../../api/cloud-storage/action'
+import UpscaleDialog from './UpscaleDialog'
 const { palette } = theme
 
 const editModeField = EditImageFormFields.editMode
@@ -67,7 +68,7 @@ export default function EditForm({
   onNewErrorMsg,
 }: {
   isLoading: boolean
-  onRequestSent: (valid: boolean, count: number) => void
+  onRequestSent: (valid: boolean, count: number, isUpscaledDLAvailable: boolean) => void
   onImageGeneration: (newImages: ImageI[]) => void
   errorMsg: string
   onNewErrorMsg: (newErrorMsg: string) => void
@@ -93,6 +94,11 @@ export default function EditForm({
   const defaultEditMode = editModeOptions.find((option) => option.value === editModeField.default)
   const [selectedEditMode, setSelectedEditMode] = useState(defaultEditMode)
   const [openMaskDialog, setOpenMaskDialog] = useState(false)
+
+  // Upscale case
+  const isUpscaleMode = selectedEditMode?.value === 'UPSCALE'
+  const [upscaleFactor, setUpscaleFactor] = useState<string>('')
+  const [openUpscaleDialog, setOpenUpscaleDialog] = useState(false)
 
   const handleNewEditMode = (value: string) => {
     resetStates()
@@ -170,7 +176,7 @@ export default function EditForm({
   }, [imageToEdit, maskImage, outpaintedImage])
 
   const onSubmit: SubmitHandler<EditImageFormI> = async (formData: EditImageFormI) => {
-    onRequestSent(true, parseInt(formData.sampleCount))
+    onRequestSent(true, parseInt(formData.sampleCount), true)
 
     try {
       if (
@@ -191,6 +197,33 @@ export default function EditForm({
         })
 
         onImageGeneration(newEditedImage)
+      }
+    } catch (error: any) {
+      onNewErrorMsg(error.toString())
+    }
+  }
+
+  const onUpscaleSubmit: SubmitHandler<EditImageFormI> = async (formData: EditImageFormI) => {
+    setOpenUpscaleDialog(false)
+    onRequestSent(true, 1, false)
+    try {
+      let res
+      if (upscaleFactor) {
+        res = await upscaleImage({ base64: formData.inputImage }, upscaleFactor, appContext)
+        if (typeof res === 'object' && 'error' in res && res.error) throw Error(res.error.replaceAll('Error: ', ''))
+
+        const upscaledImage = await buildImageListFromURI({
+          imagesInGCS: [{ gcsUri: res.newGcsUri, mimeType: res.mimeType }],
+          aspectRatio: formData['ratio'],
+          width: formData['width'] * parseInt(upscaleFactor.replace('x', ''), 10),
+          height: formData['height'] * parseInt(upscaleFactor.replace('x', ''), 10),
+          usedPrompt: '',
+          userID: appContext?.userID ? appContext?.userID : '',
+          modelVersion: formData['modelVersion'],
+          mode: 'Upscaled',
+        })
+
+        onImageGeneration(upscaledImage)
       }
     } catch (error: any) {
       onNewErrorMsg(error.toString())
@@ -302,7 +335,9 @@ export default function EditForm({
               </Avatar>
             </IconButton>
           </CustomTooltip>
-          <FormInputEditSettings control={control} setValue={setValue} editSettingsFields={editSettingsFields} />
+          {!isUpscaleMode && (
+            <FormInputEditSettings control={control} setValue={setValue} editSettingsFields={editSettingsFields} />
+          )}
           {selectedEditMode?.mandatoryMask && selectedEditMode?.maskType && (
             <Button
               variant="contained"
@@ -314,14 +349,16 @@ export default function EditForm({
               {selectedEditMode?.maskButtonLabel}
             </Button>
           )}
+
           <Button
-            type="submit"
+            type={isUpscaleMode ? 'button' : 'submit'}
+            onClick={isUpscaleMode ? () => setOpenUpscaleDialog(true) : undefined}
             variant="contained"
             disabled={(maskImage === null && selectedEditMode?.mandatoryMask) || imageToEdit === null || isLoading}
             endIcon={isLoading ? <WatchLaterIcon /> : <SendIcon />}
             sx={CustomizedSendButton}
           >
-            {'Edit'}
+            {isUpscaleMode ? 'Upscale' : 'Edit'}
           </Button>
         </Stack>
       </form>
@@ -345,6 +382,15 @@ export default function EditForm({
           outpaintedImage={outpaintedImage ?? ''}
         />
       )}
+
+      <UpscaleDialog
+        open={openUpscaleDialog}
+        closeUpscaleDialog={() => setOpenUpscaleDialog(false)}
+        onUpscaleSubmit={handleSubmit(onUpscaleSubmit)}
+        upscaleFactor={upscaleFactor}
+        setUpscaleFactor={setUpscaleFactor}
+        imageSize={{ width: originalWidth ?? imageWidth, height: originalHeight ?? imageHeight, ratio: imageRatio }}
+      />
     </>
   )
 }

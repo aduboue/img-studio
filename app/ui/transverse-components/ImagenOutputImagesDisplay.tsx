@@ -35,7 +35,7 @@ import {
 
 import { ImageI } from '../../api/generate-image-utils'
 import { CustomizedAvatarButton, CustomizedIconButton } from '../ux-components/Button-SX'
-import ExportStepper from './ExportDialog'
+import ExportStepper, { downloadBase64Media } from './ExportDialog'
 import DownloadDialog from './DownloadDialog'
 
 import theme from '../../theme'
@@ -43,6 +43,7 @@ import { blurDataURL } from '../ux-components/BlurImage'
 import { CustomWhiteTooltip } from '../ux-components/Tooltip'
 import { appContextDataDefault, useAppContext } from '../../context/app-context'
 import { useRouter } from 'next/navigation'
+import { downloadMediaFromGcs } from '@/app/api/cloud-storage/action'
 const { palette } = theme
 
 export default function OutputImagesDisplay({
@@ -50,11 +51,13 @@ export default function OutputImagesDisplay({
   generatedImagesInGCS,
   generatedCount,
   isPromptReplayAvailable,
+  isUpscaledDLAvailable = true,
 }: {
   isLoading: boolean
   generatedImagesInGCS: ImageI[]
   generatedCount: number
   isPromptReplayAvailable: boolean
+  isUpscaledDLAvailable?: boolean
 }) {
   // Full screen, Export & Download states
   const [imageFullScreen, setImageFullScreen] = useState<ImageI | undefined>()
@@ -83,6 +86,17 @@ export default function OutputImagesDisplay({
       else return { ...appContextDataDefault, imageToVideo: imageGcsURI }
     })
     router.push('/generate')
+  }
+  const handleDLimage = async (image: ImageI) => {
+    try {
+      const res = await downloadMediaFromGcs(image.gcsUri)
+      const name = `${image.key}.${image.format.toLowerCase()}`
+      downloadBase64Media(res.data, name, image.format)
+
+      if (typeof res === 'object' && res.error) throw Error(res.error.replaceAll('Error: ', ''))
+    } catch (error: any) {
+      throw Error(error)
+    }
   }
 
   return (
@@ -219,7 +233,7 @@ export default function OutputImagesDisplay({
                         </CustomWhiteTooltip>
                         <CustomWhiteTooltip title="Download locally" size="small">
                           <IconButton
-                            onClick={() => setImageToDL(image)}
+                            onClick={isUpscaledDLAvailable ? () => setImageToDL(image) : () => handleDLimage(image)}
                             aria-label="Download image"
                             sx={{ pr: 1, pl: 0.2, zIndex: 10 }}
                             disableRipple

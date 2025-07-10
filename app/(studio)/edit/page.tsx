@@ -34,13 +34,15 @@ export default function Page() {
   const [editErrorMsg, setEditErrorMsg] = useState('')
   const { appContext, error } = useAppContext()
   const [editedCount, setEditedCount] = useState<number>(0)
+  const [isUpscaledDLAvailable, setIsUpscaleDLAvailable] = useState(true)
 
   const handleImageGeneration = (newImages: ImageI[]) => {
     setEditedImagesInGCS(newImages)
     setIsEditLoading(false)
   }
 
-  const handleRequestSent = (valid: boolean, count: number) => {
+  const handleRequestSent = (valid: boolean, count: number, isUpscaledDLAvailable: boolean) => {
+    setIsUpscaleDLAvailable(isUpscaledDLAvailable)
     editErrorMsg !== '' && valid && setEditErrorMsg('')
     setIsEditLoading(valid)
     setEditedCount(count)
@@ -84,6 +86,7 @@ export default function Page() {
               generatedImagesInGCS={editedImagesInGCS}
               generatedCount={editedCount}
               isPromptReplayAvailable={false}
+              isUpscaledDLAvailable={isUpscaledDLAvailable}
             />
           </Grid>
         </Grid>

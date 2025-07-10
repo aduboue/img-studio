@@ -89,16 +89,15 @@ export default function DownloadDialog({
     if (media) {
       try {
         // 1. Upscale if needed
-        let upscaledGcsUri
+        let res
         if (upscaleFactor === 'x2' || upscaleFactor === 'x4') {
           try {
             setStatus('Upscaling...')
 
-            upscaledGcsUri = await upscaleImage(media.gcsUri, upscaleFactor, appContext)
-            if (typeof upscaledGcsUri === 'object' && 'error' in upscaledGcsUri)
-              throw Error(upscaledGcsUri.error.replaceAll('Error: ', ''))
+            res = await upscaleImage({ uri: media.gcsUri }, upscaleFactor, appContext)
+            if (typeof res === 'object' && 'error' in res && res.error) throw Error(res.error.replaceAll('Error: ', ''))
 
-            media.gcsUri = upscaledGcsUri
+            media.gcsUri = res.newGcsUri
           } catch (error: any) {
             throw Error(error)
           }
@@ -120,7 +119,7 @@ export default function DownloadDialog({
         onClose()
       } catch (error: any) {
         console.log(error)
-        setErrorMsg('Error while upscaleing your image')
+        setErrorMsg('Error while upscaling your image')
       }
     }
   }
@@ -129,6 +128,8 @@ export default function DownloadDialog({
     handleMediaDLClose()
     setErrorMsg('')
   }
+
+  const isTooLarge = (width: number, height: number) => width > 5000 || height > 5000
 
   return (
     <Dialog
@@ -194,10 +195,15 @@ export default function DownloadDialog({
               label={CustomRadioLabel(
                 'x2',
                 'Scale x2',
-                mediaToDL ? `${mediaToDL.width * 2} x ${mediaToDL.height * 2} px` : '',
+                mediaToDL && isTooLarge(mediaToDL.width * 2, mediaToDL.height * 2)
+                  ? 'Unavailable, image too large'
+                  : mediaToDL
+                  ? `${mediaToDL.width * 2} x ${mediaToDL.height * 2} px`
+                  : '',
                 upscaleFactor,
                 true
               )}
+              disabled={mediaToDL && isTooLarge(mediaToDL.width * 2, mediaToDL.height * 2)}
             />
             <FormControlLabel
               value="x4"
@@ -205,10 +211,15 @@ export default function DownloadDialog({
               label={CustomRadioLabel(
                 'x4',
                 'Scale x4',
-                mediaToDL ? `${mediaToDL.width * 4} x ${mediaToDL.height * 4} px` : '',
+                mediaToDL && isTooLarge(mediaToDL.width * 4, mediaToDL.height * 4)
+                  ? 'Unavailable, image too large'
+                  : mediaToDL
+                  ? `${mediaToDL.width * 4} x ${mediaToDL.height * 4} px`
+                  : '',
                 upscaleFactor,
                 true
               )}
+              disabled={mediaToDL && isTooLarge(mediaToDL.width * 4, mediaToDL.height * 4)}
             />
           </RadioGroup>
         </FormControl>

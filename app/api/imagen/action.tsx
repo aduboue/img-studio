@@ -684,7 +684,11 @@ export async function editImage(formData: EditImageFormI, appContext: appContext
   }
 }
 
-export async function upscaleImage(sourceUri: string, upscaleFactor: string, appContext: appContextDataI | null) {
+export async function upscaleImage(
+  source: { uri: string } | { base64: string },
+  upscaleFactor: string,
+  appContext: appContextDataI | null
+) {
   // 1 - Atempting to authent to Google Cloud & fetch project informations
   let client
   try {
@@ -702,18 +706,24 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
   const projectId = process.env.NEXT_PUBLIC_PROJECT_ID
   const imagenAPIurl = `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}/locations/${location}/publishers/google/models/imagegeneration@002:predict`
 
-  // 2 Downloading source image
-  let res
-  try {
-    res = await downloadMediaFromGcs(sourceUri)
+  // 2 (Opt) Downloading source image
+  let base64Image
+  if ('uri' in source) {
+    let res
+    try {
+      res = await downloadMediaFromGcs(source.uri)
 
-    if (typeof res === 'object' && res['error']) {
-      throw Error(res['error'].replaceAll('Error: ', ''))
+      if (typeof res === 'object' && res['error']) {
+        throw Error(res['error'].replaceAll('Error: ', ''))
+      }
+    } catch (error: any) {
+      throw Error(error)
     }
-  } catch (error: any) {
-    throw Error(error)
+    const { data } = res
+    base64Image = data
+  } else {
+    base64Image = source.base64
   }
-  const { data } = res
 
   // 3 - Building Imagen request body
   let targetGCSuri = ''
@@ -727,12 +737,15 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
   else {
     targetGCSuri = `${appContext.gcsURI}/${appContext.userID}/upscaled-images`
   }
+
+  const base64ImageEncoded = base64Image && base64Image.startsWith('data:') ? base64Image.split(',')[1] : base64Image
+
   const reqData = {
     instances: [
       {
         prompt: '',
         image: {
-          bytesBase64Encoded: data,
+          bytesBase64Encoded: base64ImageEncoded,
         },
       },
     ],
@@ -763,11 +776,15 @@ export async function upscaleImage(sourceUri: string, upscaleFactor: string, app
       throw Error('There were an issue, images could not be upscaled')
     }
 
-    const newGcsUri: string = res.data.predictions[0].gcsUri
-
-    return newGcsUri
+    return { newGcsUri: res.data.predictions[0].gcsUri, mimeType: res.data.predictions[0].mimeType }
   } catch (error) {
     console.error(error)
+    if ((error as Error).message.includes('Response size too large.'))
+      return {
+        error:
+          'Image size limit exceeded. The resulting image is too large. Please try a smaller resolution or a different image.',
+      }
+
     return {
       error: 'Error while upscaling images.',
     }

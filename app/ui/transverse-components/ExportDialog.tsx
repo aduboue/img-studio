@@ -110,7 +110,7 @@ export default function ExportStepper({
     getValues,
     formState: { errors },
   } = useForm<ExportMediaFormI>({
-    defaultValues: { upscaleFactor: mediaToExport?.ratio === '1:1' ? 'x4' : 'no' },
+    defaultValues: { upscaleFactor: 'no' },
   })
 
   useEffect(() => {
@@ -173,17 +173,16 @@ export default function ExportStepper({
 
       try {
         // 1. Upscale if needed
-        let upscaledGcsUri
+        let res
         const upscaleFactor = formData.upscaleFactor
         if (upscaleFactor === 'x2' || upscaleFactor === 'x4') {
           try {
             setExportStatus('Upscaling...')
 
-            upscaledGcsUri = await upscaleImage(media.gcsUri, upscaleFactor, appContext)
-            if (typeof upscaledGcsUri === 'object' && 'error' in upscaledGcsUri)
-              throw Error(upscaledGcsUri.error.replaceAll('Error: ', ''))
+            res = await upscaleImage({ uri: media.gcsUri }, upscaleFactor, appContext)
+            if (typeof res === 'object' && 'error' in res && res.error) throw Error(res.error.replaceAll('Error: ', ''))
 
-            media.gcsUri = upscaledGcsUri
+            media.gcsUri = res.newGcsUri
 
             media.width = media.width * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
             media.height = media.height * parseInt(upscaleFactor.replace(/[^0-9]/g, ''))
@@ -376,6 +375,7 @@ export default function ExportStepper({
     )
   }
 
+  const isTooLarge = (width: number, height: number) => width > 5000 || height > 5000
   const UpscaleStep = () => {
     return (
       <>
@@ -396,21 +396,25 @@ export default function ExportStepper({
               />
               <CustomRadio
                 label="Scale x2"
-                subLabel={`${mediaToExport && mediaToExport.width * 2} x ${
-                  mediaToExport && mediaToExport.height * 2
-                } px`}
+                subLabel={
+                  mediaToExport && isTooLarge(mediaToExport.width * 2, mediaToExport.height * 2)
+                    ? 'Unavailable, image too large'
+                    : `${mediaToExport && mediaToExport.width * 2} x ${mediaToExport && mediaToExport.height * 2} px`
+                }
                 value="x2"
                 currentSelectedValue={field.value}
-                enabled={true}
+                enabled={mediaToExport ? !isTooLarge(mediaToExport.width * 2, mediaToExport.height * 2) : true}
               />
               <CustomRadio
                 label="Scale x4"
-                subLabel={`${mediaToExport && mediaToExport.width * 4} x ${
-                  mediaToExport && mediaToExport.height * 4
-                } px`}
+                subLabel={
+                  mediaToExport && isTooLarge(mediaToExport.width * 4, mediaToExport.height * 4)
+                    ? 'Unavailable, image too large'
+                    : `${mediaToExport && mediaToExport.width * 4} x ${mediaToExport && mediaToExport.height * 4} px`
+                }
                 value="x4"
                 currentSelectedValue={field.value}
-                enabled={true}
+                enabled={mediaToExport ? !isTooLarge(mediaToExport.width * 4, mediaToExport.height * 4) : true}
               />
             </RadioGroup>
           )}
