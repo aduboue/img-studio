@@ -15,6 +15,7 @@
 import React from 'react'
 import { Box, Fade, Tooltip } from '@mui/material'
 import theme from '../../theme'
+import zIndex from '@mui/material/styles/zIndex'
 const { palette } = theme
 
 const CustomizedSmallTooltip = {
@@ -65,12 +66,6 @@ const CustomizedBigTooltip = {
       color: palette.text.primary,
     },
   },
-  modifiers: [
-    {
-      name: 'offset',
-      options: { offset: [-10, -25] },
-    },
-  ],
 }
 
 export default function CustomTooltip({
@@ -96,7 +91,7 @@ export default function CustomTooltip({
     <Tooltip
       title={title}
       open={open}
-      placement={size === 'small' ? 'bottom' : size === 'big' ? 'top-start' : 'top'}
+      placement={size === 'small' ? 'bottom' : size === 'big' ? 'right' : 'top'}
       disableInteractive
       TransitionComponent={Fade}
       TransitionProps={{ timeout: 600 }}

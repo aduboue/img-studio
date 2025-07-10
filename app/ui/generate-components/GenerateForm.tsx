@@ -75,6 +75,7 @@ import { EditImageFormFields } from '@/app/api/edit-utils'
 import {
   GenerateVideoFormFields,
   GenerateVideoFormI,
+  InterpolImageDefaults,
   InterpolImageI,
   OperationMetadataI,
   tempVeo3specificSettings,
@@ -273,6 +274,22 @@ export default function GenerateForm({
 
   //TODO temp - remove when Veo 3 is fully released
   const currentModel = watch('modelVersion')
+  const isAudioAvailable = currentModel.includes('veo-3.0')
+  const isOnlyITVavailable =
+    currentModel.includes('veo-3.0') &&
+    !currentModel.includes('fast') &&
+    process.env.NEXT_PUBLIC_VEO_ITV_ENABLED === 'true'
+  const isAdvancedFeaturesAvailable =
+    currentModel.includes('veo-2.0') && process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true'
+  useEffect(() => {
+    if (!isAdvancedFeaturesAvailable) {
+      setValue('cameraPreset', '')
+      setValue('interpolImageLast', { ...InterpolImageDefaults, purpose: 'last' })
+
+      if (!isOnlyITVavailable) setValue('interpolImageFirst', { ...InterpolImageDefaults, purpose: 'first' })
+    }
+  }, [currentModel, isAdvancedFeaturesAvailable, isOnlyITVavailable, setValue])
+
   // Transforms a "Publisher Model not found" error message into a user-friendly message.
   interface ModelOption {
     value: string
@@ -472,9 +489,7 @@ export default function GenerateForm({
             required={!optionalVeoPrompt}
             rows={7}
             promptIndication={`${promptIndication}${
-              currentModel === 'veo-3.0-generate-preview'
-                ? ', audio (dialogue/ sound effects/ music/ ambiant sounds)'
-                : ''
+              isAudioAvailable ? ', audio (dialogue/ sound effects/ music/ ambiant sounds)' : ''
             }`}
           />
 
@@ -520,16 +535,14 @@ export default function GenerateForm({
               control={control}
               setValue={setValue}
               generalSettingsFields={
-                currentModel === 'veo-3.0-generate-preview' ? tempVeo3specificSettings : generationFields.settings
+                currentModel.includes('veo-3.0') ? tempVeo3specificSettings : generationFields.settings
               }
               advancedSettingsFields={generationFields.advancedSettings}
               warningMessage={
-                currentModel === 'veo-3.0-generate-preview'
-                  ? 'NB: for now, Veo 3 has fewer setting options than Veo 2!'
-                  : ''
+                currentModel.includes('veo-3.0') ? 'NB: for now, Veo 3 has fewer setting options than Veo 2!' : ''
               }
             />
-            {currentModel.includes('veo-3.0') && (
+            {isAudioAvailable && (
               <CustomTooltip title="Add audio to your video" size="small">
                 <AudioSwitch checked={isVideoWithAudio} onChange={handleVideoAudioCheck} />
               </CustomTooltip>
@@ -607,109 +620,105 @@ export default function GenerateForm({
               </AccordionDetails>
             </Accordion>
           )}
-          {generationType === 'Video' &&
-            process.env.NEXT_PUBLIC_VEO_ENABLED === 'true' &&
-            process.env.NEXT_PUBLIC_VEO_ITV_ENABLED === 'true' && (
-              <Accordion
-                disableGutters
-                expanded={expanded === 'interpolation'}
-                onChange={handleChange('interpolation')}
-                sx={CustomizedAccordion}
+          {generationType === 'Video' && (isOnlyITVavailable || isAdvancedFeaturesAvailable) && (
+            <Accordion
+              disableGutters
+              expanded={expanded === 'interpolation'}
+              onChange={handleChange('interpolation')}
+              sx={CustomizedAccordion}
+            >
+              <AccordionSummary
+                expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
+                aria-controls="panel1-content"
+                id="panel1-header"
+                sx={CustomizedAccordionSummary}
               >
-                <AccordionSummary
-                  expandIcon={<ArrowDownwardIcon sx={{ color: palette.primary.main }} />}
-                  aria-controls="panel1-content"
-                  id="panel1-header"
-                  sx={CustomizedAccordionSummary}
-                >
-                  <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
-                    {process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && !currentModel.includes('veo-3.0')
-                      ? 'Image(s) to video & Camera presets'
-                      : 'Image to video'}
-                  </Typography>
-                </AccordionSummary>
-                {
-                  // Advanced features (interpolation, camera preset) are only available for Veo 2 for now!
-                  process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && !currentModel.includes('veo-3.0') && (
-                    <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
-                      <Stack
-                        direction="row"
-                        flexWrap="wrap"
-                        justifyContent="flex-start"
-                        alignItems="flex-start"
-                        spacing={0.5}
-                        sx={{ pt: 1, pb: 1 }}
-                      >
-                        <VideoInterpolBox
-                          label="Base image"
-                          sublabel={'(or first frame)'}
-                          objectKey="interpolImageFirst"
-                          onNewErrorMsg={onNewErrorMsg}
-                          setValue={setValue}
-                          interpolImage={interpolImageFirst}
-                          orientation={orientation}
-                        />
+                <Typography display="inline" variant="body1" sx={{ fontWeight: 500 }}>
+                  {isAdvancedFeaturesAvailable ? 'Image(s) to video & Camera presets' : 'Image to video'}
+                </Typography>
+              </AccordionSummary>
+              {
+                // Advanced features (interpolation, camera preset) are only available for Veo 2 for now!
+                isAdvancedFeaturesAvailable && (
+                  <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
+                    <Stack
+                      direction="row"
+                      flexWrap="wrap"
+                      justifyContent="flex-start"
+                      alignItems="flex-start"
+                      spacing={0.5}
+                      sx={{ pt: 1, pb: 1 }}
+                    >
+                      <VideoInterpolBox
+                        label="Base image"
+                        sublabel={'(or first frame)'}
+                        objectKey="interpolImageFirst"
+                        onNewErrorMsg={onNewErrorMsg}
+                        setValue={setValue}
+                        interpolImage={interpolImageFirst}
+                        orientation={orientation}
+                      />
 
-                        <ArrowRight color={interpolImageLast.base64Image === '' ? 'secondary' : 'primary'} />
-                        <VideoInterpolBox
-                          label="Last frame"
-                          sublabel="(optional)"
-                          objectKey="interpolImageLast"
-                          onNewErrorMsg={onNewErrorMsg}
-                          setValue={setValue}
-                          interpolImage={interpolImageLast}
-                          orientation={orientation}
-                        />
-                      </Stack>
-                      <Box sx={{ py: 2 }}>
-                        <FormInputChipGroup
-                          name="cameraPreset"
-                          label={videoGenerationUtils.cameraPreset.label ?? ''}
-                          control={control}
-                          setValue={setValue}
-                          width="450px"
-                          field={videoGenerationUtils.cameraPreset as chipGroupFieldsI}
-                          required={false}
-                        />
-                      </Box>
-                    </AccordionDetails>
-                  )
-                }
-                {
-                  // Advanced features (interpolation, camera preset) are only available for Veo 2 for now!
-                  !(process.env.NEXT_PUBLIC_VEO_ADVANCED_ENABLED === 'true' && !currentModel.includes('veo-3.0')) && (
-                    <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
-                      <Stack
-                        direction="row"
-                        flexWrap="wrap"
-                        justifyContent="flex-start"
-                        alignItems="flex-start"
-                        spacing={0.5}
-                        sx={{ pt: 1, pb: 1 }}
+                      <ArrowRight color={interpolImageLast.base64Image === '' ? 'secondary' : 'primary'} />
+                      <VideoInterpolBox
+                        label="Last frame"
+                        sublabel="(optional)"
+                        objectKey="interpolImageLast"
+                        onNewErrorMsg={onNewErrorMsg}
+                        setValue={setValue}
+                        interpolImage={interpolImageLast}
+                        orientation={orientation}
+                      />
+                    </Stack>
+                    <Box sx={{ py: 2 }}>
+                      <FormInputChipGroup
+                        name="cameraPreset"
+                        label={videoGenerationUtils.cameraPreset.label ?? ''}
+                        control={control}
+                        setValue={setValue}
+                        width="450px"
+                        field={videoGenerationUtils.cameraPreset as chipGroupFieldsI}
+                        required={false}
+                      />
+                    </Box>
+                  </AccordionDetails>
+                )
+              }
+              {
+                // Advanced features (interpolation, camera preset) are only available for Veo 2 for now!
+                isOnlyITVavailable && (
+                  <AccordionDetails sx={{ pt: 0, pb: 1, height: 'auto' }}>
+                    <Stack
+                      direction="row"
+                      flexWrap="wrap"
+                      justifyContent="flex-start"
+                      alignItems="flex-start"
+                      spacing={0.5}
+                      sx={{ pt: 1, pb: 1 }}
+                    >
+                      <VideoInterpolBox
+                        label="Base image"
+                        sublabel={'(input)'}
+                        objectKey="interpolImageFirst"
+                        onNewErrorMsg={onNewErrorMsg}
+                        setValue={setValue}
+                        interpolImage={interpolImageFirst}
+                        orientation={orientation}
+                      />
+                      <Typography
+                        color={palette.warning.main}
+                        sx={{ fontSize: '0.85rem', fontWeight: 400, pt: 2, width: '70%' }}
                       >
-                        <VideoInterpolBox
-                          label="Base image"
-                          sublabel={'(input)'}
-                          objectKey="interpolImageFirst"
-                          onNewErrorMsg={onNewErrorMsg}
-                          setValue={setValue}
-                          interpolImage={interpolImageFirst}
-                          orientation={orientation}
-                        />
-                        <Typography
-                          color={palette.warning.main}
-                          sx={{ fontSize: '0.85rem', fontWeight: 400, pt: 2, width: '70%' }}
-                        >
-                          {
-                            'For now, Veo 3 does not support Image Interpolation and Camera Presets, switch to Veo 2 to use them!'
-                          }
-                        </Typography>
-                      </Stack>
-                    </AccordionDetails>
-                  )
-                }
-              </Accordion>
-            )}
+                        {
+                          'For now, Veo 3 does not support Image Interpolation and Camera Presets, switch to Veo 2 to use them!'
+                        }
+                      </Typography>
+                    </Stack>
+                  </AccordionDetails>
+                )
+              }
+            </Accordion>
+          )}
           <Accordion
             disableGutters
             defaultExpanded

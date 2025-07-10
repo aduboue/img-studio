@@ -26,7 +26,8 @@
     - **Public GA:** `veo-2.0-generate-001` (Standard)
   - **Veo 3** Generation (Text to Video\+Audio)
     - **Public Preview:** `veo-3.0-generate-preview` (Standard)
-  - **Veo 3** ITV Generation (Image to Video \+ Audio) & **Veo 2** Advanced features (Interpolation, Camera Preset Controls, Video Extend)
+    - **Public Preview:** `veo-3.0-fast-generate-preview` (Fast)
+  - **Veo 3 Standard** ITV Generation (Image to Video \+ Audio) & **Veo 2** Advanced features (Interpolation, Camera Preset Controls, Video Extend)
     - **Private Access:** `veo-3.0-generate-preview` & `veo-2.0-generate-exp` \- to gain access, fill out [this form](https://docs.google.com/forms/d/e/1FAIpQLSciY6O_qGg2J0A8VUcK4egJ3_Tysh-wGTl-l218XtC0e7lM_w/viewform)
 
 ## 1\\ Create **Cloud Storage** buckets

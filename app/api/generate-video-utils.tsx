@@ -55,10 +55,17 @@ export const GenerateVideoFormFields = {
       {
         value: 'veo-3.0-generate-preview',
         label: 'Veo 3',
+        indication: 'Standard model version: Text-to-video & Image-to-video + Audio',
+      },
+      {
+        value: 'veo-3.0-fast-generate-preview',
+        label: 'Veo 3 Fast',
+        indication: 'Low latency model version: Text-to-video + Audio',
       },
       {
         value: 'veo-2.0-generate-001',
         label: 'Veo 2',
+        indication: 'Standard model version: Text-to-video & Image-to-video',
       },
     ],
     isDataResetable: false,
