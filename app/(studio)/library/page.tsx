@@ -135,9 +135,11 @@ export default function Page() {
             }
           }
         )
-        const documentsWithSignedUrls = (await Promise.all(documentsWithSignedUrlsPromises)).filter(
-          (doc) => !doc.gcsURIError
-        )
+        const documentsWithSignedUrls = (await Promise.all(documentsWithSignedUrlsPromises)).filter((doc) => {
+          if (!doc || !doc.signedUrl || doc.gcsURIError) return false
+          if (doc.format == 'MP4') return doc.videoThumbnailSignedUrl && doc.videoThumbnailSignedUrl !== ''
+          return true
+        })
 
         setLastVisibleDocument(res.lastVisibleDocument)
         setIsMorePageToLoad(res.isMorePageToLoad || false)
