@@ -47,7 +47,7 @@ export default function Page() {
   const [fetchedMediasByPage, setFetchedMediasByPage] = useState<MediaMetadataWithSignedUrl[][]>([])
   const [lastVisibleDocument, setLastVisibleDocument] = useState<any | null>(null)
   const [isMorePageToLoad, setIsMorePageToLoad] = useState(false)
-  const [filters, setFilters] = useState(null)
+  const [filters, setFilters] = useState({}) // Initialized to an empty object
   const [openFilters, setOpenFilters] = useState(false)
 
   // State for deletion flow
@@ -108,7 +108,6 @@ export default function Page() {
         }
 
         setErrorMsg('')
-
         const documentsWithSignedUrlsPromises = documents.map(
           async (doc: { gcsURI: string; videoThumbnailGcsUri?: string }) => {
             if (!doc.gcsURI) return { ...doc, signedUrl: '' } as MediaMetadataWithSignedUrl
@@ -149,7 +148,6 @@ export default function Page() {
           else return prevPages.concat([documentsWithSignedUrls])
         })
       } catch (error: any) {
-        console.error(error)
         setErrorMsg(`An error occurred while fetching medias. Please try again.`)
 
         if (isReplacingExistingData) {
@@ -169,19 +167,15 @@ export default function Page() {
     setFilters(newFilters)
   }, [])
 
+  // This single useEffect handles both initial load and subsequent filter changes.
   useEffect(() => {
-    if (lastVisibleDocument === null && filters !== null) fetchDataAndSignedUrls(filters, null, true)
-  }, [filters, lastVisibleDocument, fetchDataAndSignedUrls])
-
-  useEffect(() => {
-    setIsMediasLoading(true)
-    setFetchedMediasByPage([])
-    setLastVisibleDocument(null)
-    fetchDataAndSignedUrls({}, null, true)
-  }, [fetchDataAndSignedUrls])
+    // A new fetch from the beginning is triggered whenever the filters change.
+    fetchDataAndSignedUrls(filters, null, true)
+  }, [filters, fetchDataAndSignedUrls])
 
   const handleLoadMore = useCallback(async () => {
     if (lastVisibleDocument && isMorePageToLoad) {
+      // For loading more, we pass the current filters and the cursor.
       await fetchDataAndSignedUrls(filters ?? {}, lastVisibleDocument, false)
     }
   }, [lastVisibleDocument, isMorePageToLoad, filters, fetchDataAndSignedUrls])
@@ -225,7 +219,7 @@ export default function Page() {
         setDelStatus('init')
       }
     }
-  }, [deletionStatus, selectedIdsForDeletion, fetchedMediasByPage, filters, fetchDataAndSignedUrls])
+  }, [deletionStatus, selectedIdsForDeletion, fetchedMediasByPage, fetchDataAndSignedUrls])
 
   const handleMediaDeletionSelect = useCallback(
     (docId: string) => {

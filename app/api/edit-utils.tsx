@@ -254,7 +254,7 @@ export const maskTypes = [
     description: 'One or more element(s) by their semantic class(es)',
     readOnlyCanvas: true,
     requires: 'semanticDropdown',
-  },*/
+  },
   {
     value: 'interactive',
     label: 'Interactive',
@@ -268,7 +268,7 @@ export const maskTypes = [
     description: 'A zone targetted through a written description of it',
     readOnlyCanvas: true,
     requires: 'promptInput',
-  },
+  },*/
   {
     value: 'outpaint',
     label: 'Configure outpaint zone',

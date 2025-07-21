@@ -75,13 +75,13 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
 
   if (filters) {
     const filterEntries = Object.entries(filters).filter(([, values]) => Array.isArray(values) && values.length > 0)
-    let combinedFilterEntries: string[] = []
-    for (const [filterKey, filterValues] of filterEntries) {
-      ;(filterValues as string[]).forEach((filterValue) => {
-        combinedFilterEntries.push(filterKey + '_' + filterValue)
-      })
+    if (filterEntries.length > 0) {
+      const combinedFilterEntries = filterEntries.flatMap(([filterKey, filterValues]) =>
+        (filterValues as string[]).map((filterValue) => `${filterKey}_${filterValue}`)
+      )
+      if (combinedFilterEntries.length > 0)
+        query = query.where('combinedFilters', 'array-contains-any', combinedFilterEntries)
     }
-    query = query.where('combinedFilters', 'array-contains-any', combinedFilterEntries)
   }
 
   query = query.orderBy('timestamp', 'desc').limit(batchSize)
@@ -121,13 +121,13 @@ export async function fetchDocumentsInBatches(lastVisibleDocument?: any, filters
     let nextPageQuery = collection
     if (filters) {
       const filterEntries = Object.entries(filters).filter(([, values]) => Array.isArray(values) && values.length > 0)
-      let combinedFilterEntries: string[] = []
-      for (const [filterKey, filterValues] of filterEntries) {
-        ;(filterValues as string[]).forEach((filterValue) => {
-          combinedFilterEntries.push(filterKey + '_' + filterValue)
-        })
+      if (filterEntries.length > 0) {
+        const combinedFilterEntries = filterEntries.flatMap(([filterKey, filterValues]) =>
+          (filterValues as string[]).map((filterValue) => `${filterKey}_${filterValue}`)
+        )
+        if (combinedFilterEntries.length > 0)
+          nextPageQuery = nextPageQuery.where('combinedFilters', 'array-contains-any', combinedFilterEntries)
       }
-      nextPageQuery = nextPageQuery.where('combinedFilters', 'array-contains-any', combinedFilterEntries)
     }
 
     nextPageQuery = nextPageQuery
