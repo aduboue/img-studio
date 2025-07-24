@@ -288,6 +288,8 @@ export default function GenerateForm({
 
       if (!isOnlyITVavailable) setValue('interpolImageFirst', { ...InterpolImageDefaults, purpose: 'first' })
     }
+
+    if (currentModel.includes('veo-2.0')) setValue('resolution', '720p')
   }, [currentModel, isAdvancedFeaturesAvailable, isOnlyITVavailable, setValue])
 
   // Transforms a "Publisher Model not found" error message into a user-friendly message.

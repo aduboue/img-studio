@@ -442,6 +442,7 @@ export interface selectFieldsI {
 
 export interface generalSettingsI {
   aspectRatio: chipGroupFieldsI
+  resolution?: chipGroupFieldsI
   durationSeconds?: chipGroupFieldsI
   sampleCount: chipGroupFieldsI
 }

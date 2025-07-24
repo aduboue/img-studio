@@ -28,6 +28,7 @@ export interface GenerateVideoFormFieldsI {
   negativePrompt: GenerateFieldI1
   seedNumber: GenerateFieldI1
   aspectRatio: GenerateFieldI1
+  resolution: GenerateFieldI1
   durationSeconds: GenerateFieldI1
   personGeneration: GenerateFieldI1
   style: GenerateFieldStyleI
@@ -101,6 +102,14 @@ export const GenerateVideoFormFields = {
     type: 'chip-group',
     default: '16:9',
     options: ['16:9', '9:16'],
+    isDataResetable: false,
+    isFullPromptAdditionalField: false,
+  },
+  resolution: {
+    label: 'Resolution',
+    type: 'chip-group',
+    default: '720p',
+    options: ['720p'],
     isDataResetable: false,
     isFullPromptAdditionalField: false,
   },
@@ -377,6 +386,7 @@ export const videoGenerationUtils: VideoGenerationFieldsI = {
   model: GenerateVideoFormFields.modelVersion,
   settings: {
     aspectRatio: GenerateVideoFormFields.aspectRatio,
+    resolution: GenerateVideoFormFields.resolution,
     durationSeconds: GenerateVideoFormFields.durationSeconds,
     sampleCount: GenerateVideoFormFields.sampleCount,
   },
@@ -426,6 +436,14 @@ export const tempVeo3specificSettings = {
     isDataResetable: true,
     isFullPromptAdditionalField: false,
   },
+  resolution: {
+    label: 'Resolution',
+    type: 'chip-group',
+    default: '720p',
+    options: ['720p', '1080p'],
+    isDataResetable: false,
+    isFullPromptAdditionalField: false,
+  },
 }
 
 // Interface of Generate form fields
@@ -438,6 +456,7 @@ export interface GenerateVideoFormI {
   seedNumber: string
   aspectRatio: string
   durationSeconds: string
+  resolution: string
   personGeneration: string
   style: string
   secondary_style: string
@@ -456,6 +475,7 @@ export interface VideoI {
   src: string
   gcsUri: string
   ratio: string
+  resolution: string
   duration: number
   thumbnailGcsUri: string
   width: number
@@ -517,6 +537,7 @@ export interface VeoModelResultI {
 export interface BuildVideoListParams {
   videosInGCS: VeoModelResultI[]
   aspectRatio: string
+  resolution: string
   duration: number
   width: number
   height: number

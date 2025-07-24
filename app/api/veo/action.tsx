@@ -117,6 +117,7 @@ function generatePrompt(formData: any) {
 export async function buildVideoListFromURI({
   videosInGCS,
   aspectRatio,
+  resolution,
   duration,
   width,
   height,
@@ -184,6 +185,7 @@ export async function buildVideoListFromURI({
         width: width,
         height: height,
         ratio: aspectRatio,
+        resolution: resolution,
         duration: duration,
         date: formattedDate,
         author: userID,
@@ -285,6 +287,9 @@ export async function generateVideo(
     personGeneration: formData.personGeneration,
     generateAudio: formData.modelVersion.includes('veo-3.0') && formData.isVideoWithAudio,
   }
+
+  // TODO - Temp until resolution available for all models
+  if (formData.modelVersion.includes('veo-3.0')) parameters['resolution'] = formData.resolution
 
   if (formData['seedNumber']) parameters['seed'] = parseInt(formData['seedNumber'], 10)
 
@@ -502,6 +507,7 @@ export async function getVideoGenerationStatus(
         const enhancedVideoList = await buildVideoListFromURI({
           videosInGCS: rawVideoResults,
           aspectRatio: formData.aspectRatio,
+          resolution: formData.resolution,
           duration: parseInt(formData.durationSeconds, 10),
           width: usedRatio?.width ?? 1280,
           height: usedRatio?.height ?? 720,

@@ -39,6 +39,7 @@ export interface ExportMediaFormFieldsI {
   prompt: ExportMediaFieldI
   format: ExportMediaFieldI
   videoDuration: ExportMediaFieldI
+  videoResolution: ExportMediaFieldI
   videoThumbnailGcsUri: ExportMediaFieldI
   aspectRatio: ExportMediaFieldI
   upscaleFactor: ExportMediaFieldI
@@ -120,6 +121,14 @@ export const exportStandardFields: ExportMediaFormFieldsI = {
     isExportVisible: true,
     isExploreVisible: true,
   },
+  videoResolution: {
+    label: 'Resolution',
+    type: 'text-info',
+    prop: 'resolution',
+    isUpdatable: false,
+    isExportVisible: true,
+    isExploreVisible: true,
+  },
   videoThumbnailGcsUri: {
     label: 'Video Thumbnail GCS URI',
     type: 'text-info',
@@ -181,6 +190,7 @@ export interface MediaMetadataI {
   prompt: string
   format: string
   videoDuration?: number
+  videoResolution?: string
   videoThumbnailGcsUri?: string
   aspectRatio: string
   upscaleFactor?: string
