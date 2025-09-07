@@ -80,20 +80,25 @@ export const GenerateImageFormFields = {
   },
   modelVersion: {
     type: 'select',
-    default: 'imagen-4.0-generate-preview-06-06',
+    default: 'gemini-2.5-flash-image-preview',
     options: [
       {
-        value: 'imagen-4.0-generate-preview-06-06',
+        value: 'gemini-2.5-flash-image-preview',
+        label: 'Gemini 2.5',
+        indication: 'Gemini for image generation',
+      },
+      {
+        value: 'imagen-4.0-generate-001',
         label: 'Imagen 4',
         indication: 'Standard model version',
       },
       {
-        value: 'imagen-4.0-ultra-generate-preview-06-06',
+        value: 'imagen-4.0-ultra-generate-001',
         label: 'Imagen 4 - Ultra',
         indication: 'Ultra high performance model version',
       },
       {
-        value: 'imagen-4.0-fast-generate-preview-06-06',
+        value: 'imagen-4.0-fast-generate-001',
         label: 'Imagen 4 - Fast',
         indication: 'Low latency model version',
       },
@@ -408,6 +413,7 @@ export interface GenerateImageFormI {
   image_colors: string
   use_case: string
   referenceObjects: ReferenceObjectI[]
+  geminiInputImages: string[]
 }
 
 // Set default values for Generate Form
