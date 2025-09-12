@@ -548,7 +548,7 @@ export default function GenerateForm({
               }
               advancedSettingsFields={generationFields.advancedSettings}
               warningMessage={
-                currentModel.includes('veo-3.0') ? 'NB: for now, Veo 3 has fewer setting options than Veo 2!' : ''
+                currentModel.includes('veo-3.0') ? 'NB: Veo 3 has different setting options than Veo 2!' : ''
               }
             />
             {isAudioAvailable && (

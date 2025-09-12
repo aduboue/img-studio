@@ -432,7 +432,7 @@ export const tempVeo3specificSettings = {
     label: 'Video duration (seconds)',
     type: 'chip-group',
     default: '8',
-    options: ['8'],
+    options: ['4', '6', '8'],
     isDataResetable: true,
     isFullPromptAdditionalField: false,
   },
