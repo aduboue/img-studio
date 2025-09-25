@@ -268,7 +268,6 @@ export default function Page() {
 
   const imageFormProps = {
     ...commonFormProps,
-    key: 'image-form',
     generationType: 'Image' as const,
     onImageGeneration: handleImageGeneration,
     randomPrompts: ImageRandomPrompts,
@@ -279,7 +278,6 @@ export default function Page() {
 
   const videoFormProps = {
     ...commonFormProps,
-    key: 'video-form',
     generationType: 'Video' as const,
     onVideoPollingStart: handleVideoPollingStart,
     randomPrompts: VideoRandomPrompts,
@@ -304,8 +302,8 @@ export default function Page() {
             weight={500}
           />
 
-          {isImageMode && <GenerateForm {...imageFormProps} />}
-          {isVideoEnabled && !isImageMode && <GenerateForm {...videoFormProps} />}
+          {isImageMode && <GenerateForm key="image-form" {...imageFormProps} />}
+          {isVideoEnabled && !isImageMode && <GenerateForm key="video-form" {...videoFormProps} />}
         </Grid>
         <Grid size={0.9} flex={1} sx={{ pt: 14, maxWidth: 850, minWidth: 400 }}>
           {isImageMode ? (
